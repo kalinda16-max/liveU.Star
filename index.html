@@ -2,7 +2,7 @@
 <html lang="zh-TW" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>LiveU - 藝文紀錄 & 演出追蹤 iOS App</title>
     <!-- iOS 全螢幕 App 必備關鍵標籤 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -68,7 +68,6 @@
             overflow-x: hidden !important;
             background-color: #161D15;
             color: #EFF0EA;
-            font-size: 14px;
         }
 
         .no-scrollbar::-webkit-scrollbar {
@@ -95,7 +94,7 @@
         header, .app-header {
             position: relative;
             z-index: 1000 !important;
-            padding-top: calc(env(safe-area-inset-top, 16px) + 8px) !important;
+            padding-top: calc(env(safe-area-inset-top, 20px) + 12px) !important;
             background-color: #121212 !important;
             border-bottom: 1px solid rgba(115, 124, 117, 0.3);
             flex-shrink: 0;
@@ -128,7 +127,7 @@
         }
 
         .app-safe-bottom {
-            padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
         }
 
         .ios-glass {
@@ -137,6 +136,7 @@
             -webkit-backdrop-filter: blur(20px);
         }
 
+        /* Leaflet Dark Mode & OpenStreetMap Invert Filter Overrides */
         .leaflet-container {
             background: #000000 !important;
             font-family: inherit;
@@ -145,6 +145,7 @@
             filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(90%); 
         }
 
+        /* Simplified Numeric Leaflet Marker */
         .custom-numeric-marker {
             background: #C5AB89;
             border: 2px solid #EFF0EA;
@@ -155,7 +156,8 @@
             align-items: center;
             justify-content: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.7);
-            font-size: 10px;
+            font-size: 11px;
+            transition: transform 0.2s;
         }
         .custom-numeric-marker:hover {
             transform: scale(1.2);
@@ -178,33 +180,6 @@
             justify-content: center;
             padding: 12px;
             box-sizing: border-box !important;
-        }
-
-        .form-row {
-            display: flex !important;
-            flex-wrap: wrap !important;
-            width: 100% !important;
-            gap: 6px !important;
-            box-sizing: border-box !important;
-            margin: 0 !important;
-        }
-
-        .form-group {
-            flex: 1 1 calc(50% - 3px) !important;
-            min-width: 0 !important;
-            max-width: 100% !important;
-            box-sizing: border-box !important;
-        }
-
-        .form-group.full {
-            flex: 1 1 100% !important;
-        }
-
-        input, select, textarea {
-            width: 100% !important;
-            max-width: 100% !important;
-            box-sizing: border-box !important;
-            font-size: 13px !important;
         }
     </style>
 </head>
@@ -237,7 +212,7 @@
                 return saved ? JSON.parse(saved) : { name: 'LiveU', subtitle: 'say something', avatarUrl: '', initials: 'LU' };
             });
 
-            const [activeTab, setActiveTab] = useState('archive');
+            const [activeTab, setActiveTab] = useState('archive'); // archive | schedule | map | stats
             const [viewMode, setViewMode] = useState('list');
             const [selectedCategory, setSelectedCategory] = useState('all');
             const [searchQuery, setSearchQuery] = useState('');
@@ -258,7 +233,7 @@
 
             const showAlert = (msg) => {
                 setAlertMsg(msg);
-                setTimeout(() => setAlertMsg(null), 2500);
+                setTimeout(() => setAlertMsg(null), 3000);
             };
 
             const filteredEvents = useMemo(() => {
@@ -305,7 +280,7 @@
                 const updated = [created, ...events];
                 setEvents(updated);
                 setSelectedEventId(created.id);
-                showAlert('已成功新增藝文紀錄');
+                showAlert('已成功新增藝文紀錄並建立地圖足跡');
             };
 
             const handleDeleteEvent = (id) => {
@@ -314,7 +289,7 @@
                 if (selectedEventId === id && updated.length > 0) {
                     setSelectedEventId(updated[0].id);
                 }
-                showAlert('已刪除該筆紀錄');
+                showAlert('已刪除該筆藝文紀錄');
             };
 
             const handleAddSchedule = (newSch) => {
@@ -327,7 +302,7 @@
             const handleDeleteSchedule = (id) => {
                 const updated = schedules.filter(s => s.id !== id);
                 setSchedules(updated);
-                showAlert('已刪除排程');
+                showAlert('已刪除該筆演出排程');
             };
 
             const getGoogleMapsUrl = (venue, address) => {
@@ -336,60 +311,60 @@
             };
 
             return (
-                <div className="app-container max-w-md mx-auto border-x border-[#737C75]/30 relative text-[#EFF0EA] shadow-2xl text-xs">
+                <div className="app-container max-w-md mx-auto border-x border-[#737C75]/30 relative text-[#EFF0EA] shadow-2xl">
                     
-                    <header className="app-header px-3 py-2 flex items-center justify-between shrink-0">
+                    <header className="app-header px-4 py-2.5 flex items-center justify-between shrink-0">
                         <button 
                             onClick={() => setIsEditProfileOpen(true)}
-                            className="flex items-center gap-2 text-left group transition-all p-1 -ml-1 rounded-xl hover:bg-[#D2CABF]/10 active:scale-95"
+                            className="flex items-center gap-2.5 text-left group transition-all p-1 -ml-1 rounded-xl hover:bg-[#D2CABF]/10 active:scale-95"
                         >
                             <div className="relative">
                                 {userProfile.avatarUrl ? (
-                                    <img src={userProfile.avatarUrl} alt={userProfile.name} className="w-7 h-7 rounded-lg object-cover border border-[#C5AB89]" />
+                                    <img src={userProfile.avatarUrl} alt={userProfile.name} className="w-8 h-8 rounded-lg object-cover border border-[#C5AB89]" />
                                 ) : (
-                                    <div className="w-7 h-7 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center font-black text-[10px] shadow-md border border-[#CCB9AA]">
+                                    <div className="w-8 h-8 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center font-black text-xs shadow-md border border-[#CCB9AA]">
                                         {userProfile.initials || 'LE'}
                                     </div>
                                 )}
                             </div>
                             <div>
-                                <h1 className="font-extrabold text-xs tracking-tight text-[#EFF0EA] group-hover:text-[#C5AB89] transition-colors flex items-center gap-1">
+                                <h1 className="font-extrabold text-sm tracking-tight text-[#EFF0EA] group-hover:text-[#C5AB89] transition-colors flex items-center gap-1">
                                     <span>{userProfile.name}</span>
                                 </h1>
-                                <p className="text-[8px] text-[#D2CABF] uppercase tracking-widest font-mono line-clamp-1">{userProfile.subtitle}</p>
+                                <p className="text-[9px] text-[#D2CABF] uppercase tracking-widest font-mono line-clamp-1">{userProfile.subtitle}</p>
                             </div>
                         </button>
 
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-2">
                             {activeTab === 'archive' && (
                                 <>
                                     <div className="flex bg-[#161D15] p-0.5 rounded-lg border border-[#737C75]/40">
-                                        <button onClick={() => setViewMode('list')} className={`px-2 py-0.5 rounded-md text-[10px] font-medium transition-all ${viewMode === 'list' ? 'bg-[#C5AB89] text-[#161D15] font-bold shadow' : 'text-[#D2CABF]'}`}>條列</button>
-                                        <button onClick={() => setViewMode('calendar')} className={`px-2 py-0.5 rounded-md text-[10px] font-medium transition-all ${viewMode === 'calendar' ? 'bg-[#C5AB89] text-[#161D15] font-bold shadow' : 'text-[#D2CABF]'}`}>月曆</button>
+                                        <button onClick={() => setViewMode('list')} className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${viewMode === 'list' ? 'bg-[#C5AB89] text-[#161D15] font-bold shadow' : 'text-[#D2CABF]'}`}>條列</button>
+                                        <button onClick={() => setViewMode('calendar')} className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${viewMode === 'calendar' ? 'bg-[#C5AB89] text-[#161D15] font-bold shadow' : 'text-[#D2CABF]'}`}>月曆</button>
                                     </div>
                                     <button 
                                         onClick={() => setIsAddModalOpen(true)}
-                                        className="w-7 h-7 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow hover:bg-[#CCB9AA] active:scale-95 transition-all text-xs"
+                                        className="w-8 h-8 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow hover:bg-[#CCB9AA] active:scale-95 transition-all"
                                         title="新增紀錄"
                                     >
-                                        <i data-lucide="plus" className="w-3.5 h-3.5 font-black"></i>
+                                        <i data-lucide="plus" className="w-4 h-4 font-black"></i>
                                     </button>
                                 </>
                             )}
                             {activeTab === 'schedule' && (
                                 <button 
                                     onClick={() => setIsAddScheduleModalOpen(true)}
-                                    className="w-7 h-7 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow hover:bg-[#CCB9AA] active:scale-95 transition-all text-xs"
+                                    className="w-8 h-8 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow hover:bg-[#CCB9AA] active:scale-95 transition-all"
                                     title="新增演出排程"
                                 >
-                                    <i data-lucide="plus" className="w-3.5 h-3.5 font-black"></i>
+                                    <i data-lucide="plus" className="w-4 h-4 font-black"></i>
                                 </button>
                             )}
                         </div>
                     </header>
 
                     {alertMsg && (
-                        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-50 bg-[#C5AB89] text-[#161D15] px-3 py-1 rounded-full text-[10px] font-bold shadow-2xl animate-bounce border border-[#CCB9AA]">
+                        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 bg-[#C5AB89] text-[#161D15] px-4 py-2 rounded-full text-xs font-bold shadow-2xl animate-bounce border border-[#CCB9AA]">
                             {alertMsg}
                         </div>
                     )}
@@ -421,34 +396,49 @@
                         {activeTab === 'stats' && <StatsSection stats={stats} events={events} />}
                     </main>
 
-                    <nav className="bottom-nav ios-glass pt-2 px-3 flex items-center justify-around app-safe-bottom border-t border-[#737C75]/30">
-                        <button onClick={() => setActiveTab('archive')} className={`flex flex-col items-center gap-0.5 transition-all ${activeTab === 'archive' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}>
-                            <i data-lucide="library" className="w-4 h-4"></i>
-                            <span className="text-[9px] font-medium">藝文紀錄</span>
+                    <nav className="bottom-nav ios-glass pt-3 px-4 flex items-center justify-around app-safe-bottom border-t border-[#737C75]/30">
+                        <button onClick={() => setActiveTab('archive')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'archive' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}>
+                            <i data-lucide="library" className="w-5 h-5"></i>
+                            <span className="text-[10px] font-medium">藝文紀錄</span>
                         </button>
-                        <button onClick={() => setActiveTab('schedule')} className={`flex flex-col items-center gap-0.5 transition-all ${activeTab === 'schedule' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}>
-                            <i data-lucide="calendar-days" className="w-4 h-4"></i>
-                            <span className="text-[9px] font-medium">演出排程</span>
+                        <button onClick={() => setActiveTab('schedule')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'schedule' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}>
+                            <i data-lucide="calendar-days" className="w-5 h-5"></i>
+                            <span className="text-[10px] font-medium">演出排程</span>
                         </button>
-                        <button onClick={() => setActiveTab('map')} className={`flex flex-col items-center gap-0.5 transition-all ${activeTab === 'map' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}>
-                            <i data-lucide="map-pin" className="w-4 h-4"></i>
-                            <span className="text-[9px] font-medium">地圖足跡</span>
+                        <button onClick={() => setActiveTab('map')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'map' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}>
+                            <i data-lucide="map-pin" className="w-5 h-5"></i>
+                            <span className="text-[10px] font-medium">地圖足跡</span>
                         </button>
-                        <button onClick={() => setActiveTab('stats')} className={`flex flex-col items-center gap-0.5 transition-all ${activeTab === 'stats' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}>
-                            <i data-lucide="trophy" className="w-4 h-4"></i>
-                            <span className="text-[9px] font-medium">成就統計</span>
+                        <button onClick={() => setActiveTab('stats')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'stats' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}>
+                            <i data-lucide="trophy" className="w-5 h-5"></i>
+                            <span className="text-[10px] font-medium">成就統計</span>
                         </button>
                     </nav>
 
+                    {/* Modals */}
                     {isEditProfileOpen && (
-                        <EditProfileModal userProfile={userProfile} setUserProfile={setUserProfile} onClose={() => setIsEditProfileOpen(false)} showAlert={showAlert} />
+                        <EditProfileModal 
+                            userProfile={userProfile} 
+                            setUserProfile={setUserProfile} 
+                            onClose={() => setIsEditProfileOpen(false)}
+                            showAlert={showAlert}
+                        />
                     )}
+
                     {isAddModalOpen && (
-                        <AddEventModal onAdd={handleAddEvent} onClose={() => setIsAddModalOpen(false)} />
+                        <AddEventModal 
+                            onAdd={handleAddEvent}
+                            onClose={() => setIsAddModalOpen(false)}
+                        />
                     )}
+
                     {isAddScheduleModalOpen && (
-                        <AddScheduleModal onAdd={handleAddSchedule} onClose={() => setIsAddScheduleModalOpen(false)} />
+                        <AddScheduleModal 
+                            onAdd={handleAddSchedule}
+                            onClose={() => setIsAddScheduleModalOpen(false)}
+                        />
                     )}
+
                 </div>
             );
         }
@@ -463,7 +453,9 @@
                 const file = e.target.files[0];
                 if (file) {
                     const reader = new FileReader();
-                    reader.onloadend = () => setAvatarUrl(reader.result);
+                    reader.onloadend = () => {
+                        setAvatarUrl(reader.result);
+                    };
                     reader.readAsDataURL(file);
                 }
             };
@@ -472,44 +464,55 @@
                 e.preventDefault();
                 const initials = name ? name.substring(0, 2).toUpperCase() : 'LE';
                 setUserProfile({ name, subtitle, avatarUrl, initials });
-                showAlert('更新成功');
+                showAlert('個人檔案更新成功');
                 onClose();
             };
 
             return (
                 <div className="modal-overlay bg-black/85">
-                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-xs rounded-2xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 my-auto text-xs">
-                        <div className="flex items-center justify-between border-b border-[#D2CABF] pb-2">
-                            <h3 className="font-extrabold text-xs text-[#161D15] flex items-center gap-1.5">
-                                <i data-lucide="user-pen" className="w-3.5 h-3.5 text-[#737C75]"></i> 編輯個人檔案
+                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-[#D2CABF] space-y-4 my-auto">
+                        <div className="flex items-center justify-between border-b border-[#D2CABF] pb-3">
+                            <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-2">
+                                <i data-lucide="user-pen" className="w-4 h-4 text-[#737C75]"></i> 編輯個人檔案
                             </h3>
-                            <button onClick={onClose} className="p-1 text-[#737C75] hover:text-[#161D15]"><i data-lucide="x" className="w-4 h-4"></i></button>
+                            <button onClick={onClose} className="p-1 text-[#737C75] hover:text-[#161D15]">
+                                <i data-lucide="x" className="w-5 h-5"></i>
+                            </button>
                         </div>
-                        <form onSubmit={handleSave} className="space-y-3">
-                            <div className="flex flex-col items-center gap-1.5">
+
+                        <form onSubmit={handleSave} className="space-y-4">
+                            <div className="flex flex-col items-center gap-2">
                                 <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                                     {avatarUrl ? (
-                                        <img src={avatarUrl} alt="Avatar" className="w-16 h-16 rounded-xl object-cover border-2 border-[#C5AB89] shadow-sm" />
+                                        <img src={avatarUrl} alt="Avatar" className="w-20 h-20 rounded-2xl object-cover border-2 border-[#C5AB89] shadow-md" />
                                     ) : (
-                                        <div className="w-16 h-16 rounded-xl bg-[#C5AB89] text-[#161D15] flex items-center justify-center font-black text-base shadow-sm border-2 border-[#CCB9AA]">
+                                        <div className="w-20 h-20 rounded-2xl bg-[#C5AB89] text-[#161D15] flex items-center justify-center font-black text-xl shadow-md border-2 border-[#CCB9AA]">
                                             {name ? name.substring(0, 2).toUpperCase() : 'LE'}
                                         </div>
                                     )}
+                                    <div className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white">
+                                        <i data-lucide="camera" className="w-6 h-6"></i>
+                                    </div>
                                 </div>
                                 <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
-                                <button type="button" onClick={() => fileInputRef.current?.click()} className="text-[10px] font-bold text-[#AB8C83] hover:underline">選擇大頭貼</button>
+                                <button type="button" onClick={() => fileInputRef.current?.click()} className="text-xs font-bold text-[#AB8C83] hover:underline">
+                                    從手機相簿選擇大頭貼
+                                </button>
                             </div>
-                            <div className="space-y-0.5">
-                                <label className="text-[10px] font-bold text-[#737C75]">稱呼</label>
-                                <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="bg-white text-[#161D15] px-2.5 py-1.5 rounded-lg text-xs font-medium border border-[#D2CABF]" />
+
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">稱呼</label>
+                                <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:border-[#C5AB89]" />
                             </div>
-                            <div className="space-y-0.5">
-                                <label className="text-[10px] font-bold text-[#737C75]">簡介</label>
-                                <input type="text" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="bg-white text-[#161D15] px-2.5 py-1.5 rounded-lg text-xs font-medium border border-[#D2CABF]" />
+
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">簡介or隨便啦</label>
+                                <input type="text" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:border-[#C5AB89]" />
                             </div>
-                            <div className="flex gap-2 pt-1">
-                                <button type="button" onClick={onClose} className="flex-1 py-2 rounded-xl bg-[#EBEBE9] text-[#161D15] font-bold text-[11px]">取消</button>
-                                <button type="submit" className="flex-1 py-2 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-[11px]">儲存</button>
+
+                            <div className="flex gap-2 pt-2">
+                                <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#EBEBE9] text-[#161D15] font-bold text-xs hover:bg-[#D2CABF]">取消</button>
+                                <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">儲存變更</button>
                             </div>
                         </form>
                     </div>
@@ -520,7 +523,9 @@
         function AddEventModal({ onAdd, onClose }) {
             const [title, setTitle] = useState('');
             const [type, setType] = useState('concert');
+            const [creator, setCreator] = useState('');
             const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+            const [time, setTime] = useState('19:30');
             const [venue, setVenue] = useState('');
             const [venueAddress, setVenueAddress] = useState('');
             const [city, setCity] = useState('台北');
@@ -533,18 +538,30 @@
 
             const handleSubmit = (e) => {
                 e.preventDefault();
-                let lat = 25.033, lng = 121.565;
+                let lat = 25.0330, lng = 121.5654;
                 if(countryCode === 'JP') { lat = 35.68; lng = 139.76; }
                 else if(countryCode === 'KR') { lat = 37.56; lng = 126.97; }
                 else if(countryCode === 'US') { lat = 40.71; lng = -74.00; }
                 else if(countryCode === 'AU') { lat = -37.81; lng = 144.96; }
+                else if(countryCode === 'GB') { lat = 51.50; lng = -0.12; }
+                else if(countryCode === 'TH') { lat = 13.75; lng = 100.50; }
+                else if(countryCode === 'CN') { lat = 39.90; lng = 116.40; }
+                else if(countryCode === 'HK') { lat = 22.31; lng = 114.16; }
+                else if(countryCode === 'TW') { lat = 25.03; lng = 121.56; }
 
                 onAdd({
-                    title, type, date,
+                    title,
+                    type,
+                    creator,
+                    date,
+                    time,
                     venue: venue || '未指定場館',
                     venueAddress: venueAddress || venue || '台灣',
                     city: city || '台北',
-                    countryCode, countryName, lat, lng,
+                    countryCode,
+                    countryName,
+                    lat,
+                    lng,
                     status: 'attended',
                     cost: Number(cost) || 0,
                     detailSeat,
@@ -556,29 +573,34 @@
 
             return (
                 <div className="modal-overlay bg-black/85">
-                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-xs rounded-2xl p-3 shadow-2xl border border-[#D2CABF] space-y-2.5 my-auto max-h-[85vh] flex flex-col text-xs">
-                        <div className="flex items-center justify-between border-b border-[#D2CABF] pb-1.5 shrink-0">
-                            <h3 className="font-extrabold text-xs text-[#161D15] flex items-center gap-1.5">
-                                <i data-lucide="ticket-plus" className="w-3.5 h-3.5 text-[#737C75]"></i> 新增藝文紀錄
+                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[90vh] flex flex-col">
+                        <div className="flex items-center justify-between border-b border-[#D2CABF] pb-2 shrink-0">
+                            <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-2">
+                                <i data-lucide="ticket-plus" className="w-4 h-4 text-[#737C75]"></i> 新增藝文紀錄 & 地圖足跡
                             </h3>
-                            <button onClick={onClose} className="p-1 text-[#737C75] hover:text-[#161D15]"><i data-lucide="x" className="w-4 h-4"></i></button>
+                            <button onClick={onClose} className="p-1 text-[#737C75] hover:text-[#161D15]">
+                                <i data-lucide="x" className="w-5 h-5"></i>
+                            </button>
                         </div>
-                        <form onSubmit={handleSubmit} className="space-y-2.5 overflow-y-auto px-0.5 py-0.5 flex-1 no-scrollbar">
-                            <div className="space-y-0.5">
-                                <label className="text-[10px] font-bold text-[#737C75]">活動分類</label>
-                                <select value={type} onChange={(e) => setType(e.target.value)} className="bg-white text-[#161D15] px-2.5 py-1.5 rounded-lg text-xs border border-[#D2CABF]">
+
+                        <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar">
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">活動分類</label>
+                                <select value={type} onChange={(e) => setType(e.target.value)} className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]">
                                     {Object.entries(CATEGORIES).map(([k, v]) => (
                                         <option key={k} value={k}>{v.emoji} {v.label}</option>
                                     ))}
                                 </select>
                             </div>
-                            <div className="space-y-0.5">
-                                <label className="text-[10px] font-bold text-[#737C75]">名稱</label>
-                                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例如：演唱會名稱" required className="bg-white text-[#161D15] px-2.5 py-1.5 rounded-lg text-xs border border-[#D2CABF]" />
+
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">活動名稱</label>
+                                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例如：Coldplay 演唱會" required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                             </div>
-                            <div className="form-row">
-                                <div className="form-group space-y-0.5">
-                                    <label className="text-[10px] font-bold text-[#737C75] block">國家</label>
+
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-[#737C75]">國家</label>
                                     <select value={countryCode} onChange={(e) => {
                                         const val = e.target.value;
                                         setCountryCode(val);
@@ -587,40 +609,57 @@
                                         else if(val === 'KR') setCountryName('南韓');
                                         else if(val === 'US') setCountryName('美國');
                                         else if(val === 'AU') setCountryName('澳大利亞');
-                                    }} className="bg-white text-[#161D15] px-2 py-1.5 rounded-lg text-xs border border-[#D2CABF]">
+                                        else if(val === 'GB') setCountryName('英國');
+                                        else if(val === 'TH') setCountryName('泰國');
+                                        else if(val === 'CN') setCountryName('中國');
+                                        else if(val === 'HK') setCountryName('香港');
+                                    }} className="w-full bg-white text-[#161D15] px-2.5 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]">
                                         <option value="TW">台灣 (TW)</option>
                                         <option value="JP">日本 (JP)</option>
                                         <option value="KR">南韓 (KR)</option>
                                         <option value="US">美國 (US)</option>
                                         <option value="AU">澳大利亞 (AU)</option>
+                                        <option value="GB">英國 (GB)</option>
+                                        <option value="TH">泰國 (TH)</option>
+                                        <option value="CN">中國 (CN)</option>
+                                        <option value="HK">香港 (HK)</option>
                                     </select>
                                 </div>
-                                <div className="form-group space-y-0.5">
-                                    <label className="text-[10px] font-bold text-[#737C75] block">城市</label>
-                                    <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="台北" className="bg-white text-[#161D15] px-2.5 py-1.5 rounded-lg text-xs border border-[#D2CABF]" />
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-[#737C75]">城市</label>
+                                    <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="例如：台北" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                                 </div>
                             </div>
-                            <div className="space-y-0.5">
-                                <label className="text-[10px] font-bold text-[#737C75]">場館</label>
-                                <input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="例如：小巨蛋" required className="bg-white text-[#161D15] px-2.5 py-1.5 rounded-lg text-xs border border-[#D2CABF]" />
+
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">場館名稱</label>
+                                <input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="例如：台北小巨蛋" required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                             </div>
-                            <div className="form-row">
-                                <div className="form-group space-y-0.5">
-                                    <label className="text-[10px] font-bold text-[#737C75] block">日期</label>
-                                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="bg-white text-[#161D15] px-2 py-1.5 rounded-lg text-[11px] border border-[#D2CABF]" />
+
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">地址</label>
+                                <input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} placeholder="例如：台北市松山區南京東路四段2號" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-[#737C75]">日期</label>
+                                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white text-[#161D15] px-2 py-2 rounded-xl text-[11px] font-medium border border-[#D2CABF]" />
                                 </div>
-                                <div className="form-group space-y-0.5">
-                                    <label className="text-[10px] font-bold text-[#737C75] block">票價</label>
-                                    <input type="number" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="3800" className="bg-white text-[#161D15] px-2.5 py-1.5 rounded-lg text-[11px] border border-[#D2CABF]" />
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-[#737C75]">票價 (NT$)</label>
+                                    <input type="number" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="5800" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-[11px] font-medium border border-[#D2CABF]" />
                                 </div>
                             </div>
-                            <div className="space-y-0.5">
-                                <label className="text-[10px] font-bold text-[#737C75]">心得</label>
-                                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows="2" placeholder="觀後感..." className="bg-white text-[#161D15] px-2.5 py-1.5 rounded-lg text-xs border border-[#D2CABF]"></textarea>
+
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">心得筆記</label>
+                                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows="2" placeholder="寫下您的觀後感..." className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]"></textarea>
                             </div>
-                            <div className="flex gap-2 pt-1 shrink-0">
-                                <button type="button" onClick={onClose} className="flex-1 py-2 rounded-xl bg-[#EBEBE9] text-[#161D15] font-bold text-[11px]">取消</button>
-                                <button type="submit" className="flex-1 py-2 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-[11px]">確認</button>
+
+                            <div className="flex gap-2 pt-2 shrink-0">
+                                <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#EBEBE9] text-[#161D15] font-bold text-xs hover:bg-[#D2CABF]">取消</button>
+                                <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">確認新增</button>
                             </div>
                         </form>
                     </div>
@@ -633,64 +672,90 @@
             const [organizer, setOrganizer] = useState('');
             const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
             const [venue, setVenue] = useState('');
+            const [venueAddress, setVenueAddress] = useState('');
+            const [city, setCity] = useState('台北');
             const [status, setStatus] = useState('即將開賣');
             const [priceRange, setPriceRange] = useState('NT$ 1,000 - 3,500');
             const [ticketLink, setTicketLink] = useState('https://tixcraft.com');
 
             const handleSubmit = (e) => {
                 e.preventDefault();
-                onAdd({ title, organizer: organizer || '主辦', date, venue: venue || '未定', status, priceRange, ticketLink });
+                onAdd({
+                    title,
+                    organizer: organizer || '主辦單位',
+                    date,
+                    venue: venue || '未定場館',
+                    venueAddress: venueAddress || venue || '台灣',
+                    city: city || '台北',
+                    status,
+                    priceRange,
+                    ticketLink: ticketLink || 'https://tixcraft.com'
+                });
                 onClose();
             };
 
             return (
                 <div className="modal-overlay bg-black/85">
-                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-xs rounded-2xl p-3 shadow-2xl border border-[#D2CABF] space-y-2.5 my-auto max-h-[85vh] flex flex-col text-xs">
-                        <div className="flex items-center justify-between border-b border-[#D2CABF] pb-1.5 shrink-0">
-                            <h3 className="font-extrabold text-xs text-[#161D15] flex items-center gap-1.5">
-                                <i data-lucide="calendar-plus" className="w-3.5 h-3.5 text-[#737C75]"></i> 新增演出排程
+                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[90vh] flex flex-col">
+                        <div className="flex items-center justify-between border-b border-[#D2CABF] pb-2 shrink-0">
+                            <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-2">
+                                <i data-lucide="calendar-plus" className="w-4 h-4 text-[#737C75]"></i> 新增演出排程
                             </h3>
-                            <button onClick={onClose} className="p-1 text-[#737C75] hover:text-[#161D15]"><i data-lucide="x" className="w-4 h-4"></i></button>
+                            <button onClick={onClose} className="p-1 text-[#737C75] hover:text-[#161D15]">
+                                <i data-lucide="x" className="w-5 h-5"></i>
+                            </button>
                         </div>
-                        <form onSubmit={handleSubmit} className="space-y-2.5 overflow-y-auto px-0.5 py-0.5 flex-1 no-scrollbar">
-                            <div className="space-y-0.5">
-                                <label className="text-[10px] font-bold text-[#737C75]">名稱</label>
-                                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例如：演唱會排程" required className="bg-white text-[#161D15] px-2.5 py-1.5 rounded-lg text-xs border border-[#D2CABF]" />
+
+                        <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar">
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">活動名稱</label>
+                                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例如：五月天演唱會" required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                             </div>
-                            <div className="form-row">
-                                <div className="form-group space-y-0.5">
-                                    <label className="text-[10px] font-bold text-[#737C75] block">主辦</label>
-                                    <input type="text" value={organizer} onChange={(e) => setOrganizer(e.target.value)} placeholder="主辦單位" className="bg-white text-[#161D15] px-2.5 py-1.5 rounded-lg text-xs border border-[#D2CABF]" />
+
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-[#737C75]">主辦單位</label>
+                                    <input type="text" value={organizer} onChange={(e) => setOrganizer(e.target.value)} placeholder="例如：相信音樂" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                                 </div>
-                                <div className="form-group space-y-0.5">
-                                    <label className="text-[10px] font-bold text-[#737C75] block">日期</label>
-                                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="bg-white text-[#161D15] px-2 py-1.5 rounded-lg text-[11px] border border-[#D2CABF]" />
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-[#737C75]">日期</label>
+                                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white text-[#161D15] px-2.5 py-2 rounded-xl text-[11px] font-medium border border-[#D2CABF]" />
                                 </div>
                             </div>
-                            <div className="space-y-0.5">
-                                <label className="text-[10px] font-bold text-[#737C75]">場館</label>
-                                <input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="場館名稱" required className="bg-white text-[#161D15] px-2.5 py-1.5 rounded-lg text-xs border border-[#D2CABF]" />
+
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">場館名稱</label>
+                                <input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="例如：台北小巨蛋" required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                             </div>
-                            <div className="form-row">
-                                <div className="form-group space-y-0.5">
-                                    <label className="text-[10px] font-bold text-[#737C75] block">狀態</label>
-                                    <select value={status} onChange={(e) => setStatus(e.target.value)} className="bg-white text-[#161D15] px-2.5 py-1.5 rounded-lg text-xs border border-[#D2CABF]">
+
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">地址</label>
+                                <input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} placeholder="例如：台北市松山區..." className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-[#737C75]">售票狀態</label>
+                                    <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full bg-white text-[#161D15] px-2.5 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]">
                                         <option value="即將開賣">即將開賣</option>
                                         <option value="售票中">售票中</option>
+                                        <option value="已完售">已完售</option>
                                     </select>
                                 </div>
-                                <div className="form-group space-y-0.5">
-                                    <label className="text-[10px] font-bold text-[#737C75] block">票價範圍</label>
-                                    <input type="text" value={priceRange} onChange={(e) => setPriceRange(e.target.value)} placeholder="NT$..." className="bg-white text-[#161D15] px-2.5 py-1.5 rounded-lg text-[11px] border border-[#D2CABF]" />
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-[#737C75]">票價範圍</label>
+                                    <input type="text" value={priceRange} onChange={(e) => setPriceRange(e.target.value)} placeholder="NT$ 800 - 3,800" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                                 </div>
                             </div>
-                            <div className="space-y-0.5">
-                                <label className="text-[10px] font-bold text-[#737C75]">購票網址</label>
-                                <input type="url" value={ticketLink} onChange={(e) => setTicketLink(e.target.value)} placeholder="https://..." className="bg-white text-[#161D15] px-2.5 py-1.5 rounded-lg text-xs border border-[#D2CABF]" />
+
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">售票連結網址</label>
+                                <input type="url" value={ticketLink} onChange={(e) => setTicketLink(e.target.value)} placeholder="https://..." className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                             </div>
-                            <div className="flex gap-2 pt-1 shrink-0">
-                                <button type="button" onClick={onClose} className="flex-1 py-2 rounded-xl bg-[#EBEBE9] text-[#161D15] font-bold text-[11px]">取消</button>
-                                <button type="submit" className="flex-1 py-2 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-[11px]">確認</button>
+
+                            <div className="flex gap-2 pt-2 shrink-0">
+                                <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#EBEBE9] text-[#161D15] font-bold text-xs hover:bg-[#D2CABF]">取消</button>
+                                <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">確認新增</button>
                             </div>
                         </form>
                     </div>
@@ -705,53 +770,58 @@
 
             return (
                 <div className="modal-overlay bg-black/85 backdrop-blur-md">
-                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-xs rounded-2xl overflow-hidden shadow-2xl border border-[#D2CABF] my-auto flex flex-col max-h-[80vh] text-xs">
-                        <div className="relative h-36 bg-[#D2CABF] shrink-0">
-                            <img src={event.coverImg} alt={event.title} className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-3">
+                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-[#D2CABF] my-auto flex flex-col max-h-[85vh]">
+                        <div className="relative h-48 bg-[#D2CABF] shrink-0">
+                            <img src={event.coverImg} alt={event.title} className="w-full h-full object-cover" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80'; }} />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-4">
                                 <div>
-                                    <span className={`px-2 py-0.5 rounded text-[9px] font-extrabold ${cat.badgeBg} inline-block mb-1`}>{cat.emoji} {cat.label}</span>
-                                    <h2 className="text-white font-black text-sm leading-snug">{event.title}</h2>
+                                    <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${cat.badgeBg} inline-block mb-1`}>{cat.emoji} {cat.label}</span>
+                                    <h2 className="text-white font-black text-base leading-snug">{event.title}</h2>
                                 </div>
                             </div>
-                            <button onClick={onClose} className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center">
-                                <i data-lucide="x" className="w-3.5 h-3.5"></i>
+                            <button onClick={onClose} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center backdrop-blur-md hover:bg-black/70">
+                                <i data-lucide="x" className="w-4 h-4"></i>
                             </button>
                         </div>
-                        <div className="p-3 space-y-2.5 overflow-y-auto flex-1">
-                            <div className="grid grid-cols-2 gap-2 bg-[#EBEBE9] p-2.5 rounded-xl">
+
+                        <div className="p-4 space-y-3 overflow-y-auto flex-1 text-xs">
+                            <div className="grid grid-cols-2 gap-2 bg-[#EBEBE9] p-3 rounded-2xl">
                                 <div>
-                                    <span className="text-[9px] text-[#737C75] font-bold block">日期</span>
-                                    <span className="font-mono font-bold text-[#161D15] text-[11px]">{event.date}</span>
+                                    <span className="text-[10px] text-[#737C75] font-bold block">演出日期</span>
+                                    <span className="font-mono font-bold text-[#161D15]">{event.date} {event.time}</span>
                                 </div>
                                 <div>
-                                    <span className="text-[9px] text-[#737C75] font-bold block">花費</span>
-                                    <span className="font-mono font-bold text-[#161D15] text-[11px]">NT$ {Number(event.cost || 0).toLocaleString()}</span>
+                                    <span className="text-[10px] text-[#737C75] font-bold block">票價花費</span>
+                                    <span className="font-mono font-bold text-[#161D15]">NT$ {Number(event.cost || 0).toLocaleString()}</span>
                                 </div>
                             </div>
-                            <div className="space-y-1 bg-white p-2.5 rounded-xl border border-[#D2CABF]">
+
+                            <div className="space-y-1 bg-white p-3 rounded-2xl border border-[#D2CABF]">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <span className="text-[9px] text-[#737C75] font-bold block">場館</span>
-                                        <p className="font-bold text-[#161D15] text-xs">{event.venue}</p>
+                                        <span className="text-[10px] text-[#737C75] font-bold block">舉辦場館</span>
+                                        <p className="font-bold text-[#161D15] text-sm">{event.venue || '無'}</p>
+                                        <p className="text-[11px] text-[#737C75]">{event.venueAddress || '無地址資訊'}</p>
                                     </div>
-                                    <a href={mapsUrl} target="_blank" rel="noreferrer" className="px-2.5 py-1.5 bg-[#C5AB89] text-[#161D15] rounded-lg font-black text-[10px] flex items-center gap-1 shadow">
-                                        <i data-lucide="map-pin" className="w-3 h-3"></i> Maps
+                                    <a href={mapsUrl} target="_blank" rel="noreferrer" className="px-3 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-black text-xs hover:bg-[#CCB9AA] flex items-center gap-1.5 shadow">
+                                        <i data-lucide="map-pin" className="w-3.5 h-3.5"></i> Google Maps
                                     </a>
                                 </div>
                             </div>
+
                             {event.notes && (
-                                <div className="space-y-0.5 bg-white p-2.5 rounded-xl border border-[#D2CABF]">
-                                    <span className="text-[9px] text-[#737C75] font-bold block">筆記</span>
-                                    <p className="text-[#161D15] leading-relaxed text-[11px]">{event.notes}</p>
+                                <div className="space-y-1 bg-white p-3 rounded-2xl border border-[#D2CABF]">
+                                    <span className="text-[10px] text-[#737C75] font-bold block">心得筆記</span>
+                                    <p className="text-[#161D15] leading-relaxed">{event.notes}</p>
                                 </div>
                             )}
                         </div>
-                        <div className="p-2.5 bg-[#EBEBE9] border-t border-[#D2CABF] flex gap-2">
-                            <button onClick={() => { onDelete(event.id); onClose(); }} className="flex-1 py-2 rounded-xl bg-red-600 text-white font-bold text-[11px] flex items-center justify-center gap-1">
-                                <i data-lucide="trash-2" className="w-3.5 h-3.5"></i> 刪除
+
+                        <div className="p-3 bg-[#EBEBE9] border-t border-[#D2CABF] flex gap-2">
+                            <button onClick={() => { onDelete(event.id); onClose(); }} className="flex-1 py-2.5 rounded-xl bg-red-600/90 text-white font-bold text-xs hover:bg-red-700 flex items-center justify-center gap-1.5 shadow">
+                                <i data-lucide="trash-2" className="w-4 h-4"></i> 刪除紀錄
                             </button>
-                            <button onClick={onClose} className="flex-1 py-2 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-[11px]">關閉</button>
+                            <button onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">關閉</button>
                         </div>
                     </div>
                 </div>
@@ -770,7 +840,12 @@
                     if (evt.status === 'wishlist') return;
                     const code = evt.countryCode || 'TW';
                     if (!map[code]) {
-                        map[code] = { code, name: evt.countryName || '台灣', events: [], venues: new Set() };
+                        map[code] = {
+                            code,
+                            name: evt.countryName || (code === 'JP' ? '日本' : code === 'AU' ? '澳大利亞' : '台灣'),
+                            events: [],
+                            venues: new Set()
+                        };
                     }
                     map[code].events.push(evt);
                     if (evt.venue) map[code].venues.add(evt.venue);
@@ -782,9 +857,21 @@
 
             useEffect(() => {
                 if (!mapContainerRef.current) return;
+
                 if (!mapInstanceRef.current) {
-                    const map = L.map(mapContainerRef.current, { zoomControl: false, attributionControl: false, minZoom: 2 }).setView([25.033, 121.565], 3);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, noWrap: true }).addTo(map);
+                    const map = L.map(mapContainerRef.current, {
+                        zoomControl: false,
+                        attributionControl: false,
+                        minZoom: 2,
+                        maxBounds: [[-90, -180], [90, 180]],
+                        maxBoundsViscosity: 1.0
+                    }).setView([25.033, 121.565], 3);
+
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        noWrap: true
+                    }).addTo(map);
+
                     mapInstanceRef.current = map;
 
                     fetch('https://raw.githubusercontent.com/datasets/geo-boundaries-world-110m/master/countries.geojson')
@@ -794,8 +881,19 @@
                                 style: (feature) => {
                                     const props = feature.properties || {};
                                     const name = props.name || props.ADMIN || '';
-                                    const iso = props.ISO_A2 || '';
-                                    let isVisited = visitedCountryCodes.some(code => name.includes(code === 'TW' ? 'Taiwan' : code === 'JP' ? 'Japan' : 'Australia') || iso === code);
+                                    const iso = props.ISO_A2 || props.iso_a2 || '';
+
+                                    let isVisited = false;
+                                    if (visitedCountryCodes.includes('TW') && (name.includes('Taiwan') || iso === 'TW')) isVisited = true;
+                                    if (visitedCountryCodes.includes('JP') && (name.includes('Japan') || iso === 'JP')) isVisited = true;
+                                    if (visitedCountryCodes.includes('AU') && (name.includes('Australia') || iso === 'AU')) isVisited = true;
+                                    if (visitedCountryCodes.includes('US') && (name.includes('United States') || iso === 'US')) isVisited = true;
+                                    if (visitedCountryCodes.includes('KR') && (name.includes('Korea') || iso === 'KR')) isVisited = true;
+                                    if (visitedCountryCodes.includes('GB') && (name.includes('United Kingdom') || iso === 'GB')) isVisited = true;
+                                    if (visitedCountryCodes.includes('TH') && (name.includes('Thailand') || iso === 'TH')) isVisited = true;
+                                    if (visitedCountryCodes.includes('CN') && (name.includes('China') || iso === 'CN')) isVisited = true;
+                                    if (visitedCountryCodes.includes('HK') && (name.includes('Hong Kong') || iso === 'HK')) isVisited = true;
+
                                     return {
                                         fillColor: isVisited ? '#C2A175' : '#1A2218',
                                         fillOpacity: isVisited ? 0.45 : 0.2,
@@ -804,55 +902,169 @@
                                     };
                                 },
                                 onEachFeature: (feature, layer) => {
+                                    const props = feature.properties || {};
+                                    const name = props.name || props.ADMIN || '未知區域';
+                                    const iso = props.ISO_A2 || props.iso_a2 || '';
+
                                     layer.on({
                                         click: (e) => {
                                             L.DomEvent.stopPropagation(e);
-                                            const props = feature.properties || {};
-                                            const name = props.name || props.ADMIN || '';
-                                            const iso = props.ISO_A2 || '';
-                                            let matchedCode = visitedCountryCodes.find(c => name.includes(c === 'TW' ? 'Taiwan' : c) || iso === c);
+                                            let matchedCode = null;
+                                            if (name.includes('Taiwan') || iso === 'TW') matchedCode = 'TW';
+                                            else if (name.includes('Japan') || iso === 'JP') matchedCode = 'JP';
+                                            else if (name.includes('Australia') || iso === 'AU') matchedCode = 'AU';
+                                            else if (name.includes('United States') || iso === 'US') matchedCode = 'US';
+                                            else if (name.includes('Korea') || iso === 'KR') matchedCode = 'KR';
+                                            else if (name.includes('United Kingdom') || iso === 'GB') matchedCode = 'GB';
+                                            else if (name.includes('Thailand') || iso === 'TH') matchedCode = 'TH';
+                                            else if (name.includes('China') || iso === 'CN') matchedCode = 'CN';
+                                            else if (name.includes('Hong Kong') || iso === 'HK') matchedCode = 'HK';
+
                                             if (matchedCode && countryEventsMap[matchedCode]) {
                                                 setSelectedCountryInfo(countryEventsMap[matchedCode]);
+                                            } else {
+                                                setSelectedCountryInfo({ code: iso, name: name, events: [], venues: new Set() });
                                             }
+                                        },
+                                        mouseover: (e) => {
+                                            const l = e.target;
+                                            l.setStyle({ fillOpacity: 0.65, weight: 2 });
+                                        },
+                                        mouseout: (e) => {
+                                            const l = e.target;
+                                            l.setStyle({ fillOpacity: 0.45, weight: 1.5 });
                                         }
                                     });
                                 }
                             }).addTo(map);
-                        }).catch(() => {});
+                        }).catch(err => {
+                            console.log('GeoJSON load note:', err);
+                        });
 
                     events.forEach((evt, index) => {
-                        if (!evt.lat || !evt.lng) return;
-                        const customIcon = L.divIcon({ className: 'custom-div-icon', html: `<div class="custom-numeric-marker w-6 h-6">${index + 1}</div>`, iconSize: [24, 24], iconAnchor: [12, 12] });
+                        if (!evt.lat || !evt.lng || evt.status === 'wishlist') return;
+                        const markerNumber = index + 1;
+                        const iconHtml = `<div class="custom-numeric-marker w-7 h-7 flex items-center justify-center">${markerNumber}</div>`;
+                        
+                        const customIcon = L.divIcon({
+                            className: 'custom-div-icon',
+                            html: iconHtml,
+                            iconSize: [28, 28],
+                            iconAnchor: [14, 14]
+                        });
+
                         const marker = L.marker([evt.lat, evt.lng], { icon: customIcon }).addTo(map);
-                        marker.on('click', () => setSelectedEventModal(evt));
+                        marker.on('click', () => {
+                            setSelectedEventModal(evt);
+                        });
                     });
-                    setTimeout(() => map.invalidateSize(), 100);
+
+                    setTimeout(() => {
+                        map.invalidateSize();
+                    }, 100);
                 }
+
                 return () => {
-                    if (mapInstanceRef.current) { mapInstanceRef.current.remove(); mapInstanceRef.current = null; }
+                    if (mapInstanceRef.current) {
+                        mapInstanceRef.current.remove();
+                        mapInstanceRef.current = null;
+                    }
                 };
             }, [events, visitedCountryCodes]);
 
+            const handleZoomIn = () => { if (mapInstanceRef.current) mapInstanceRef.current.zoomIn(); };
+            const handleZoomOut = () => { if (mapInstanceRef.current) mapInstanceRef.current.zoomOut(); };
+            const handleLocateMe = () => {
+                if (mapInstanceRef.current) {
+                    mapInstanceRef.current.setView([25.033, 121.565], 5);
+                    mapInstanceRef.current.invalidateSize();
+                }
+            };
+
             return (
                 <div id="map-wrapper" className="relative flex-1 w-full flex flex-col bg-[#000000] overflow-hidden">
-                    <div className="absolute top-2.5 left-3 right-3 z-[999] flex items-center justify-between pointer-events-none">
-                        <div className="ios-glass px-2.5 py-1 rounded-full shadow-md border border-[#737C75]/30 pointer-events-auto text-[10px]">
-                            <span className="text-[#C5AB89] font-bold">🌍 足跡: </span>
-                            <span className="text-[#EFF0EA]/80 font-mono"><strong className="text-[#C5AB89]">{stats.uniqueCountriesCount}</strong>國 · <strong className="text-[#C5AB89]">{stats.attendedCount}</strong>場</span>
+                    <div className="absolute top-3 left-4 right-4 z-[999] flex items-center justify-between pointer-events-none top-stats-card">
+                        <div className="ios-glass px-3 py-1.5 rounded-full shadow-xl border border-[#737C75]/30 pointer-events-auto backdrop-blur-md flex items-center gap-2">
+                            <span className="text-[10px] font-bold text-[#C5AB89] tracking-wider whitespace-nowrap">🌍 藝文足跡</span>
+                            <span className="text-[10px] text-[#EFF0EA]/80 font-mono truncate">
+                                <strong className="text-[#C5AB89]">{stats.uniqueCountriesCount}</strong> 國 · <strong className="text-[#C5AB89]">{stats.uniqueVenuesCount}</strong> 場館 · <strong className="text-[#C5AB89]">{stats.attendedCount}</strong> 場
+                            </span>
                         </div>
                     </div>
+
+                    <div className="absolute top-3 right-4 z-[999] flex flex-col">
+                        <button 
+                            onClick={handleZoomIn} 
+                            style={{ marginBottom: '8px' }}
+                            className="ios-glass w-9 h-9 rounded-xl flex items-center justify-center shadow-xl text-[#C5AB89] hover:text-white border border-[#737C75]/30 active:scale-95 transition-all font-bold text-base" 
+                            title="放大"
+                        >
+                            +
+                        </button>
+                        <button 
+                            onClick={handleZoomOut} 
+                            style={{ marginBottom: '8px' }}
+                            className="ios-glass w-9 h-9 rounded-xl flex items-center justify-center shadow-xl text-[#C5AB89] hover:text-white border border-[#737C75]/30 active:scale-95 transition-all font-bold text-base" 
+                            title="縮小"
+                        >
+                            -
+                        </button>
+                        <button 
+                            onClick={handleLocateMe} 
+                            className="ios-glass w-9 h-9 rounded-xl flex items-center justify-center shadow-xl text-[#C5AB89] hover:text-white border border-[#737C75]/30 active:scale-95 transition-all" 
+                            title="回到定位點"
+                        >
+                            <i data-lucide="locate-fixed" className="w-4 h-4"></i>
+                        </button>
+                    </div>
+
                     <div ref={mapContainerRef} id="map" className="w-full h-full flex-1 bg-[#000000]"></div>
+
                     {selectedCountryInfo && (
-                        <div className="absolute bottom-3 left-3 right-3 z-[1000]">
-                            <div className="bg-[#EFF0EA] text-[#161D15] rounded-2xl p-3 shadow-xl border border-[#C5AB89] space-y-2 text-xs">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="font-black text-xs text-[#161D15]">{selectedCountryInfo.name}</h3>
-                                    <button onClick={() => setSelectedCountryInfo(null)} className="p-1"><i data-lucide="x" className="w-3.5 h-3.5"></i></button>
+                        <div className="absolute bottom-4 left-4 right-4 z-[1000] animate-in fade-in slide-in-from-bottom-5 duration-300">
+                            <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-5 shadow-2xl border-2 border-[#C5AB89] space-y-3 relative">
+                                <button onClick={() => setSelectedCountryInfo(null)} className="absolute top-4 right-4 w-7 h-7 rounded-full bg-[#EBEBE9] text-[#161D15] flex items-center justify-center hover:bg-[#D2CABF]">
+                                    <i data-lucide="x" className="w-4 h-4"></i>
+                                </button>
+
+                                <div className="space-y-1 pr-6">
+                                    <div className="flex items-center gap-2">
+                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#C5AB89] text-[#161D15]">
+                                            國家足跡概覽
+                                        </span>
+                                        <span className="text-[10px] font-mono text-[#737C75]">✈️ {selectedCountryInfo.venues.size} 個場館</span>
+                                    </div>
+                                    <h3 className="font-black text-base text-[#161D15] leading-snug">{selectedCountryInfo.name}</h3>
+                                    <p className="text-[11px] text-[#737C75]">共參加 {selectedCountryInfo.events.length} 場藝文活動</p>
                                 </div>
-                                <p className="text-[11px] text-[#737C75]">共參加 {selectedCountryInfo.events.length} 場活動</p>
+
+                                {selectedCountryInfo.events.length > 0 ? (
+                                    <div className="bg-white p-3 rounded-2xl border border-[#D2CABF] flex items-center gap-3">
+                                        <img src={selectedCountryInfo.events[0].coverImg} alt="Cover" className="w-14 h-14 rounded-xl object-cover shrink-0 border border-[#D2CABF]" />
+                                        <div className="flex-1 min-w-0 space-y-1">
+                                            <div className="flex items-center justify-between text-[10px] font-bold text-[#737C75]">
+                                                <span>最近活動</span>
+                                                <span className="font-mono">{selectedCountryInfo.events[0].date}</span>
+                                            </div>
+                                            <p className="font-extrabold text-xs text-[#161D15] truncate">{selectedCountryInfo.events[0].title}</p>
+                                            <button onClick={() => setSelectedEventModal(selectedCountryInfo.events[0])} className="text-[11px] font-black text-[#AB8C83] hover:underline">
+                                                [查看完整活動紀錄]
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="p-3 bg-white rounded-2xl border border-[#D2CABF] text-center text-xs text-[#737C75]">
+                                        尚無在此國家的藝文活動紀錄
+                                    </div>
+                                )}
+
+                                <button onClick={() => setSelectedCountryInfo(null)} className="w-full py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">
+                                    關閉面板
+                                </button>
                             </div>
                         </div>
                     )}
+
                     {selectedEventModal && (
                         <EventDetailModal event={selectedEventModal} onClose={() => setSelectedEventModal(null)} onDelete={() => {}} getGoogleMapsUrl={getGoogleMapsUrl} />
                     )}
@@ -883,22 +1095,22 @@
             }, [year, month, allEvents]);
 
             return (
-                <div className="space-y-3 p-3 pb-20 text-xs">
-                    <div className="space-y-2">
+                <div className="space-y-4 p-4 pb-24">
+                    <div className="space-y-2.5">
                         <div className="relative">
-                            <i data-lucide="search" className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#737C75]"></i>
-                            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="搜尋名稱、場館..." className="w-full bg-[#EFF0EA] text-[#161D15] placeholder-[#737C75] pl-8 pr-3 py-1.5 rounded-lg text-xs border border-[#D2CABF]" />
+                            <i data-lucide="search" className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#737C75]"></i>
+                            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="搜尋名稱、演出者、場館..." className="w-full bg-[#EFF0EA] text-[#161D15] placeholder-[#737C75] pl-9 pr-8 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:border-[#C5AB89] shadow-inner" />
                         </div>
-                        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-1">
-                            <button onClick={() => setSelectedCategory('all')} className={`px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap ${selectedCategory === 'all' ? 'bg-[#C5AB89] text-[#161D15]' : 'bg-[#EFF0EA] text-[#161D15]/80'}`}>
-                                全部 ({allEvents.length})
+                        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
+                            <button onClick={() => setSelectedCategory('all')} className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm flex items-center gap-1 ${selectedCategory === 'all' ? 'bg-[#C5AB89] text-[#161D15]' : 'bg-[#EFF0EA] text-[#161D15]/80 hover:bg-[#D2CABF]'}`}>
+                                <span>✨ 全部</span><span className="text-[10px] opacity-75 font-mono">({allEvents.length})</span>
                             </button>
                             {Object.entries(CATEGORIES).map(([catKey, cat]) => {
                                 const count = allEvents.filter(e => e.type === catKey).length;
                                 const isSelected = selectedCategory === catKey;
                                 return (
-                                    <button key={catKey} onClick={() => setSelectedCategory(catKey)} className={`px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap ${isSelected ? `${cat.badgeBg}` : 'bg-[#EFF0EA] text-[#161D15]/80'}`}>
-                                        {cat.emoji} {cat.label} ({count})
+                                    <button key={catKey} onClick={() => setSelectedCategory(catKey)} className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm flex items-center gap-1 ${isSelected ? `${cat.badgeBg} ring-1 ring-[#161D15]/20` : 'bg-[#EFF0EA] text-[#161D15]/80 hover:bg-[#D2CABF]'}`}>
+                                        <span>{cat.emoji} {cat.label}</span><span className="text-[10px] opacity-75 font-mono">({count})</span>
                                     </button>
                                 );
                             })}
@@ -906,62 +1118,73 @@
                     </div>
 
                     {viewMode === 'calendar' ? (
-                        <div className="bg-[#EFF0EA] text-[#161D15] p-3 rounded-2xl shadow border border-[#D2CABF] space-y-2">
+                        <div className="bg-[#EFF0EA] text-[#161D15] p-4 rounded-3xl shadow-lg border border-[#D2CABF] space-y-4">
                             <div className="flex items-center justify-between">
-                                <h3 className="font-extrabold text-xs font-mono">{year} 年 {month + 1} 月</h3>
+                                <h3 className="font-extrabold text-sm font-mono">{year} 年 {month + 1} 月</h3>
                                 <div className="flex gap-1">
-                                    <button onClick={() => setCalendarDate(new Date(year, month - 1, 1))} className="p-1 rounded bg-[#EBEBE9]"><i data-lucide="chevron-left" className="w-3.5 h-3.5"></i></button>
-                                    <button onClick={() => setCalendarDate(new Date(year, month + 1, 1))} className="p-1 rounded bg-[#EBEBE9]"><i data-lucide="chevron-right" className="w-3.5 h-3.5"></i></button>
+                                    <button onClick={() => setCalendarDate(new Date(year, month - 1, 1))} className="p-1.5 rounded-lg bg-[#EBEBE9] hover:bg-[#D2CABF]"><i data-lucide="chevron-left" className="w-4 h-4"></i></button>
+                                    <button onClick={() => setCalendarDate(new Date(year, month + 1, 1))} className="p-1.5 rounded-lg bg-[#EBEBE9] hover:bg-[#D2CABF]"><i data-lucide="chevron-right" className="w-4 h-4"></i></button>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-7 gap-1 text-center font-bold text-[9px] text-[#737C75]">
+                            <div className="grid grid-cols-7 gap-1 text-center font-bold text-[10px] text-[#737C75]">
                                 <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
                             </div>
                             <div className="grid grid-cols-7 gap-1">
                                 {calendarDays.map((item, idx) => {
-                                    if (!item) return <div key={idx} className="h-8"></div>;
+                                    if (!item) return <div key={idx} className="h-10"></div>;
                                     const hasEvent = item.events.length > 0;
                                     return (
-                                        <div key={idx} onClick={() => { if (hasEvent) setDetailEvent(item.events[0]); }} className={`h-8 rounded-lg flex flex-col items-center justify-center relative ${hasEvent ? 'bg-[#C5AB89] text-[#161D15] font-black cursor-pointer' : 'bg-[#EBEBE9] text-[#161D15]/50'}`}>
-                                            <span className="text-[11px]">{item.day}</span>
-                                            {hasEvent && <span className="w-1 h-1 rounded-full bg-[#161D15]"></span>}
+                                        <div key={idx} onClick={() => { if (hasEvent) setDetailEvent(item.events[0]); }} className={`h-10 rounded-xl flex flex-col items-center justify-center relative transition-all ${hasEvent ? 'bg-[#C5AB89] text-[#161D15] font-black cursor-pointer shadow hover:scale-105' : 'bg-[#EBEBE9] text-[#161D15]/60'}`}>
+                                            <span className="text-xs">{item.day}</span>
+                                            {hasEvent && <span className="w-1.5 h-1.5 rounded-full bg-[#161D15] mt-0.5"></span>}
                                         </div>
                                     );
                                 })}
                             </div>
                         </div>
                     ) : (
-                        <div className="space-y-2.5">
+                        <div className="space-y-3">
                             {events.length === 0 ? (
-                                <div className="text-center py-12 bg-[#EFF0EA]/5 border border-dashed border-[#737C75]/40 rounded-2xl p-4 space-y-2">
-                                    <p className="text-xs text-[#EFF0EA] font-extrabold">暫無紀錄</p>
-                                    <button onClick={onOpenAddModal} className="px-3 py-1.5 bg-[#C5AB89] text-[#161D15] rounded-lg font-bold text-[11px]">新增紀錄</button>
+                                <div className="text-center py-16 bg-[#EFF0EA]/5 border border-dashed border-[#737C75]/40 rounded-3xl p-6 space-y-3">
+                                    <div className="w-12 h-12 rounded-2xl bg-[#C5AB89]/10 text-[#C5AB89] flex items-center justify-center mx-auto">
+                                        <i data-lucide="ticket" className="w-6 h-6"></i>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-xs text-[#EFF0EA] font-extrabold">暫無藝文紀錄</p>
+                                        <p className="text-[11px] text-[#D2CABF]">點擊右上角「+」或下方按鈕新增您的第一筆觀演紀錄</p>
+                                    </div>
+                                    <button onClick={onOpenAddModal} className="px-4 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-xs shadow hover:bg-[#CCB9AA] transition-all inline-flex items-center gap-1.5">
+                                        <i data-lucide="plus" className="w-4 h-4"></i> 新增藝文紀錄
+                                    </button>
                                 </div>
                             ) : (
                                 events.map((evt) => {
                                     const cat = CATEGORIES[evt.type] || CATEGORIES.concert;
                                     return (
-                                        <div key={evt.id} onClick={() => setDetailEvent(evt)} className="relative bg-[#EFF0EA] text-[#161D15] rounded-xl flex shadow overflow-hidden cursor-pointer hover:scale-[1.01] transition-all">
-                                            <div className="absolute -left-2.5 top-1/2 -translate-y-1/2 w-5 h-5 bg-[#161D15] rounded-full z-20"></div>
-                                            <div className="absolute -right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 bg-[#161D15] rounded-full z-20"></div>
-                                            <div className="flex-1 p-3 pl-4 flex gap-2.5 min-w-0 pr-3">
-                                                <div className="w-12 h-16 rounded-lg overflow-hidden shrink-0 border border-[#D2CABF] bg-[#D2CABF]">
-                                                    <img src={evt.coverImg} alt={evt.title} className="w-full h-full object-cover" />
+                                        <div key={evt.id} onClick={() => setDetailEvent(evt)} className="relative bg-[#EFF0EA] text-[#161D15] rounded-2xl flex shadow-lg overflow-hidden cursor-pointer hover:scale-[1.01] transition-all active:scale-[0.98] group my-2">
+                                            <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
+                                            <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
+                                            <div className="flex-1 p-3.5 pl-5 flex gap-3 min-w-0 pr-4 relative">
+                                                <div className="w-16 h-20 rounded-xl overflow-hidden shrink-0 border border-[#D2CABF] bg-[#D2CABF] relative shadow-sm">
+                                                    <img src={evt.coverImg} alt={evt.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80'; }} />
+                                                    <span className="absolute top-1 left-1 px-1 py-0.2 rounded text-[8px] font-bold bg-[#161D15]/85 text-[#EFF0EA] backdrop-blur-sm">{cat.emoji}</span>
                                                 </div>
                                                 <div className="flex-1 flex flex-col justify-between min-w-0">
-                                                    <div className="space-y-0.5">
-                                                        <div className="flex items-center justify-between text-[9px] font-mono text-[#737C75]">
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center justify-between text-[10px] font-mono font-bold text-[#737C75]">
                                                             <span>{evt.date}</span>
+                                                            <span className="px-1.5 py-0.2 rounded text-[8px] font-black bg-[#737C75] text-white">已參加</span>
                                                         </div>
-                                                        <h3 className="font-extrabold text-[11px] text-[#161D15] truncate">{evt.title}</h3>
-                                                        <p className="text-[10px] text-[#737C75] truncate">📍 {evt.venue}</p>
+                                                        <h3 className="font-extrabold text-xs text-[#161D15] leading-snug line-clamp-1 group-hover:text-[#AB8C83] transition-colors">{evt.title}</h3>
+                                                        <p className="text-[11px] text-[#737C75] font-medium truncate">📍 {evt.venue}</p>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="w-[72px] bg-[#EBEBE9] p-2 flex flex-col justify-between items-center text-center shrink-0 border-l border-[#D2CABF]/40">
-                                                <span className="text-[7px] font-mono font-black text-[#737C75]">ADMIT ONE</span>
-                                                <div className="font-mono text-[9px] font-black text-[#161D15]">{evt.cost ? `$${Number(evt.cost).toLocaleString()}` : 'FREE'}</div>
-                                                <span className="text-[7px] font-bold text-[#161D15] bg-[#CCB9AA] px-1 py-0.5 rounded w-full truncate">已存檔</span>
+                                            <div className="relative w-0 border-r-2 border-dashed border-[#737C75]/40 my-1 z-10"></div>
+                                            <div className="w-[88px] bg-[#EBEBE9] p-2.5 flex flex-col justify-between items-center text-center shrink-0 relative overflow-hidden border-l border-[#D2CABF]/40">
+                                                <span className="text-[8px] font-mono font-black text-[#737C75] uppercase tracking-tighter block">ADMIT ONE</span>
+                                                <div className="font-mono text-[10px] font-black text-[#161D15] truncate">{evt.cost ? `$${Number(evt.cost).toLocaleString()}` : 'FREE'}</div>
+                                                <span className="text-[8px] font-bold text-[#161D15] bg-[#CCB9AA] px-1.5 py-0.5 rounded w-full truncate">{evt.detailSeat ? evt.detailSeat.slice(0, 6) : '紀錄存檔'}</span>
                                             </div>
                                         </div>
                                     );
@@ -969,6 +1192,7 @@
                             )}
                         </div>
                     )}
+
                     {detailEvent && (
                         <EventDetailModal event={detailEvent} onClose={() => setDetailEvent(null)} onDelete={onDelete} getGoogleMapsUrl={getGoogleMapsUrl} />
                     )}
@@ -978,35 +1202,61 @@
 
         function ScheduleSection({ schedules, onDelete, getGoogleMapsUrl, onOpenAddModal }) {
             return (
-                <div className="p-3 pb-20 space-y-3 text-xs">
+                <div className="p-4 pb-24 space-y-4">
                     <div>
-                        <h2 className="text-xs font-extrabold text-[#EFF0EA]">近期演出排程</h2>
-                        <p className="text-[10px] text-[#D2CABF]">官方預告之演唱會與巡迴</p>
+                        <h2 className="text-base font-extrabold text-[#EFF0EA] tracking-tight">近期演出排程</h2>
+                        <p className="text-xs text-[#D2CABF]">官方預告之演唱會、音樂劇、話劇巡迴</p>
                     </div>
-                    <div className="space-y-2.5">
+                    <div className="space-y-3.5">
                         {schedules.length === 0 ? (
-                            <div className="text-center py-12 bg-[#EFF0EA]/5 border border-dashed border-[#737C75]/40 rounded-2xl p-4 space-y-2">
-                                <p className="text-xs text-[#EFF0EA] font-extrabold">暫無排程</p>
-                                <button onClick={onOpenAddModal} className="px-3 py-1.5 bg-[#C5AB89] text-[#161D15] rounded-lg font-bold text-[11px]">新增排程</button>
+                            <div className="text-center py-16 bg-[#EFF0EA]/5 border border-dashed border-[#737C75]/40 rounded-3xl p-6 space-y-3">
+                                <div className="w-12 h-12 rounded-2xl bg-[#C5AB89]/10 text-[#C5AB89] flex items-center justify-center mx-auto">
+                                    <i data-lucide="calendar-days" className="w-6 h-6"></i>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-xs text-[#EFF0EA] font-extrabold">暫無演出排程</p>
+                                    <p className="text-[11px] text-[#D2CABF]">點擊右上角「+」或下方按鈕新增您關注的演出排程</p>
+                                </div>
+                                <button onClick={onOpenAddModal} className="px-4 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-xs shadow hover:bg-[#CCB9AA] transition-all inline-flex items-center gap-1.5">
+                                    <i data-lucide="plus" className="w-4 h-4"></i> 新增演出排程
+                                </button>
                             </div>
                         ) : (
                             schedules.map(sch => {
                                 const mapsUrl = getGoogleMapsUrl(sch.venue, sch.venueAddress);
                                 return (
-                                    <div key={sch.id} className="relative bg-[#EFF0EA] text-[#161D15] rounded-xl flex overflow-hidden shadow">
-                                        <div className="absolute -left-2.5 top-1/2 -translate-y-1/2 w-5 h-5 bg-[#161D15] rounded-full z-20"></div>
-                                        <div className="absolute -right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 bg-[#161D15] rounded-full z-20"></div>
-                                        <div className="flex-1 p-3 pl-4 pr-2 space-y-1 min-w-0">
+                                    <div key={sch.id} className="relative bg-[#EFF0EA] text-[#161D15] rounded-2xl flex overflow-hidden shadow-lg group">
+                                        <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
+                                        <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
+                                        
+                                        <div className="flex-1 p-3.5 pl-5 pr-3 space-y-2 min-w-0 relative">
                                             <div className="flex items-center justify-between">
-                                                <span className="text-[9px] font-mono text-[#161D15] font-extrabold px-1.5 py-0.5 rounded bg-[#C5AB89]">{sch.date}</span>
-                                                <button onClick={() => onDelete(sch.id)} className="text-red-500 hover:text-red-700"><i data-lucide="trash-2" className="w-3 h-3"></i></button>
+                                                <span className="text-[10px] font-mono text-[#161D15] font-extrabold px-2 py-0.5 rounded bg-[#C5AB89]">{sch.date}</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[9px] font-mono font-black uppercase tracking-wider text-[#AB8C83] border border-[#AB8C83] px-1.5 py-0.5 rounded -rotate-3">{sch.status}</span>
+                                                    <button 
+                                                        onClick={() => onDelete(sch.id)}
+                                                        className="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors shadow-sm"
+                                                        title="刪除排程"
+                                                    >
+                                                        <i data-lucide="trash-2" className="w-3.5 h-3.5"></i>
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <h3 className="font-extrabold text-[11px] text-[#161D15] truncate">{sch.title}</h3>
-                                            <p className="text-[10px] text-[#737C75] truncate">{sch.venue}</p>
+                                            <h3 className="font-extrabold text-sm text-[#161D15] leading-snug">{sch.title}</h3>
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-xs text-[#737C75] truncate">{sch.organizer} • {sch.venue}</p>
+                                                <a href={mapsUrl} target="_blank" rel="noreferrer" className="text-[10px] font-bold text-[#C5AB89] hover:underline flex items-center gap-1 shrink-0">
+                                                    <i data-lucide="map-pin" className="w-3 h-3"></i> Google Maps
+                                                </a>
+                                            </div>
                                         </div>
-                                        <div className="w-20 bg-[#EBEBE9] p-2 flex flex-col justify-between items-center text-center shrink-0 border-l border-[#D2CABF]/40">
-                                            <span className="font-mono text-[9px] font-black text-[#161D15]">{sch.priceRange}</span>
-                                            <a href={sch.ticketLink} target="_blank" rel="noreferrer" className="w-full py-1 rounded bg-[#161D15] text-[#EFF0EA] font-extrabold text-[9px]">購票</a>
+                                        <div className="relative w-0 border-r-2 border-dashed border-[#737C75]/40 my-1 z-10"></div>
+                                        <div className="w-24 bg-[#EBEBE9] p-3 flex flex-col justify-between items-center text-center shrink-0 border-l border-[#D2CABF]/40">
+                                            <span className="font-mono text-[10px] font-black text-[#161D15]">{sch.priceRange}</span>
+                                            <a href={sch.ticketLink} target="_blank" rel="noreferrer" className="w-full py-1.5 rounded-lg bg-[#161D15] text-[#EFF0EA] font-extrabold text-[10px] hover:bg-[#737C75] flex items-center justify-center gap-1 shadow">
+                                                <span>購票</span>
+                                            </a>
                                         </div>
                                     </div>
                                 );
@@ -1019,18 +1269,41 @@
 
         function StatsSection({ stats, events }) {
             return (
-                <div className="p-3 pb-20 space-y-3 text-xs">
+                <div className="p-4 pb-24 space-y-4">
                     <div>
-                        <h2 className="text-xs font-extrabold text-[#EFF0EA]">成就統計</h2>
+                        <h2 className="text-base font-extrabold text-[#EFF0EA] tracking-tight">成就統計與花費總覽</h2>
+                        <p className="text-xs text-[#D2CABF]">全方位檢視您的藝文足跡與收藏成就</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
-                        <div className="bg-[#EFF0EA] text-[#161D15] p-3 rounded-2xl shadow border border-[#D2CABF]">
-                            <span className="text-[9px] text-[#737C75] font-bold block">總紀錄</span>
-                            <div className="font-mono font-black text-lg text-[#161D15]">{stats.totalEvents} <span className="text-[10px] font-normal">筆</span></div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-[#EFF0EA] text-[#161D15] p-4 rounded-3xl shadow-lg border border-[#D2CABF] space-y-1">
+                            <span className="text-[10px] text-[#737C75] font-bold uppercase tracking-wider block">總藝文紀錄</span>
+                            <div className="font-mono font-black text-2xl text-[#161D15]">{stats.totalEvents} <span className="text-xs font-normal text-[#737C75]">筆</span></div>
                         </div>
-                        <div className="bg-[#EFF0EA] text-[#161D15] p-3 rounded-2xl shadow border border-[#D2CABF]">
-                            <span className="text-[9px] text-[#737C75] font-bold block">總金額</span>
-                            <div className="font-mono font-black text-sm text-[#161D15]">NT$ {stats.totalCost.toLocaleString()}</div>
+                        <div className="bg-[#EFF0EA] text-[#161D15] p-4 rounded-3xl shadow-lg border border-[#D2CABF] space-y-1">
+                            <span className="text-[10px] text-[#737C75] font-bold uppercase tracking-wider block">總投資金額</span>
+                            <div className="font-mono font-black text-xl text-[#161D15]">NT$ {stats.totalCost.toLocaleString()}</div>
+                        </div>
+                    </div>
+
+                    <div className="bg-[#EFF0EA] text-[#161D15] p-4 rounded-3xl shadow-lg border border-[#D2CABF] space-y-3">
+                        <h3 className="font-extrabold text-xs text-[#737C75] uppercase tracking-wider border-b border-[#D2CABF] pb-2">分類佔比</h3>
+                        <div className="space-y-2">
+                            {Object.entries(CATEGORIES).map(([key, cat]) => {
+                                const count = stats.categoryCounts[key] || 0;
+                                const percentage = stats.totalEvents > 0 ? Math.round((count / stats.totalEvents) * 100) : 0;
+                                return (
+                                    <div key={key} className="space-y-1">
+                                        <div className="flex items-center justify-between text-xs font-bold">
+                                            <span className="flex items-center gap-1.5"><span>{cat.emoji}</span><span>{cat.label}</span></span>
+                                            <span className="font-mono">{count} 筆 ({percentage}%)</span>
+                                        </div>
+                                        <div className="w-2 h-2 bg-[#EBEBE9] rounded-full overflow-hidden w-full">
+                                            <div className="h-full bg-[#C5AB89] rounded-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>

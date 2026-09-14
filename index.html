@@ -186,58 +186,14 @@
             drama: { label: '話劇/音樂劇', icon: 'theater', emoji: '🎭', badgeBg: 'bg-[#737C75] text-[#EFF0EA]' }
         };
 
-        const INITIAL_EVENTS = [
-            {
-                id: 'evt-1', type: 'concert', title: 'Coldplay "Music of the Spheres" 世界巡迴演唱會',
-                creator: 'Coldplay 酷玩樂團', date: '2026-03-12', time: '19:30', 
-                venue: '高雄國家體育場 (世運主場館)', venueAddress: '高雄市左營區世運大道100號',
-                city: '高雄', lat: 22.7038, lng: 120.2974, countryCode: 'TW', countryName: '台灣',
-                status: 'attended', rating: 5, cost: 5800, detailSeat: '搖滾 A 區 042 號',
-                coverImg: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80',
-                notes: '現場手環連動燈效極致震撼！Chris Martin 現場唱功完美，萬人大合唱《Fix You》時感動落淚。'
-            },
-            {
-                id: 'evt-2', type: 'drama', title: '經典音樂劇《歌劇魅影》The Phantom of the Opera',
-                creator: '安德魯·勞埃德·韋伯', date: '2026-02-14', time: '19:30', 
-                venue: '國家戲劇院', venueAddress: '台北市中正區中山南路21之1號',
-                city: '台北', lat: 25.0401, lng: 121.5173, countryCode: 'TW', countryName: '台灣',
-                status: 'attended', rating: 5, cost: 4200, detailSeat: '1 樓 12 排 15 號',
-                coverImg: 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?auto=format&fit=crop&w=1200&q=80',
-                notes: '水晶吊燈墜落瞬間全場屏息，女主角彩排時的高音震撼全場，音樂劇無可替代的現場魅力！'
-            },
-            {
-                id: 'evt-3', type: 'exhibition', title: 'teamLab Borderless: 超超越超越展',
-                creator: 'teamLab 藝術團隊', date: '2026-01-20', time: '14:00', 
-                venue: '麻布台 Hills 藝術中心', venueAddress: '東京都港區麻布台一丁目',
-                city: '東京', lat: 35.6586, lng: 139.7454, countryCode: 'JP', countryName: '日本',
-                status: 'attended', rating: 5, cost: 1200, detailSeat: '14:00 場次',
-                coverImg: 'https://images.unsplash.com/photo-1518998053901-5348d3961a04?auto=format&fit=crop&w=1200&q=80',
-                notes: '光影與無界空間的完美互動，《無限水晶宇宙》展區讓人彷彿置身於星雲深處，沉浸感滿分。'
-            },
-            {
-                id: 'evt-4', type: 'concert', title: 'Taylor Swift "The Eras Tour" 墨爾本演唱會',
-                creator: 'Taylor Swift', date: '2025-11-15', time: '18:00',
-                venue: '墨爾本板球場 (MCG)', venueAddress: 'Brunton Ave, Richmond VIC 3001',
-                city: '墨爾本', lat: -37.8200, lng: 144.9834, countryCode: 'AU', countryName: '澳大利亞',
-                status: 'attended', rating: 5, cost: 7200, detailSeat: 'Lower Bowl B 區',
-                coverImg: 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=1200&q=80',
-                notes: '十萬人的瘋狂夜，全場手環點亮粉紅星海，經典曲目連唱三小時毫無冷場！'
-            }
-        ];
-
-        const INITIAL_SCHEDULES = [
-            { id: 'sch-1', type: 'concert', title: '告五人《宇宙的有趣》新世界巡迴演唱會', organizer: '相信音樂', date: '2026-09-26', venue: '台北小巨蛋', venueAddress: '台北市松山區南京東路四段2號', city: '台北', status: '售票中', priceRange: 'NT$ 800 - 3,800', ticketLink: 'https://tixcraft.com', notes: '準備搶票！' },
-            { id: 'sch-2', type: 'drama', title: '法文原版音樂劇《悲慘世界》Les Misérables', organizer: '開麗娛樂', date: '2026-10-15', venue: '臺中國家歌劇院 大劇院', venueAddress: '台中市西屯區惠來路二段101號', city: '台中', status: '即將開賣', priceRange: 'NT$ 1,200 - 5,800', ticketLink: 'https://kham.com.tw', notes: '經典不容錯過' },
-        ];
-
         function App() {
             const [events, setEvents] = useState(() => {
                 const saved = localStorage.getItem('liveecho_records_palette_v7');
-                return saved ? JSON.parse(saved) : INITIAL_EVENTS;
+                return saved ? JSON.parse(saved) : [];
             });
             const [schedules, setSchedules] = useState(() => {
                 const saved = localStorage.getItem('liveecho_schedules_v7');
-                return saved ? JSON.parse(saved) : INITIAL_SCHEDULES;
+                return saved ? JSON.parse(saved) : [];
             });
 
             const [userProfile, setUserProfile] = useState(() => {
@@ -245,11 +201,11 @@
                 return saved ? JSON.parse(saved) : { name: 'LiveEcho', subtitle: 'ARCHIVE & FOOTPRINTS', avatarUrl: '', initials: 'LE' };
             });
 
-            const [activeTab, setActiveTab] = useState('map'); // archive | schedule | map | stats
+            const [activeTab, setActiveTab] = useState('archive'); // archive | schedule | map | stats
             const [viewMode, setViewMode] = useState('list');
             const [selectedCategory, setSelectedCategory] = useState('all');
             const [searchQuery, setSearchQuery] = useState('');
-            const [selectedEventId, setSelectedEventId] = useState(INITIAL_EVENTS[0]?.id);
+            const [selectedEventId, setSelectedEventId] = useState(null);
 
             const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
             const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -413,6 +369,7 @@
                                 selectedEvent={selectedEvent} setSelectedEventId={setSelectedEventId}
                                 viewMode={viewMode} onDelete={handleDeleteEvent}
                                 getGoogleMapsUrl={getGoogleMapsUrl}
+                                onOpenAddModal={() => setIsAddModalOpen(true)}
                             />
                         )}
 
@@ -421,6 +378,7 @@
                                 schedules={schedules} 
                                 onDelete={handleDeleteSchedule}
                                 getGoogleMapsUrl={getGoogleMapsUrl} 
+                                onOpenAddModal={() => setIsAddScheduleModalOpen(true)}
                             />
                         )}
                         
@@ -1092,7 +1050,7 @@
             );
         }
 
-        function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCategory, searchQuery, setSearchQuery, viewMode, onDelete, getGoogleMapsUrl }) {
+        function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCategory, searchQuery, setSearchQuery, viewMode, onDelete, getGoogleMapsUrl, onOpenAddModal }) {
             const [detailEvent, setDetailEvent] = useState(null);
             const [calendarDate, setCalendarDate] = useState(new Date());
 
@@ -1165,9 +1123,17 @@
                     ) : (
                         <div className="space-y-3">
                             {events.length === 0 ? (
-                                <div className="text-center py-12 bg-[#EFF0EA]/10 border border-dashed border-[#737C75]/40 rounded-2xl p-6 space-y-2">
-                                    <i data-lucide="ticket-slash" className="w-8 h-8 mx-auto text-[#737C75]"></i>
-                                    <p className="text-xs text-[#D2CABF] font-bold">查無符合條件的藝文紀錄</p>
+                                <div className="text-center py-16 bg-[#EFF0EA]/5 border border-dashed border-[#737C75]/40 rounded-3xl p-6 space-y-3">
+                                    <div className="w-12 h-12 rounded-2xl bg-[#C5AB89]/10 text-[#C5AB89] flex items-center justify-center mx-auto">
+                                        <i data-lucide="ticket" className="w-6 h-6"></i>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-xs text-[#EFF0EA] font-extrabold">暫無藝文紀錄</p>
+                                        <p className="text-[11px] text-[#D2CABF]">點擊右上角「+」或下方按鈕新增您的第一筆觀演紀錄</p>
+                                    </div>
+                                    <button onClick={onOpenAddModal} className="px-4 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-xs shadow hover:bg-[#CCB9AA] transition-all inline-flex items-center gap-1.5">
+                                        <i data-lucide="plus" className="w-4 h-4"></i> 新增藝文紀錄
+                                    </button>
                                 </div>
                             ) : (
                                 events.map((evt) => {
@@ -1212,7 +1178,7 @@
             );
         }
 
-        function ScheduleSection({ schedules, onDelete, getGoogleMapsUrl }) {
+        function ScheduleSection({ schedules, onDelete, getGoogleMapsUrl, onOpenAddModal }) {
             return (
                 <div className="p-4 pb-24 space-y-4">
                     <div>
@@ -1221,9 +1187,17 @@
                     </div>
                     <div className="space-y-3.5">
                         {schedules.length === 0 ? (
-                            <div className="text-center py-12 bg-[#EFF0EA]/10 border border-dashed border-[#737C75]/40 rounded-2xl p-6 space-y-2">
-                                <i data-lucide="calendar-x" className="w-8 h-8 mx-auto text-[#737C75]"></i>
-                                <p className="text-xs text-[#D2CABF] font-bold">目前尚無演出排程</p>
+                            <div className="text-center py-16 bg-[#EFF0EA]/5 border border-dashed border-[#737C75]/40 rounded-3xl p-6 space-y-3">
+                                <div className="w-12 h-12 rounded-2xl bg-[#C5AB89]/10 text-[#C5AB89] flex items-center justify-center mx-auto">
+                                    <i data-lucide="calendar-days" className="w-6 h-6"></i>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-xs text-[#EFF0EA] font-extrabold">暫無演出排程</p>
+                                    <p className="text-[11px] text-[#D2CABF]">點擊右上角「+」或下方按鈕新增您關注的演出排程</p>
+                                </div>
+                                <button onClick={onOpenAddModal} className="px-4 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-xs shadow hover:bg-[#CCB9AA] transition-all inline-flex items-center gap-1.5">
+                                    <i data-lucide="plus" className="w-4 h-4"></i> 新增演出排程
+                                </button>
                             </div>
                         ) : (
                             schedules.map(sch => {

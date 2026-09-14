@@ -160,9 +160,11 @@
         }
 
         .form-group, .grid-item {
-            flex: 1 1 calc(50% - 6px) !important;
-            width: auto !important;
-            /* 移除 overflow: hidden 避免 focus ring 被切掉 */
+        flex: 1 1 calc(50% - 6px) !important;
+        width: auto !important;
+        min-width: 0 !important; /* 避免內容撐開 */
+        box-sizing: border-box !important;
+
         }
 
         .form-group label {
@@ -630,12 +632,12 @@
                                 <input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} placeholder="例如：台北市松山區南京東路四段2號" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:ring-2 focus:ring-[#C5AB89]" />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2">
-                                <div className="space-y-1">
+                            <div className="grid grid-cols-2 gap-2 w-full">
+                                <div className="space-y-1 min-w-0">
                                     <label className="text-[11px] font-bold text-[#737C75] block">日期</label>
                                     <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-[11px] font-medium border border-[#D2CABF] focus:outline-none focus:ring-2 focus:ring-[#C5AB89]" />
                                 </div>
-                                <div className="space-y-1">
+                                <div className="space-y-1 min-w-0">
                                     <label className="text-[11px] font-bold text-[#737C75] block">票價 (NT$)</label>
                                     <input type="number" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="5800" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-[11px] font-medium border border-[#D2CABF] focus:outline-none focus:ring-2 focus:ring-[#C5AB89]" />
                                 </div>

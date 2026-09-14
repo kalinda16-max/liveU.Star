@@ -57,7 +57,17 @@
     
     <style>
         *, *::before, *::after {
-            box-sizing: border-box;
+            box-sizing: border-box !important;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden !important;
+            background-color: #161D15;
+            color: #EFF0EA;
         }
 
         .no-scrollbar::-webkit-scrollbar {
@@ -68,7 +78,7 @@
             scrollbar-width: none;
         }
         
-        body, .app-container {
+        .app-container {
             display: flex;
             flex-direction: column;
             height: 100vh;
@@ -78,6 +88,7 @@
             background-color: #161D15;
             max-width: 100vw;
             width: 100%;
+            position: relative;
         }
 
         header, .app-header {
@@ -153,45 +164,50 @@
         }
 
         .modal-overlay {
-            z-index: 9999 !important;
+            position: fixed !important;
+            inset: 0 !important;
+            z-index: 99999 !important;
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
-            max-width: 100vw;
-            overflow-x: hidden;
+            width: 100vw !important;
+            max-width: 100vw !important;
+            height: 100vh !important;
+            height: 100dvh !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            box-sizing: border-box !important;
         }
 
-        .form-row, .grid-2-columns {
+        /* 嚴格防止溢位的表單排版網格 */
+        .form-row {
             display: flex !important;
             flex-wrap: wrap !important;
             width: 100% !important;
-            gap: 10px !important;
-            align-items: center;
+            gap: 8px !important;
             box-sizing: border-box !important;
+            margin: 0 !important;
         }
 
-        .form-group, .grid-item {
-            flex: 1 1 100% !important;
-            width: 100% !important;
+        .form-group {
+            flex: 1 1 calc(50% - 4px) !important;
             min-width: 0 !important;
+            max-width: 100% !important;
             box-sizing: border-box !important;
         }
 
-        @media (min-width: 360px) {
-            .form-group.half, .grid-item.half, .form-row > .form-group {
-                flex: 1 1 calc(50% - 6px) !important;
-                width: auto !important;
-            }
-        }
-
-        .form-group label, .form-row label {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .form-group.full {
+            flex: 1 1 100% !important;
         }
 
         input, select, textarea {
+            width: 100% !important;
             max-width: 100% !important;
             box-sizing: border-box !important;
+            font-size: 16px !important; /* 防止 iOS 點擊輸入框時自動放大畫面 */
         }
     </style>
 </head>
@@ -481,8 +497,8 @@
             };
 
             return (
-                <div className="absolute inset-0 modal-overlay bg-black/85 flex items-center justify-center p-4">
-                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-[#D2CABF] space-y-4">
+                <div className="modal-overlay bg-black/85">
+                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-[#D2CABF] space-y-4 my-auto">
                         <div className="flex items-center justify-between border-b border-[#D2CABF] pb-3">
                             <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-2">
                                 <i data-lucide="user-pen" className="w-4 h-4 text-[#737C75]"></i> 編輯個人檔案
@@ -514,17 +530,17 @@
 
                             <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-[#737C75]">稱呼</label>
-                                <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:border-[#C5AB89]" />
+                                <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:border-[#C5AB89]" />
                             </div>
 
                             <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-[#737C75]">簡介or隨便啦</label>
-                                <input type="text" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:border-[#C5AB89]" />
+                                <input type="text" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:border-[#C5AB89]" />
                             </div>
 
                             <div className="flex gap-2 pt-2">
-                                <button type="button" onClick={onClose} className="flex-1 py-2 rounded-xl bg-[#EBEBE9] text-[#161D15] font-bold text-xs hover:bg-[#D2CABF]">取消</button>
-                                <button type="submit" className="flex-1 py-2 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">儲存變更</button>
+                                <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#EBEBE9] text-[#161D15] font-bold text-xs hover:bg-[#D2CABF]">取消</button>
+                                <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">儲存變更</button>
                             </div>
                         </form>
                     </div>
@@ -584,8 +600,8 @@
             };
 
             return (
-                <div className="absolute inset-0 modal-overlay bg-black/85 flex items-center justify-center p-3 overflow-y-auto">
-                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[92vh] flex flex-col box-border">
+                <div className="modal-overlay bg-black/85">
+                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[90vh] flex flex-col">
                         <div className="flex items-center justify-between border-b border-[#D2CABF] pb-2 shrink-0">
                             <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-2">
                                 <i data-lucide="ticket-plus" className="w-4 h-4 text-[#737C75]"></i> 新增藝文紀錄 & 地圖足跡
@@ -595,23 +611,23 @@
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar box-w-full">
-                            <div className="space-y-1 w-full">
+                        <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar">
+                            <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-[#737C75]">活動分類</label>
-                                <select value={type} onChange={(e) => setType(e.target.value)} className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:ring-2 focus:ring-[#C5AB89] box-border">
+                                <select value={type} onChange={(e) => setType(e.target.value)} className="bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]">
                                     {Object.entries(CATEGORIES).map(([k, v]) => (
                                         <option key={k} value={k}>{v.emoji} {v.label}</option>
                                     ))}
                                 </select>
                             </div>
 
-                            <div className="space-y-1 w-full">
+                            <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-[#737C75]">活動名稱</label>
-                                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例如：Coldplay 演唱會" required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:ring-2 focus:ring-[#C5AB89] box-border" />
+                                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例如：Coldplay 演唱會" required className="bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                             </div>
 
-                            <div className="form-row w-full">
-                                <div className="form-group space-y-1 min-w-0">
+                            <div className="form-row">
+                                <div className="form-group space-y-1">
                                     <label className="text-[11px] font-bold text-[#737C75] block">國家</label>
                                     <select value={countryCode} onChange={(e) => {
                                         const val = e.target.value;
@@ -625,7 +641,7 @@
                                         else if(val === 'TH') setCountryName('泰國');
                                         else if(val === 'CN') setCountryName('中國');
                                         else if(val === 'HK') setCountryName('香港');
-                                    }} className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:ring-2 focus:ring-[#C5AB89] box-border">
+                                    }} className="bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]">
                                         <option value="TW">台灣 (TW)</option>
                                         <option value="JP">日本 (JP)</option>
                                         <option value="KR">南韓 (KR)</option>
@@ -637,39 +653,39 @@
                                         <option value="HK">香港 (HK)</option>
                                     </select>
                                 </div>
-                                <div className="form-group space-y-1 min-w-0">
+                                <div className="form-group space-y-1">
                                     <label className="text-[11px] font-bold text-[#737C75] block">城市</label>
-                                    <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="例如：台北" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:ring-2 focus:ring-[#C5AB89] box-border" />
+                                    <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="例如：台北" className="bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                                 </div>
                             </div>
 
-                            <div className="space-y-1 w-full">
+                            <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-[#737C75]">場館名稱</label>
-                                <input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="例如：台北小巨蛋" required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:ring-2 focus:ring-[#C5AB89] box-border" />
+                                <input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="例如：台北小巨蛋" required className="bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                             </div>
 
-                            <div className="space-y-1 w-full">
+                            <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-[#737C75]">地址</label>
-                                <input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} placeholder="例如：台北市松山區南京東路四段2號" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:ring-2 focus:ring-[#C5AB89] box-border" />
+                                <input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} placeholder="例如：台北市松山區南京東路四段2號" className="bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                             </div>
 
-                            <div className="form-row w-full">
-                                <div className="form-group space-y-1 min-w-0">
+                            <div className="form-row">
+                                <div className="form-group space-y-1">
                                     <label className="text-[11px] font-bold text-[#737C75] block">日期</label>
-                                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white text-[#161D15] px-2 py-2 rounded-xl text-[11px] font-medium border border-[#D2CABF] focus:outline-none focus:ring-2 focus:ring-[#C5AB89] box-border" />
+                                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="bg-white text-[#161D15] px-2 py-2 rounded-xl text-[11px] font-medium border border-[#D2CABF]" />
                                 </div>
-                                <div className="form-group space-y-1 min-w-0">
+                                <div className="form-group space-y-1">
                                     <label className="text-[11px] font-bold text-[#737C75] block">票價 (NT$)</label>
-                                    <input type="number" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="5800" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-[11px] font-medium border border-[#D2CABF] focus:outline-none focus:ring-2 focus:ring-[#C5AB89] box-border" />
+                                    <input type="number" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="5800" className="bg-white text-[#161D15] px-3 py-2 rounded-xl text-[11px] font-medium border border-[#D2CABF]" />
                                 </div>
                             </div>
 
-                            <div className="space-y-1 w-full">
+                            <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-[#737C75]">心得筆記</label>
-                                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows="2" placeholder="寫下您的觀後感..." className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:ring-2 focus:ring-[#C5AB89] box-border"></textarea>
+                                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows="2" placeholder="寫下您的觀後感..." className="bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]"></textarea>
                             </div>
 
-                            <div className="flex gap-2 pt-2 shrink-0 w-full">
+                            <div className="flex gap-2 pt-2 shrink-0">
                                 <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#EBEBE9] text-[#161D15] font-bold text-xs hover:bg-[#D2CABF]">取消</button>
                                 <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">確認新增</button>
                             </div>
@@ -707,8 +723,8 @@
             };
 
             return (
-                <div className="absolute inset-0 modal-overlay bg-black/85 flex items-center justify-center p-3 overflow-y-auto">
-                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[92vh] flex flex-col box-border">
+                <div className="modal-overlay bg-black/85">
+                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[90vh] flex flex-col">
                         <div className="flex items-center justify-between border-b border-[#D2CABF] pb-2 shrink-0">
                             <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-2">
                                 <i data-lucide="calendar-plus" className="w-4 h-4 text-[#737C75]"></i> 新增演出排程
@@ -718,54 +734,54 @@
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto pr-1 flex-1 no-scrollbar box-border">
-                            <div className="space-y-1 w-full">
+                        <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar">
+                            <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-[#737C75]">活動名稱</label>
-                                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例如：五月天演唱會" required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] box-border" />
+                                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例如：五月天演唱會" required className="bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                             </div>
 
-                            <div className="form-row w-full">
-                                <div className="form-group space-y-1 min-w-0">
+                            <div className="form-row">
+                                <div className="form-group space-y-1">
                                     <label className="text-[11px] font-bold text-[#737C75] block">主辦單位</label>
-                                    <input type="text" value={organizer} onChange={(e) => setOrganizer(e.target.value)} placeholder="例如：相信音樂" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] box-border" />
+                                    <input type="text" value={organizer} onChange={(e) => setOrganizer(e.target.value)} placeholder="例如：相信音樂" className="bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                                 </div>
-                                <div className="form-group space-y-1 min-w-0">
+                                <div className="form-group space-y-1">
                                     <label className="text-[11px] font-bold text-[#737C75] block">日期</label>
-                                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white text-[#161D15] px-2 py-2 rounded-xl text-[11px] font-medium border border-[#D2CABF] box-border" />
+                                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="bg-white text-[#161D15] px-2 py-2 rounded-xl text-[11px] font-medium border border-[#D2CABF]" />
                                 </div>
                             </div>
 
-                            <div className="space-y-1 w-full">
+                            <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-[#737C75]">場館名稱</label>
-                                <input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="例如：台北小巨蛋" required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] box-border" />
+                                <input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="例如：台北小巨蛋" required className="bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                             </div>
 
-                            <div className="space-y-1 w-full">
+                            <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-[#737C75]">地址</label>
-                                <input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} placeholder="例如：台北市松山區..." className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] box-border" />
+                                <input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} placeholder="例如：台北市松山區..." className="bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                             </div>
 
-                            <div className="form-row w-full">
-                                <div className="form-group space-y-1 min-w-0">
+                            <div className="form-row">
+                                <div className="form-group space-y-1">
                                     <label className="text-[11px] font-bold text-[#737C75] block">售票狀態</label>
-                                    <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] box-border">
+                                    <select value={status} onChange={(e) => setStatus(e.target.value)} className="bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]">
                                         <option value="即將開賣">即將開賣</option>
                                         <option value="售票中">售票中</option>
                                         <option value="已完售">已完售</option>
                                     </select>
                                 </div>
-                                <div className="form-group space-y-1 min-w-0">
+                                <div className="form-group space-y-1">
                                     <label className="text-[11px] font-bold text-[#737C75] block">票價範圍</label>
-                                    <input type="text" value={priceRange} onChange={(e) => setPriceRange(e.target.value)} placeholder="NT$ 800 - 3,800" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] box-border" />
+                                    <input type="text" value={priceRange} onChange={(e) => setPriceRange(e.target.value)} placeholder="NT$ 800 - 3,800" className="bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                                 </div>
                             </div>
 
-                            <div className="space-y-1 w-full">
+                            <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-[#737C75]">售票連結網址</label>
-                                <input type="url" value={ticketLink} onChange={(e) => setTicketLink(e.target.value)} placeholder="https://..." className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] box-border" />
+                                <input type="url" value={ticketLink} onChange={(e) => setTicketLink(e.target.value)} placeholder="https://..." className="bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                             </div>
 
-                            <div className="flex gap-2 pt-2 shrink-0 w-full">
+                            <div className="flex gap-2 pt-2 shrink-0">
                                 <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#EBEBE9] text-[#161D15] font-bold text-xs hover:bg-[#D2CABF]">取消</button>
                                 <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">確認新增</button>
                             </div>
@@ -781,7 +797,7 @@
             const mapsUrl = getGoogleMapsUrl(event.venue, event.venueAddress);
 
             return (
-                <div className="absolute inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+                <div className="modal-overlay bg-black/85 backdrop-blur-md">
                     <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-[#D2CABF] my-auto flex flex-col max-h-[85vh]">
                         <div className="relative h-48 bg-[#D2CABF] shrink-0">
                             <img src={event.coverImg} alt={event.title} className="w-full h-full object-cover" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80'; }} />

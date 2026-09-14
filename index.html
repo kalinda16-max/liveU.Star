@@ -162,7 +162,7 @@
         .form-group, .grid-item {
             flex: 1 1 calc(50% - 6px) !important;
             width: auto !important;
-            overflow: hidden;
+            /* 移除 overflow: hidden 避免 focus ring 被切掉 */
         }
 
         .form-group label {
@@ -198,7 +198,7 @@
 
             const [userProfile, setUserProfile] = useState(() => {
                 const saved = localStorage.getItem('liveecho_user_profile_v7');
-                return saved ? JSON.parse(saved) : { name: 'LiveEcho', subtitle: 'ARCHIVE & FOOTPRINTS', avatarUrl: '', initials: 'LE' };
+                return saved ? JSON.parse(saved) : { name: 'LiveU', subtitle: 'say something', avatarUrl: '', initials: 'LU' };
             });
 
             const [activeTab, setActiveTab] = useState('archive'); // archive | schedule | map | stats
@@ -533,6 +533,9 @@
                 else if(countryCode === 'US') { lat = 40.71; lng = -74.00; }
                 else if(countryCode === 'AU') { lat = -37.81; lng = 144.96; }
                 else if(countryCode === 'GB') { lat = 51.50; lng = -0.12; }
+                else if(countryCode === 'TH') { lat = 13.75; lng = 100.50; }
+                else if(countryCode === 'CN') { lat = 39.90; lng = 116.40; }
+                else if(countryCode === 'HK') { lat = 22.31; lng = 114.16; }
                 else if(countryCode === 'TW') { lat = 25.03; lng = 121.56; }
 
                 onAdd({
@@ -558,7 +561,7 @@
             };
 
             return (
-                <div className="absolute inset-0 modal-overlay bg-black/85 flex items-center justify-center p-3 overflow-y-auto">
+                <div className="absolute inset-0 modal-overlay bg-black/85 flex items-center justify-center p-4 overflow-y-auto">
                     <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[92vh] flex flex-col">
                         <div className="flex items-center justify-between border-b border-[#D2CABF] pb-2 shrink-0">
                             <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-2">
@@ -569,10 +572,10 @@
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto pr-1 flex-1 no-scrollbar">
+                        <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar">
                             <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-[#737C75]">活動分類</label>
-                                <select value={type} onChange={(e) => setType(e.target.value)} className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]">
+                                <select value={type} onChange={(e) => setType(e.target.value)} className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:ring-2 focus:ring-[#C5AB89]">
                                     {Object.entries(CATEGORIES).map(([k, v]) => (
                                         <option key={k} value={k}>{v.emoji} {v.label}</option>
                                     ))}
@@ -581,10 +584,10 @@
 
                             <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-[#737C75]">活動名稱</label>
-                                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例如：Coldplay 演唱會" required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例如：Coldplay 演唱會" required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:ring-2 focus:ring-[#C5AB89]" />
                             </div>
 
-                            <div className="form-row">
+                                <div className="form-row">
                                 <div className="form-group space-y-1">
                                     <label className="text-[11px] font-bold text-[#737C75] block">國家</label>
                                     <select value={countryCode} onChange={(e) => {
@@ -596,45 +599,51 @@
                                         else if(val === 'US') setCountryName('美國');
                                         else if(val === 'AU') setCountryName('澳大利亞');
                                         else if(val === 'GB') setCountryName('英國');
-                                    }} className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]">
+                                        else if(val === 'TH') setCountryName('泰國');
+                                        else if(val === 'CN') setCountryName('中國');
+                                        else if(val === 'HK') setCountryName('香港');
+                                    }} className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:ring-2 focus:ring-[#C5AB89] box-border">
                                         <option value="TW">台灣 (TW)</option>
                                         <option value="JP">日本 (JP)</option>
                                         <option value="KR">南韓 (KR)</option>
                                         <option value="US">美國 (US)</option>
                                         <option value="AU">澳大利亞 (AU)</option>
                                         <option value="GB">英國 (GB)</option>
+                                        <option value="TH">泰國 (TH)</option>
+                                        <option value="CN">中國 (CN)</option>
+                                        <option value="HK">香港 (HK)</option>
                                     </select>
                                 </div>
                                 <div className="form-group space-y-1">
                                     <label className="text-[11px] font-bold text-[#737C75] block">城市</label>
-                                    <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="例如：台北" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                                    <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="例如：台北" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:ring-2 focus:ring-[#C5AB89] box-border" />
                                 </div>
                             </div>
 
                             <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-[#737C75]">場館名稱</label>
-                                <input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="例如：台北小巨蛋" required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                                <input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="例如：台北小巨蛋" required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:ring-2 focus:ring-[#C5AB89]" />
                             </div>
 
                             <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-[#737C75]">地址</label>
-                                <input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} placeholder="例如：台北市松山區南京東路四段2號" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                                <input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} placeholder="例如：台北市松山區南京東路四段2號" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:ring-2 focus:ring-[#C5AB89]" />
                             </div>
 
-                            <div className="form-row">
-                                <div className="form-group space-y-1">
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="space-y-1">
                                     <label className="text-[11px] font-bold text-[#737C75] block">日期</label>
-                                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-[11px] font-medium border border-[#D2CABF] focus:outline-none focus:ring-2 focus:ring-[#C5AB89]" />
                                 </div>
-                                <div className="form-group space-y-1">
+                                <div className="space-y-1">
                                     <label className="text-[11px] font-bold text-[#737C75] block">票價 (NT$)</label>
-                                    <input type="number" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="5800" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                                    <input type="number" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="5800" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-[11px] font-medium border border-[#D2CABF] focus:outline-none focus:ring-2 focus:ring-[#C5AB89]" />
                                 </div>
                             </div>
 
                             <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-[#737C75]">心得筆記</label>
-                                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows="2" placeholder="寫下您的觀後感..." className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]"></textarea>
+                                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows="2" placeholder="寫下您的觀後感..." className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:ring-2 focus:ring-[#C5AB89]"></textarea>
                             </div>
 
                             <div className="flex gap-2 pt-2 shrink-0">
@@ -675,7 +684,7 @@
             };
 
             return (
-                <div className="absolute inset-0 modal-overlay bg-black/85 flex items-center justify-center p-3 overflow-y-auto">
+                <div className="absolute inset-0 modal-overlay bg-black/85 flex items-center justify-center p-4 overflow-y-auto">
                     <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[92vh] flex flex-col">
                         <div className="flex items-center justify-between border-b border-[#D2CABF] pb-2 shrink-0">
                             <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-2">
@@ -699,7 +708,7 @@
                                 </div>
                                 <div className="form-group space-y-1">
                                     <label className="text-[11px] font-bold text-[#737C75] block">日期</label>
-                                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white text-[#161D15] px-2 py-2 rounded-xl text-[11px] font-medium border border-[#D2CABF]" />
                                 </div>
                             </div>
 
@@ -870,6 +879,9 @@
                                     if (visitedCountryCodes.includes('US') && (name.includes('United States') || iso === 'US')) isVisited = true;
                                     if (visitedCountryCodes.includes('KR') && (name.includes('Korea') || iso === 'KR')) isVisited = true;
                                     if (visitedCountryCodes.includes('GB') && (name.includes('United Kingdom') || iso === 'GB')) isVisited = true;
+                                    if (visitedCountryCodes.includes('TH') && (name.includes('Thailand') || iso === 'TH')) isVisited = true;
+                                    if (visitedCountryCodes.includes('CN') && (name.includes('China') || iso === 'CN')) isVisited = true;
+                                    if (visitedCountryCodes.includes('HK') && (name.includes('Hong Kong') || iso === 'HK')) isVisited = true;
 
                                     return {
                                         fillColor: isVisited ? '#C2A175' : '#1A2218',
@@ -893,6 +905,9 @@
                                             else if (name.includes('United States') || iso === 'US') matchedCode = 'US';
                                             else if (name.includes('Korea') || iso === 'KR') matchedCode = 'KR';
                                             else if (name.includes('United Kingdom') || iso === 'GB') matchedCode = 'GB';
+                                            else if (name.includes('Thailand') || iso === 'TH') matchedCode = 'TH';
+                                            else if (name.includes('China') || iso === 'CN') matchedCode = 'CN';
+                                            else if (name.includes('Hong Kong') || iso === 'HK') matchedCode = 'HK';
 
                                             if (matchedCode && countryEventsMap[matchedCode]) {
                                                 setSelectedCountryInfo(countryEventsMap[matchedCode]);

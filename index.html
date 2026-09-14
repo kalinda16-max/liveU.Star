@@ -13,7 +13,7 @@
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="icon-180.png">
+    <link rel="apple-touch-icon" href="/icon-180.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -198,7 +198,7 @@
 
             const [userProfile, setUserProfile] = useState(() => {
                 const saved = localStorage.getItem('liveecho_user_profile_v7');
-                return saved ? JSON.parse(saved) : { name: ' ', subtitle: ' ', avatarUrl: '', initials: 'LU' };
+                return saved ? JSON.parse(saved) : { name: 'LiveEcho', subtitle: 'ARCHIVE & FOOTPRINTS', avatarUrl: '', initials: 'LE' };
             });
 
             const [activeTab, setActiveTab] = useState('archive'); // archive | schedule | map | stats
@@ -302,7 +302,6 @@
             return (
                 <div className="app-container max-w-md mx-auto border-x border-[#737C75]/30 relative text-[#EFF0EA] shadow-2xl">
                     
-                    {}
                     <header className="app-header px-4 py-2.5 flex items-center justify-between shrink-0">
                         <button 
                             onClick={() => setIsEditProfileOpen(true)}
@@ -359,7 +358,6 @@
                         </div>
                     )}
 
-                    {}
                     <main className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
                         {activeTab === 'archive' && (
                             <ArchiveSection 
@@ -387,7 +385,6 @@
                         {activeTab === 'stats' && <StatsSection stats={stats} events={events} />}
                     </main>
 
-                    {}
                     <nav className="bottom-nav ios-glass pt-3 px-4 flex items-center justify-around app-safe-bottom border-t border-[#737C75]/30">
                         <button onClick={() => setActiveTab('archive')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'archive' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}>
                             <i data-lucide="library" className="w-5 h-5"></i>
@@ -561,9 +558,9 @@
             };
 
             return (
-                <div className="absolute inset-0 modal-overlay bg-black/85 flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-[#D2CABF] space-y-4 my-auto">
-                        <div className="flex items-center justify-between border-b border-[#D2CABF] pb-3">
+                <div className="absolute inset-0 modal-overlay bg-black/85 flex items-center justify-center p-3 overflow-y-auto">
+                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[92vh] flex flex-col">
+                        <div className="flex items-center justify-between border-b border-[#D2CABF] pb-2 shrink-0">
                             <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-2">
                                 <i data-lucide="ticket-plus" className="w-4 h-4 text-[#737C75]"></i> 新增藝文紀錄 & 地圖足跡
                             </h3>
@@ -572,7 +569,7 @@
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-3">
+                        <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto pr-1 flex-1 no-scrollbar">
                             <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-[#737C75]">活動分類</label>
                                 <select value={type} onChange={(e) => setType(e.target.value)} className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]">
@@ -624,7 +621,7 @@
                                 <input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} placeholder="例如：台北市松山區南京東路四段2號" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="form-row">
                                 <div className="form-group space-y-1">
                                     <label className="text-[11px] font-bold text-[#737C75] block">日期</label>
                                     <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
@@ -640,9 +637,9 @@
                                 <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows="2" placeholder="寫下您的觀後感..." className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]"></textarea>
                             </div>
 
-                            <div className="flex gap-2 pt-2">
-                                <button type="button" onClick={onClose} className="flex-1 py-2 rounded-xl bg-[#EBEBE9] text-[#161D15] font-bold text-xs hover:bg-[#D2CABF]">取消</button>
-                                <button type="submit" className="flex-1 py-2 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">確認新增</button>
+                            <div className="flex gap-2 pt-2 shrink-0">
+                                <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#EBEBE9] text-[#161D15] font-bold text-xs hover:bg-[#D2CABF]">取消</button>
+                                <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">確認新增</button>
                             </div>
                         </form>
                     </div>
@@ -678,9 +675,9 @@
             };
 
             return (
-                <div className="absolute inset-0 modal-overlay bg-black/85 flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-[#D2CABF] space-y-4 my-auto">
-                        <div className="flex items-center justify-between border-b border-[#D2CABF] pb-3">
+                <div className="absolute inset-0 modal-overlay bg-black/85 flex items-center justify-center p-3 overflow-y-auto">
+                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[92vh] flex flex-col">
+                        <div className="flex items-center justify-between border-b border-[#D2CABF] pb-2 shrink-0">
                             <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-2">
                                 <i data-lucide="calendar-plus" className="w-4 h-4 text-[#737C75]"></i> 新增演出排程
                             </h3>
@@ -689,7 +686,7 @@
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-3">
+                        <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto pr-1 flex-1 no-scrollbar">
                             <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-[#737C75]">活動名稱</label>
                                 <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例如：五月天演唱會" required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
@@ -700,7 +697,7 @@
                                     <label className="text-[11px] font-bold text-[#737C75] block">主辦單位</label>
                                     <input type="text" value={organizer} onChange={(e) => setOrganizer(e.target.value)} placeholder="例如：相信音樂" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                                 </div>
-                                <div className="grid grid-cols-2 gap-2">
+                                <div className="form-group space-y-1">
                                     <label className="text-[11px] font-bold text-[#737C75] block">日期</label>
                                     <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                                 </div>
@@ -736,9 +733,9 @@
                                 <input type="url" value={ticketLink} onChange={(e) => setTicketLink(e.target.value)} placeholder="https://..." className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                             </div>
 
-                            <div className="flex gap-2 pt-2">
-                                <button type="button" onClick={onClose} className="flex-1 py-2 rounded-xl bg-[#EBEBE9] text-[#161D15] font-bold text-xs hover:bg-[#D2CABF]">取消</button>
-                                <button type="submit" className="flex-1 py-2 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">確認新增</button>
+                            <div className="flex gap-2 pt-2 shrink-0">
+                                <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#EBEBE9] text-[#161D15] font-bold text-xs hover:bg-[#D2CABF]">取消</button>
+                                <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">確認新增</button>
                             </div>
                         </form>
                     </div>
@@ -960,7 +957,6 @@
 
             return (
                 <div id="map-wrapper" className="relative flex-1 w-full flex flex-col bg-[#000000] overflow-hidden">
-                    {/* Top Stats Card and Controls Overlay inside flex map with z-index 999 */}
                     <div className="absolute top-3 left-4 right-4 z-[999] flex items-center justify-between pointer-events-none top-stats-card">
                         <div className="ios-glass px-3 py-1.5 rounded-full shadow-xl border border-[#737C75]/30 pointer-events-auto backdrop-blur-md flex items-center gap-2">
                             <span className="text-[10px] font-bold text-[#C5AB89] tracking-wider whitespace-nowrap">🌍 藝文足跡</span>

@@ -198,7 +198,7 @@
 
             const [userProfile, setUserProfile] = useState(() => {
                 const saved = localStorage.getItem('liveecho_user_profile_v7');
-                return saved ? JSON.parse(saved) : { name: 'LiveEcho', subtitle: 'ARCHIVE & FOOTPRINTS', avatarUrl: '', initials: 'LE' };
+                return saved ? JSON.parse(saved) : { name: ' ', subtitle: ' ', avatarUrl: '', initials: 'LU' };
             });
 
             const [activeTab, setActiveTab] = useState('archive'); // archive | schedule | map | stats

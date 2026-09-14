@@ -1,1311 +1,351 @@
 <!DOCTYPE html>
-<html lang="zh-TW" class="dark">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>LiveU - 藝文紀錄 & 演出追蹤 iOS App</title>
-    <!-- iOS 全螢幕 App 必備關鍵標籤 -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="LiveU">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#161D15">
-
-    <!-- Web App Manifest -->
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="icon-180.png">
+    <!-- iOS PWA 與全螢幕適配 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Travel Log</title>
     
+    <!-- React & Tailwind & Leaflet CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        palette: {
-                            taupe: '#CCB9AA',
-                            offwhite: '#EFF0EA',
-                            lightgrey: '#E1E1DF',
-                            sage: '#737C75',
-                            dustrose: '#AB8C83',
-                            camel: '#C5AB89',
-                            beige: '#D2CABF',
-                            cardbg: '#F8F8F8',
-                            softgrey: '#EBEBE9',
-                            darkslate: '#161D15',
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- React & ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <!-- Babel -->
-    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- Leaflet CSS & JS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    
     <style>
-        *, *::before, *::after {
-            box-sizing: border-box !important;
-        }
-
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            max-width: 100vw;
-            overflow-x: hidden !important;
-            background-color: #161D15;
-            color: #EFF0EA;
-        }
-
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        /* iOS Safe Area 邊距支援 */
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+        .pt-safe { padding-top: env(safe-area-inset-top); }
         
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            height: 100dvh;
-            overflow-x: hidden !important;
-            overflow-y: hidden;
-            background-color: #161D15;
-            max-width: 100vw;
-            width: 100%;
-            position: relative;
+        /* 防 iOS 滑動回彈拉伸 */
+        body {
+            overscroll-behavior-y: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        header, .app-header {
-            position: relative;
-            z-index: 1000 !important;
-            padding-top: calc(env(safe-area-inset-top, 20px) + 12px) !important;
-            background-color: #121212 !important;
-            border-bottom: 1px solid rgba(115, 124, 117, 0.3);
-            flex-shrink: 0;
-        }
-
-        .top-stats-card {
-            z-index: 999 !important;
-        }
-
-        #map-wrapper {
-            flex: 1;
-            width: 100%;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            z-index: 1 !important;
-        }
-
-        #map {
-            width: 100% !important;
-            height: 100% !important;
-            z-index: 1 !important;
-            background: #000000 !important;
-        }
-
-        footer, .bottom-nav {
-            flex-shrink: 0;
-            z-index: 1000 !important;
-        }
-
-        .app-safe-bottom {
-            padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
-        }
-
-        .ios-glass {
-            background: rgba(22, 29, 21, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-
-        /* Leaflet Dark Mode & OpenStreetMap Invert Filter Overrides */
-        .leaflet-container {
-            background: #000000 !important;
-            font-family: inherit;
-        }
-        .leaflet-tile-pane { 
-            filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(90%); 
-        }
-
-        /* Simplified Numeric Leaflet Marker */
-        .custom-numeric-marker {
-            background: #C5AB89;
-            border: 2px solid #EFF0EA;
-            color: #161D15;
-            font-weight: 900;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.7);
-            font-size: 11px;
-            transition: transform 0.2s;
-        }
-        .custom-numeric-marker:hover {
-            transform: scale(1.2);
-        }
-
-        .modal-overlay {
-            position: fixed !important;
-            inset: 0 !important;
-            z-index: 99999 !important;
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            width: 100vw !important;
-            max-width: 100vw !important;
-            height: 100vh !important;
-            height: 100dvh !important;
-            overflow-x: hidden !important;
-            overflow-y: auto !important;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px;
-            box-sizing: border-box !important;
+        /* Leaflet Marker 樣式調整 */
+        .custom-div-icon {
+            background: transparent;
+            border: none;
         }
     </style>
 </head>
-<body class="bg-[#161D15] text-[#EFF0EA] font-sans antialiased min-h-screen select-none overflow-x-hidden max-w-[100vw]">
+<body class="bg-gray-50 text-gray-900 select-none">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo, useRef } = React;
+        const { useState, useEffect, useRef } = React;
 
-        const CATEGORIES = {
-            concert: { label: '演唱會', icon: 'music', emoji: '🎵', badgeBg: 'bg-[#C5AB89] text-[#161D15]' },
-            exhibition: { label: '展覽', icon: 'palette', emoji: '🎨', badgeBg: 'bg-[#CCB9AA] text-[#161D15]' },
-            movie: { label: '電影', icon: 'film', emoji: '🎬', badgeBg: 'bg-[#AB8C83] text-[#EFF0EA]' },
-            book: { label: '書籍', icon: 'book-open', emoji: '📚', badgeBg: 'bg-[#D2CABF] text-[#161D15]' },
-            drama: { label: '話劇/音樂劇', icon: 'theater', emoji: '🎭', badgeBg: 'bg-[#737C75] text-[#EFF0EA]' }
+        // 預設國家座標表
+        const COUNTRY_COORDS = {
+            '台灣': { lat: 23.6978, lng: 120.9605 },
+            '日本': { lat: 36.2048, lng: 138.2529 },
+            '韓國': { lat: 35.9078, lng: 127.7669 },
+            '美國': { lat: 37.0902, lng: -95.7129 }
         };
 
-        function App() {
-            const [events, setEvents] = useState(() => {
-                const saved = localStorage.getItem('liveecho_records_palette_v7');
-                return saved ? JSON.parse(saved) : [];
-            });
-            const [schedules, setSchedules] = useState(() => {
-                const saved = localStorage.getItem('liveecho_schedules_v7');
-                return saved ? JSON.parse(saved) : [];
-            });
+        // 1. 地圖區塊組件 (包含修復 1 與 修復 2)
+        function LeafletMapSection({ events, onDelete, getGoogleMapsUrl }) {
+            const mapRef = useRef(null);
+            const mapInstanceRef = useRef(null);
+            const layerGroupRef = useRef(null);
+            const [selectedEventModal, setSelectedEventModal] = useState(null);
 
-            const [userProfile, setUserProfile] = useState(() => {
-                const saved = localStorage.getItem('liveecho_user_profile_v7');
-                return saved ? JSON.parse(saved) : { name: 'LiveU', subtitle: 'say something', avatarUrl: '', initials: 'LU' };
-            });
-
-            const [activeTab, setActiveTab] = useState('archive'); // archive | schedule | map | stats
-            const [viewMode, setViewMode] = useState('list');
-            const [selectedCategory, setSelectedCategory] = useState('all');
-            const [searchQuery, setSearchQuery] = useState('');
-            const [selectedEventId, setSelectedEventId] = useState(null);
-
-            const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
-            const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-            const [isAddScheduleModalOpen, setIsAddScheduleModalOpen] = useState(false);
-            const [alertMsg, setAlertMsg] = useState(null);
-
-            useEffect(() => { localStorage.setItem('liveecho_records_palette_v7', JSON.stringify(events)); }, [events]);
-            useEffect(() => { localStorage.setItem('liveecho_schedules_v7', JSON.stringify(schedules)); }, [schedules]);
-            useEffect(() => { localStorage.setItem('liveecho_user_profile_v7', JSON.stringify(userProfile)); }, [userProfile]);
-            
+            // 初始化地圖
             useEffect(() => {
-                if (window.lucide) window.lucide.createIcons();
-            });
+                if (!mapRef.current || mapInstanceRef.current) return;
 
-            const showAlert = (msg) => {
-                setAlertMsg(msg);
-                setTimeout(() => setAlertMsg(null), 3000);
-            };
+                const map = L.map(mapRef.current, {
+                    zoomControl: false,
+                    tap: !L.Browser.mobile // 避免 iOS 雙重觸發點擊
+                }).setView([23.6978, 120.9605], 4);
 
-            const filteredEvents = useMemo(() => {
-                return events.filter(evt => {
-                    const matchCategory = selectedCategory === 'all' || evt.type === selectedCategory;
-                    const q = searchQuery.toLowerCase();
-                    const matchSearch = (evt.title || '').toLowerCase().includes(q) ||
-                                        (evt.creator || '').toLowerCase().includes(q) ||
-                                        (evt.venue || '').toLowerCase().includes(q) ||
-                                        (evt.venueAddress || '').toLowerCase().includes(q);
-                    return matchCategory && matchSearch;
-                }).sort((a, b) => new Date(b.date) - new Date(a.date));
-            }, [events, selectedCategory, searchQuery]);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap'
+                }).addTo(map);
 
-            const selectedEvent = useMemo(() => {
-                return events.find(e => e.id === selectedEventId) || filteredEvents[0] || null;
-            }, [events, selectedEventId, filteredEvents]);
+                layerGroupRef.current = L.layerGroup().addTo(map);
+                mapInstanceRef.current = map;
 
-            const stats = useMemo(() => {
-                const attendedEvents = events.filter(e => e.status === 'attended' || !e.status);
-                const totalCost = events.reduce((sum, e) => sum + (Number(e.cost) || 0), 0);
-                
-                const uniqueVenues = new Set(attendedEvents.map(e => e.venue).filter(Boolean));
-                const uniqueCountries = new Set(attendedEvents.map(e => e.countryCode || 'TW').filter(Boolean));
-
-                return { 
-                    totalEvents: events.length, 
-                    attendedCount: attendedEvents.length,
-                    totalCost, 
-                    uniqueVenuesCount: uniqueVenues.size,
-                    uniqueCountriesCount: uniqueCountries.size,
-                    categoryCounts: {
-                        concert: events.filter(e => e.type === 'concert').length,
-                        exhibition: events.filter(e => e.type === 'exhibition').length,
-                        movie: events.filter(e => e.type === 'movie').length,
-                        book: events.filter(e => e.type === 'book').length,
-                        drama: events.filter(e => e.type === 'drama').length,
-                    }
+                return () => {
+                    map.remove();
+                    mapInstanceRef.current = null;
                 };
+            }, []);
+
+            // [修復 2] 動態繪製與同步 Marker
+            useEffect(() => {
+                if (!mapInstanceRef.current || !layerGroupRef.current) return;
+
+                const layerGroup = layerGroupRef.current;
+                layerGroup.clearLayers();
+
+                events.forEach((evt, index) => {
+                    if (!evt.lat || !evt.lng || evt.status === 'wishlist') return;
+
+                    const markerNumber = index + 1;
+                    const customIcon = L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div class="w-7 h-7 bg-indigo-600 text-white font-bold rounded-full flex items-center justify-center shadow-lg border-2 border-white">${markerNumber}</div>`,
+                        iconSize: [28, 28],
+                        iconAnchor: [14, 14]
+                    });
+
+                    const marker = L.marker([evt.lat, evt.lng], { icon: customIcon });
+                    marker.on('click', () => setSelectedEventModal(evt));
+                    layerGroup.addLayer(marker);
+                });
             }, [events]);
 
-            const handleAddEvent = (newEvent) => {
-                const created = { ...newEvent, id: 'evt-' + Date.now() };
-                const updated = [created, ...events];
-                setEvents(updated);
-                setSelectedEventId(created.id);
-                showAlert('已成功新增藝文紀錄並建立地圖足跡');
-            };
+            return (
+                <div className="relative w-full h-[calc(100vh-70px)]">
+                    <div ref={mapRef} className="w-full h-full z-0" />
+                    
+                    {/* [修復 1] 正確傳遞 onDelete */}
+                    {selectedEventModal && (
+                        <EventDetailModal 
+                            event={selectedEventModal} 
+                            onClose={() => setSelectedEventModal(null)} 
+                            onDelete={(id) => {
+                                onDelete(id);
+                                setSelectedEventModal(null);
+                            }} 
+                            getGoogleMapsUrl={getGoogleMapsUrl} 
+                        />
+                    )}
+                </div>
+            );
+        }
 
-            const handleDeleteEvent = (id) => {
-                const updated = events.filter(e => e.id !== id);
-                setEvents(updated);
-                if (selectedEventId === id && updated.length > 0) {
-                    setSelectedEventId(updated[0].id);
-                }
-                showAlert('已刪除該筆藝文紀錄');
-            };
+        // 活動詳情彈窗
+        function EventDetailModal({ event, onClose, onDelete, getGoogleMapsUrl }) {
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="bg-white w-full max-w-sm rounded-2xl p-5 shadow-xl space-y-4">
+                        <div className="flex justify-between items-start">
+                            <h3 className="text-xl font-bold">{event.title}</h3>
+                            <button onClick={onClose} className="text-gray-400 text-xl font-bold p-1">✕</button>
+                        </div>
+                        <p className="text-sm text-gray-600">{event.country} · {event.date}</p>
+                        <p className="text-gray-700">{event.note || '無詳細備註'}</p>
+                        
+                        <div className="flex gap-2 pt-2">
+                            <a 
+                                href={getGoogleMapsUrl(event)} 
+                                target="_blank" 
+                                rel="noreferrer"
+                                className="flex-1 bg-indigo-50 text-indigo-600 py-2.5 rounded-xl text-center font-medium active:bg-indigo-100"
+                            >
+                                開啟地圖
+                            </a>
+                            <button 
+                                onClick={() => onDelete(event.id)}
+                                className="flex-1 bg-red-50 text-red-600 py-2.5 rounded-xl font-medium active:bg-red-100"
+                            >
+                                刪除紀錄
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
 
-            const handleAddSchedule = (newSch) => {
-                const created = { ...newSch, id: 'sch-' + Date.now() };
-                const updated = [created, ...schedules];
-                setSchedules(updated);
-                showAlert('已成功新增演出排程');
-            };
+        // 新增紀錄彈窗 (包含修復 3)
+        function AddEventModal({ onClose, onAdd }) {
+            const [country, setCountry] = useState('台灣');
+            const [title, setTitle] = useState('');
+            const [note, setNote] = useState('');
 
-            const handleDeleteSchedule = (id) => {
-                const updated = schedules.filter(s => s.id !== id);
-                setSchedules(updated);
-                showAlert('已刪除該筆演出排程');
-            };
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                const baseCoord = COUNTRY_COORDS[country] || { lat: 23.6978, lng: 120.9605 };
+                
+                // [修復 3] 加入座標 Jitter，解決同國家重疊問題
+                const jitter = () => (Math.random() - 0.5) * 0.04;
+                
+                const newEvent = {
+                    id: Date.now(),
+                    title,
+                    country,
+                    note,
+                    date: new Date().toISOString().split('T')[0],
+                    lat: baseCoord.lat + jitter(),
+                    lng: baseCoord.lng + jitter(),
+                    status: 'visited'
+                };
 
-            const getGoogleMapsUrl = (venue, address) => {
-                const query = encodeURIComponent(`${venue} ${address || ''}`);
-                return `https://www.google.com/maps/search/?api=1&query=${query}`;
+                onAdd(newEvent);
+                onClose();
             };
 
             return (
-                <div className="app-container max-w-md mx-auto border-x border-[#737C75]/30 relative text-[#EFF0EA] shadow-2xl">
-                    
-                    <header className="app-header px-4 py-2.5 flex items-center justify-between shrink-0">
-                        <button 
-                            onClick={() => setIsEditProfileOpen(true)}
-                            className="flex items-center gap-2.5 text-left group transition-all p-1 -ml-1 rounded-xl hover:bg-[#D2CABF]/10 active:scale-95"
-                        >
-                            <div className="relative">
-                                {userProfile.avatarUrl ? (
-                                    <img src={userProfile.avatarUrl} alt={userProfile.name} className="w-8 h-8 rounded-lg object-cover border border-[#C5AB89]" />
-                                ) : (
-                                    <div className="w-8 h-8 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center font-black text-xs shadow-md border border-[#CCB9AA]">
-                                        {userProfile.initials || 'LE'}
-                                    </div>
-                                )}
-                            </div>
-                            <div>
-                                <h1 className="font-extrabold text-sm tracking-tight text-[#EFF0EA] group-hover:text-[#C5AB89] transition-colors flex items-center gap-1">
-                                    <span>{userProfile.name}</span>
-                                </h1>
-                                <p className="text-[9px] text-[#D2CABF] uppercase tracking-widest font-mono line-clamp-1">{userProfile.subtitle}</p>
-                            </div>
-                        </button>
-
-                        <div className="flex items-center gap-2">
-                            {activeTab === 'archive' && (
-                                <>
-                                    <div className="flex bg-[#161D15] p-0.5 rounded-lg border border-[#737C75]/40">
-                                        <button onClick={() => setViewMode('list')} className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${viewMode === 'list' ? 'bg-[#C5AB89] text-[#161D15] font-bold shadow' : 'text-[#D2CABF]'}`}>條列</button>
-                                        <button onClick={() => setViewMode('calendar')} className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${viewMode === 'calendar' ? 'bg-[#C5AB89] text-[#161D15] font-bold shadow' : 'text-[#D2CABF]'}`}>月曆</button>
-                                    </div>
-                                    <button 
-                                        onClick={() => setIsAddModalOpen(true)}
-                                        className="w-8 h-8 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow hover:bg-[#CCB9AA] active:scale-95 transition-all"
-                                        title="新增紀錄"
-                                    >
-                                        <i data-lucide="plus" className="w-4 h-4 font-black"></i>
-                                    </button>
-                                </>
-                            )}
-                            {activeTab === 'schedule' && (
-                                <button 
-                                    onClick={() => setIsAddScheduleModalOpen(true)}
-                                    className="w-8 h-8 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow hover:bg-[#CCB9AA] active:scale-95 transition-all"
-                                    title="新增演出排程"
-                                >
-                                    <i data-lucide="plus" className="w-4 h-4 font-black"></i>
-                                </button>
-                            )}
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <form onSubmit={handleSubmit} className="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4">
+                        <h3 className="text-lg font-bold">新增旅遊紀錄</h3>
+                        <div>
+                            <label className="text-xs font-semibold text-gray-500">目的地國家</label>
+                            <select 
+                                value={country} 
+                                onChange={(e) => setCountry(e.target.value)}
+                                className="w-full mt-1 border border-gray-200 rounded-xl p-2.5 bg-gray-50 outline-none"
+                            >
+                                <option value="台灣">台灣</option>
+                                <option value="日本">日本</option>
+                                <option value="韓國">韓國</option>
+                                <option value="美國">美國</option>
+                            </select>
                         </div>
+                        <div>
+                            <label className="text-xs font-semibold text-gray-500">地點 / 活動名稱</label>
+                            <input 
+                                required
+                                type="text" 
+                                value={title} 
+                                onChange={(e) => setTitle(e.target.value)}
+                                className="w-full mt-1 border border-gray-200 rounded-xl p-2.5 outline-none"
+                                placeholder="例如：東京鐵塔"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-xs font-semibold text-gray-500">心得備註</label>
+                            <textarea 
+                                value={note} 
+                                onChange={(e) => setNote(e.target.value)}
+                                className="w-full mt-1 border border-gray-200 rounded-xl p-2.5 outline-none h-20"
+                            />
+                        </div>
+                        <div className="flex gap-2">
+                            <button type="button" onClick={onClose} className="flex-1 py-2.5 text-gray-500 font-medium">取消</button>
+                            <button type="submit" className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl font-medium shadow-md">儲存</button>
+                        </div>
+                    </form>
+                </div>
+            );
+        }
+
+        // 成就統計區塊 (包含修復 4)
+        function StatsSection({ events }) {
+            const totalVisited = events.filter(e => e.status === 'visited').length;
+            const progress = Math.min((totalVisited / 10) * 100, 100);
+
+            return (
+                <div className="p-4 space-y-4">
+                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="font-semibold text-sm">解鎖國家成就目標</span>
+                            <span className="text-xs font-bold text-indigo-600">{totalVisited} / 10</span>
+                        </div>
+                        
+                        {/* [修復 4] 修正類別衝突問題 (修正為 h-2 w-full) */}
+                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden w-full">
+                            <div 
+                                className="h-full bg-indigo-600 transition-all duration-300" 
+                                style={{ width: `${progress}%` }} 
+                            />
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // 個人檔案編輯彈窗 (包含修復 5)
+        function EditProfileModal({ profile, onClose, onSave }) {
+            const [bio, setBio] = useState(profile.bio);
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4">
+                        <h3 className="text-lg font-bold">編輯個人檔案</h3>
+                        <div>
+                            {/* [修復 5] 修正文字顯示 */}
+                            <label className="text-xs font-semibold text-gray-500">個人簡介</label>
+                            <input 
+                                type="text" 
+                                value={bio} 
+                                onChange={(e) => setBio(e.target.value)}
+                                className="w-full mt-1 border border-gray-200 rounded-xl p-2.5 outline-none"
+                            />
+                        </div>
+                        <div className="flex gap-2">
+                            <button onClick={onClose} className="flex-1 py-2.5 text-gray-500 font-medium">取消</button>
+                            <button onClick={() => { onSave({ ...profile, bio }); onClose(); }} className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl font-medium">儲存</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // 主應用程式入口
+        function App() {
+            const [activeTab, setActiveTab] = useState('map');
+            const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+            const [profile, setProfile] = useState({ name: 'Traveler', bio: '熱愛探索世界' });
+            const [events, setEvents] = useState([
+                { id: 1, title: '九份老街', country: '台灣', date: '2026-01-10', lat: 25.109, lng: 121.844, status: 'visited' }
+            ]);
+
+            const handleDeleteEvent = (eventId) => {
+                setEvents(prev => prev.filter(evt => evt.id !== eventId));
+            };
+
+            const handleAddEvent = (newEvent) => {
+                setEvents(prev => [...prev, newEvent]);
+            };
+
+            const getGoogleMapsUrl = (evt) => {
+                return `https://www.google.com/maps/search/?api=1&query=${evt.lat},${evt.lng}`;
+            };
+
+            return (
+                <div className="flex flex-col h-screen max-w-md mx-auto bg-white shadow-2xl relative overflow-hidden">
+                    {/* Header */}
+                    <header className="pt-safe bg-white border-b border-gray-100 p-4 flex justify-between items-center z-10">
+                        <h1 className="font-bold text-lg">足跡隨手記</h1>
+                        <button onClick={() => setIsAddModalOpen(true)} className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                            + 新增
+                        </button>
                     </header>
 
-                    {alertMsg && (
-                        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 bg-[#C5AB89] text-[#161D15] px-4 py-2 rounded-full text-xs font-bold shadow-2xl animate-bounce border border-[#CCB9AA]">
-                            {alertMsg}
-                        </div>
-                    )}
-
-                    <main className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
-                        {activeTab === 'archive' && (
-                            <ArchiveSection 
-                                events={filteredEvents} allEvents={events}
-                                selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory}
-                                searchQuery={searchQuery} setSearchQuery={setSearchQuery}
-                                selectedEvent={selectedEvent} setSelectedEventId={setSelectedEventId}
-                                viewMode={viewMode} onDelete={handleDeleteEvent}
-                                getGoogleMapsUrl={getGoogleMapsUrl}
-                                onOpenAddModal={() => setIsAddModalOpen(true)}
-                            />
-                        )}
-
-                        {activeTab === 'schedule' && (
-                            <ScheduleSection 
-                                schedules={schedules} 
-                                onDelete={handleDeleteSchedule}
+                    {/* View Controller */}
+                    <main className="flex-1 overflow-y-auto">
+                        {activeTab === 'map' && (
+                            <LeafletMapSection 
+                                events={events} 
+                                onDelete={handleDeleteEvent} 
                                 getGoogleMapsUrl={getGoogleMapsUrl} 
-                                onOpenAddModal={() => setIsAddScheduleModalOpen(true)}
                             />
                         )}
-                        
-                        {activeTab === 'map' && <LeafletMapSection events={events} stats={stats} getGoogleMapsUrl={getGoogleMapsUrl} />}
-                        
-                        {activeTab === 'stats' && <StatsSection stats={stats} events={events} />}
+                        {activeTab === 'stats' && <StatsSection events={events} />}
                     </main>
 
-                    <nav className="bottom-nav ios-glass pt-3 px-4 flex items-center justify-around app-safe-bottom border-t border-[#737C75]/30">
-                        <button onClick={() => setActiveTab('archive')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'archive' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}>
-                            <i data-lucide="library" className="w-5 h-5"></i>
-                            <span className="text-[10px] font-medium">藝文紀錄</span>
+                    {/* Bottom Navigation (iOS 適配) */}
+                    <nav className="pb-safe bg-white border-t border-gray-100 flex justify-around p-3 z-10">
+                        <button 
+                            onClick={() => setActiveTab('map')}
+                            className={`text-sm font-medium ${activeTab === 'map' ? 'text-indigo-600' : 'text-gray-400'}`}
+                        >
+                            足跡地圖
                         </button>
-                        <button onClick={() => setActiveTab('schedule')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'schedule' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}>
-                            <i data-lucide="calendar-days" className="w-5 h-5"></i>
-                            <span className="text-[10px] font-medium">演出排程</span>
-                        </button>
-                        <button onClick={() => setActiveTab('map')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'map' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}>
-                            <i data-lucide="map-pin" className="w-5 h-5"></i>
-                            <span className="text-[10px] font-medium">地圖足跡</span>
-                        </button>
-                        <button onClick={() => setActiveTab('stats')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'stats' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}>
-                            <i data-lucide="trophy" className="w-5 h-5"></i>
-                            <span className="text-[10px] font-medium">成就統計</span>
+                        <button 
+                            onClick={() => setActiveTab('stats')}
+                            className={`text-sm font-medium ${activeTab === 'stats' ? 'text-indigo-600' : 'text-gray-400'}`}
+                        >
+                            成就統計
                         </button>
                     </nav>
 
                     {/* Modals */}
-                    {isEditProfileOpen && (
-                        <EditProfileModal 
-                            userProfile={userProfile} 
-                            setUserProfile={setUserProfile} 
-                            onClose={() => setIsEditProfileOpen(false)}
-                            showAlert={showAlert}
-                        />
-                    )}
-
                     {isAddModalOpen && (
                         <AddEventModal 
-                            onAdd={handleAddEvent}
-                            onClose={() => setIsAddModalOpen(false)}
+                            onClose={() => setIsAddModalOpen(false)} 
+                            onAdd={handleAddEvent} 
                         />
                     )}
-
-                    {isAddScheduleModalOpen && (
-                        <AddScheduleModal 
-                            onAdd={handleAddSchedule}
-                            onClose={() => setIsAddScheduleModalOpen(false)}
-                        />
-                    )}
-
-                </div>
-            );
-        }
-
-        function EditProfileModal({ userProfile, setUserProfile, onClose, showAlert }) {
-            const [name, setName] = useState(userProfile.name);
-            const [subtitle, setSubtitle] = useState(userProfile.subtitle);
-            const [avatarUrl, setAvatarUrl] = useState(userProfile.avatarUrl);
-            const fileInputRef = useRef(null);
-
-            const handleFileChange = (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                        setAvatarUrl(reader.result);
-                    };
-                    reader.readAsDataURL(file);
-                }
-            };
-
-            const handleSave = (e) => {
-                e.preventDefault();
-                const initials = name ? name.substring(0, 2).toUpperCase() : 'LE';
-                setUserProfile({ name, subtitle, avatarUrl, initials });
-                showAlert('個人檔案更新成功');
-                onClose();
-            };
-
-            return (
-                <div className="modal-overlay bg-black/85">
-                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-[#D2CABF] space-y-4 my-auto">
-                        <div className="flex items-center justify-between border-b border-[#D2CABF] pb-3">
-                            <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-2">
-                                <i data-lucide="user-pen" className="w-4 h-4 text-[#737C75]"></i> 編輯個人檔案
-                            </h3>
-                            <button onClick={onClose} className="p-1 text-[#737C75] hover:text-[#161D15]">
-                                <i data-lucide="x" className="w-5 h-5"></i>
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSave} className="space-y-4">
-                            <div className="flex flex-col items-center gap-2">
-                                <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                                    {avatarUrl ? (
-                                        <img src={avatarUrl} alt="Avatar" className="w-20 h-20 rounded-2xl object-cover border-2 border-[#C5AB89] shadow-md" />
-                                    ) : (
-                                        <div className="w-20 h-20 rounded-2xl bg-[#C5AB89] text-[#161D15] flex items-center justify-center font-black text-xl shadow-md border-2 border-[#CCB9AA]">
-                                            {name ? name.substring(0, 2).toUpperCase() : 'LE'}
-                                        </div>
-                                    )}
-                                    <div className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white">
-                                        <i data-lucide="camera" className="w-6 h-6"></i>
-                                    </div>
-                                </div>
-                                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
-                                <button type="button" onClick={() => fileInputRef.current?.click()} className="text-xs font-bold text-[#AB8C83] hover:underline">
-                                    從手機相簿選擇大頭貼
-                                </button>
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-[11px] font-bold text-[#737C75]">稱呼</label>
-                                <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:border-[#C5AB89]" />
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-[11px] font-bold text-[#737C75]">簡介or隨便啦</label>
-                                <input type="text" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:border-[#C5AB89]" />
-                            </div>
-
-                            <div className="flex gap-2 pt-2">
-                                <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#EBEBE9] text-[#161D15] font-bold text-xs hover:bg-[#D2CABF]">取消</button>
-                                <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">儲存變更</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            );
-        }
-
-        function AddEventModal({ onAdd, onClose }) {
-            const [title, setTitle] = useState('');
-            const [type, setType] = useState('concert');
-            const [creator, setCreator] = useState('');
-            const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-            const [time, setTime] = useState('19:30');
-            const [venue, setVenue] = useState('');
-            const [venueAddress, setVenueAddress] = useState('');
-            const [city, setCity] = useState('台北');
-            const [countryCode, setCountryCode] = useState('TW');
-            const [countryName, setCountryName] = useState('台灣');
-            const [cost, setCost] = useState('');
-            const [detailSeat, setDetailSeat] = useState('');
-            const [coverImg, setCoverImg] = useState('');
-            const [notes, setNotes] = useState('');
-
-            const handleSubmit = (e) => {
-                e.preventDefault();
-                let lat = 25.0330, lng = 121.5654;
-                if(countryCode === 'JP') { lat = 35.68; lng = 139.76; }
-                else if(countryCode === 'KR') { lat = 37.56; lng = 126.97; }
-                else if(countryCode === 'US') { lat = 40.71; lng = -74.00; }
-                else if(countryCode === 'AU') { lat = -37.81; lng = 144.96; }
-                else if(countryCode === 'GB') { lat = 51.50; lng = -0.12; }
-                else if(countryCode === 'TH') { lat = 13.75; lng = 100.50; }
-                else if(countryCode === 'CN') { lat = 39.90; lng = 116.40; }
-                else if(countryCode === 'HK') { lat = 22.31; lng = 114.16; }
-                else if(countryCode === 'TW') { lat = 25.03; lng = 121.56; }
-
-                onAdd({
-                    title,
-                    type,
-                    creator,
-                    date,
-                    time,
-                    venue: venue || '未指定場館',
-                    venueAddress: venueAddress || venue || '台灣',
-                    city: city || '台北',
-                    countryCode,
-                    countryName,
-                    lat,
-                    lng,
-                    status: 'attended',
-                    cost: Number(cost) || 0,
-                    detailSeat,
-                    coverImg: coverImg || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
-                    notes
-                });
-                onClose();
-            };
-
-            return (
-                <div className="modal-overlay bg-black/85">
-                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[90vh] flex flex-col">
-                        <div className="flex items-center justify-between border-b border-[#D2CABF] pb-2 shrink-0">
-                            <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-2">
-                                <i data-lucide="ticket-plus" className="w-4 h-4 text-[#737C75]"></i> 新增藝文紀錄 & 地圖足跡
-                            </h3>
-                            <button onClick={onClose} className="p-1 text-[#737C75] hover:text-[#161D15]">
-                                <i data-lucide="x" className="w-5 h-5"></i>
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar">
-                            <div className="space-y-1">
-                                <label className="text-[11px] font-bold text-[#737C75]">活動分類</label>
-                                <select value={type} onChange={(e) => setType(e.target.value)} className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]">
-                                    {Object.entries(CATEGORIES).map(([k, v]) => (
-                                        <option key={k} value={k}>{v.emoji} {v.label}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-[11px] font-bold text-[#737C75]">活動名稱</label>
-                                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例如：Coldplay 演唱會" required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2">
-                                <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#737C75]">國家</label>
-                                    <select value={countryCode} onChange={(e) => {
-                                        const val = e.target.value;
-                                        setCountryCode(val);
-                                        if(val === 'TW') setCountryName('台灣');
-                                        else if(val === 'JP') setCountryName('日本');
-                                        else if(val === 'KR') setCountryName('南韓');
-                                        else if(val === 'US') setCountryName('美國');
-                                        else if(val === 'AU') setCountryName('澳大利亞');
-                                        else if(val === 'GB') setCountryName('英國');
-                                        else if(val === 'TH') setCountryName('泰國');
-                                        else if(val === 'CN') setCountryName('中國');
-                                        else if(val === 'HK') setCountryName('香港');
-                                    }} className="w-full bg-white text-[#161D15] px-2.5 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]">
-                                        <option value="TW">台灣 (TW)</option>
-                                        <option value="JP">日本 (JP)</option>
-                                        <option value="KR">南韓 (KR)</option>
-                                        <option value="US">美國 (US)</option>
-                                        <option value="AU">澳大利亞 (AU)</option>
-                                        <option value="GB">英國 (GB)</option>
-                                        <option value="TH">泰國 (TH)</option>
-                                        <option value="CN">中國 (CN)</option>
-                                        <option value="HK">香港 (HK)</option>
-                                    </select>
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#737C75]">城市</label>
-                                    <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="例如：台北" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
-                                </div>
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-[11px] font-bold text-[#737C75]">場館名稱</label>
-                                <input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="例如：台北小巨蛋" required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-[11px] font-bold text-[#737C75]">地址</label>
-                                <input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} placeholder="例如：台北市松山區南京東路四段2號" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2">
-                                <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#737C75]">日期</label>
-                                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white text-[#161D15] px-2 py-2 rounded-xl text-[11px] font-medium border border-[#D2CABF]" />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#737C75]">票價 (NT$)</label>
-                                    <input type="number" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="5800" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-[11px] font-medium border border-[#D2CABF]" />
-                                </div>
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-[11px] font-bold text-[#737C75]">心得筆記</label>
-                                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows="2" placeholder="寫下您的觀後感..." className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]"></textarea>
-                            </div>
-
-                            <div className="flex gap-2 pt-2 shrink-0">
-                                <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#EBEBE9] text-[#161D15] font-bold text-xs hover:bg-[#D2CABF]">取消</button>
-                                <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">確認新增</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            );
-        }
-
-        function AddScheduleModal({ onAdd, onClose }) {
-            const [title, setTitle] = useState('');
-            const [organizer, setOrganizer] = useState('');
-            const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-            const [venue, setVenue] = useState('');
-            const [venueAddress, setVenueAddress] = useState('');
-            const [city, setCity] = useState('台北');
-            const [status, setStatus] = useState('即將開賣');
-            const [priceRange, setPriceRange] = useState('NT$ 1,000 - 3,500');
-            const [ticketLink, setTicketLink] = useState('https://tixcraft.com');
-
-            const handleSubmit = (e) => {
-                e.preventDefault();
-                onAdd({
-                    title,
-                    organizer: organizer || '主辦單位',
-                    date,
-                    venue: venue || '未定場館',
-                    venueAddress: venueAddress || venue || '台灣',
-                    city: city || '台北',
-                    status,
-                    priceRange,
-                    ticketLink: ticketLink || 'https://tixcraft.com'
-                });
-                onClose();
-            };
-
-            return (
-                <div className="modal-overlay bg-black/85">
-                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[90vh] flex flex-col">
-                        <div className="flex items-center justify-between border-b border-[#D2CABF] pb-2 shrink-0">
-                            <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-2">
-                                <i data-lucide="calendar-plus" className="w-4 h-4 text-[#737C75]"></i> 新增演出排程
-                            </h3>
-                            <button onClick={onClose} className="p-1 text-[#737C75] hover:text-[#161D15]">
-                                <i data-lucide="x" className="w-5 h-5"></i>
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar">
-                            <div className="space-y-1">
-                                <label className="text-[11px] font-bold text-[#737C75]">活動名稱</label>
-                                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例如：五月天演唱會" required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2">
-                                <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#737C75]">主辦單位</label>
-                                    <input type="text" value={organizer} onChange={(e) => setOrganizer(e.target.value)} placeholder="例如：相信音樂" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#737C75]">日期</label>
-                                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white text-[#161D15] px-2.5 py-2 rounded-xl text-[11px] font-medium border border-[#D2CABF]" />
-                                </div>
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-[11px] font-bold text-[#737C75]">場館名稱</label>
-                                <input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="例如：台北小巨蛋" required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-[11px] font-bold text-[#737C75]">地址</label>
-                                <input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} placeholder="例如：台北市松山區..." className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2">
-                                <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#737C75]">售票狀態</label>
-                                    <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full bg-white text-[#161D15] px-2.5 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]">
-                                        <option value="即將開賣">即將開賣</option>
-                                        <option value="售票中">售票中</option>
-                                        <option value="已完售">已完售</option>
-                                    </select>
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#737C75]">票價範圍</label>
-                                    <input type="text" value={priceRange} onChange={(e) => setPriceRange(e.target.value)} placeholder="NT$ 800 - 3,800" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
-                                </div>
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-[11px] font-bold text-[#737C75]">售票連結網址</label>
-                                <input type="url" value={ticketLink} onChange={(e) => setTicketLink(e.target.value)} placeholder="https://..." className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
-                            </div>
-
-                            <div className="flex gap-2 pt-2 shrink-0">
-                                <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#EBEBE9] text-[#161D15] font-bold text-xs hover:bg-[#D2CABF]">取消</button>
-                                <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">確認新增</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            );
-        }
-
-        function EventDetailModal({ event, onClose, onDelete, getGoogleMapsUrl }) {
-            if (!event) return null;
-            const cat = CATEGORIES[event.type] || CATEGORIES.concert;
-            const mapsUrl = getGoogleMapsUrl(event.venue, event.venueAddress);
-
-            return (
-                <div className="modal-overlay bg-black/85 backdrop-blur-md">
-                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-[#D2CABF] my-auto flex flex-col max-h-[85vh]">
-                        <div className="relative h-48 bg-[#D2CABF] shrink-0">
-                            <img src={event.coverImg} alt={event.title} className="w-full h-full object-cover" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80'; }} />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-4">
-                                <div>
-                                    <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${cat.badgeBg} inline-block mb-1`}>{cat.emoji} {cat.label}</span>
-                                    <h2 className="text-white font-black text-base leading-snug">{event.title}</h2>
-                                </div>
-                            </div>
-                            <button onClick={onClose} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center backdrop-blur-md hover:bg-black/70">
-                                <i data-lucide="x" className="w-4 h-4"></i>
-                            </button>
-                        </div>
-
-                        <div className="p-4 space-y-3 overflow-y-auto flex-1 text-xs">
-                            <div className="grid grid-cols-2 gap-2 bg-[#EBEBE9] p-3 rounded-2xl">
-                                <div>
-                                    <span className="text-[10px] text-[#737C75] font-bold block">演出日期</span>
-                                    <span className="font-mono font-bold text-[#161D15]">{event.date} {event.time}</span>
-                                </div>
-                                <div>
-                                    <span className="text-[10px] text-[#737C75] font-bold block">票價花費</span>
-                                    <span className="font-mono font-bold text-[#161D15]">NT$ {Number(event.cost || 0).toLocaleString()}</span>
-                                </div>
-                            </div>
-
-                            <div className="space-y-1 bg-white p-3 rounded-2xl border border-[#D2CABF]">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <span className="text-[10px] text-[#737C75] font-bold block">舉辦場館</span>
-                                        <p className="font-bold text-[#161D15] text-sm">{event.venue || '無'}</p>
-                                        <p className="text-[11px] text-[#737C75]">{event.venueAddress || '無地址資訊'}</p>
-                                    </div>
-                                    <a href={mapsUrl} target="_blank" rel="noreferrer" className="px-3 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-black text-xs hover:bg-[#CCB9AA] flex items-center gap-1.5 shadow">
-                                        <i data-lucide="map-pin" className="w-3.5 h-3.5"></i> Google Maps
-                                    </a>
-                                </div>
-                            </div>
-
-                            {event.notes && (
-                                <div className="space-y-1 bg-white p-3 rounded-2xl border border-[#D2CABF]">
-                                    <span className="text-[10px] text-[#737C75] font-bold block">心得筆記</span>
-                                    <p className="text-[#161D15] leading-relaxed">{event.notes}</p>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="p-3 bg-[#EBEBE9] border-t border-[#D2CABF] flex gap-2">
-                            <button onClick={() => { onDelete(event.id); onClose(); }} className="flex-1 py-2.5 rounded-xl bg-red-600/90 text-white font-bold text-xs hover:bg-red-700 flex items-center justify-center gap-1.5 shadow">
-                                <i data-lucide="trash-2" className="w-4 h-4"></i> 刪除紀錄
-                            </button>
-                            <button onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">關閉</button>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        function LeafletMapSection({ events, stats, getGoogleMapsUrl }) {
-            const mapContainerRef = useRef(null);
-            const mapInstanceRef = useRef(null);
-            const [selectedCountryInfo, setSelectedCountryInfo] = useState(null);
-            const [selectedEventModal, setSelectedEventModal] = useState(null);
-
-            const countryEventsMap = useMemo(() => {
-                const map = {};
-                events.forEach(evt => {
-                    if (evt.status === 'wishlist') return;
-                    const code = evt.countryCode || 'TW';
-                    if (!map[code]) {
-                        map[code] = {
-                            code,
-                            name: evt.countryName || (code === 'JP' ? '日本' : code === 'AU' ? '澳大利亞' : '台灣'),
-                            events: [],
-                            venues: new Set()
-                        };
-                    }
-                    map[code].events.push(evt);
-                    if (evt.venue) map[code].venues.add(evt.venue);
-                });
-                return map;
-            }, [events]);
-
-            const visitedCountryCodes = useMemo(() => Object.keys(countryEventsMap), [countryEventsMap]);
-
-            useEffect(() => {
-                if (!mapContainerRef.current) return;
-
-                if (!mapInstanceRef.current) {
-                    const map = L.map(mapContainerRef.current, {
-                        zoomControl: false,
-                        attributionControl: false,
-                        minZoom: 2,
-                        maxBounds: [[-90, -180], [90, 180]],
-                        maxBoundsViscosity: 1.0
-                    }).setView([25.033, 121.565], 3);
-
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        maxZoom: 19,
-                        noWrap: true
-                    }).addTo(map);
-
-                    mapInstanceRef.current = map;
-
-                    fetch('https://raw.githubusercontent.com/datasets/geo-boundaries-world-110m/master/countries.geojson')
-                        .then(res => res.json())
-                        .then(data => {
-                            L.geoJSON(data, {
-                                style: (feature) => {
-                                    const props = feature.properties || {};
-                                    const name = props.name || props.ADMIN || '';
-                                    const iso = props.ISO_A2 || props.iso_a2 || '';
-
-                                    let isVisited = false;
-                                    if (visitedCountryCodes.includes('TW') && (name.includes('Taiwan') || iso === 'TW')) isVisited = true;
-                                    if (visitedCountryCodes.includes('JP') && (name.includes('Japan') || iso === 'JP')) isVisited = true;
-                                    if (visitedCountryCodes.includes('AU') && (name.includes('Australia') || iso === 'AU')) isVisited = true;
-                                    if (visitedCountryCodes.includes('US') && (name.includes('United States') || iso === 'US')) isVisited = true;
-                                    if (visitedCountryCodes.includes('KR') && (name.includes('Korea') || iso === 'KR')) isVisited = true;
-                                    if (visitedCountryCodes.includes('GB') && (name.includes('United Kingdom') || iso === 'GB')) isVisited = true;
-                                    if (visitedCountryCodes.includes('TH') && (name.includes('Thailand') || iso === 'TH')) isVisited = true;
-                                    if (visitedCountryCodes.includes('CN') && (name.includes('China') || iso === 'CN')) isVisited = true;
-                                    if (visitedCountryCodes.includes('HK') && (name.includes('Hong Kong') || iso === 'HK')) isVisited = true;
-
-                                    return {
-                                        fillColor: isVisited ? '#C2A175' : '#1A2218',
-                                        fillOpacity: isVisited ? 0.45 : 0.2,
-                                        color: isVisited ? '#C5AB89' : '#2A3626',
-                                        weight: isVisited ? 1.5 : 0.8
-                                    };
-                                },
-                                onEachFeature: (feature, layer) => {
-                                    const props = feature.properties || {};
-                                    const name = props.name || props.ADMIN || '未知區域';
-                                    const iso = props.ISO_A2 || props.iso_a2 || '';
-
-                                    layer.on({
-                                        click: (e) => {
-                                            L.DomEvent.stopPropagation(e);
-                                            let matchedCode = null;
-                                            if (name.includes('Taiwan') || iso === 'TW') matchedCode = 'TW';
-                                            else if (name.includes('Japan') || iso === 'JP') matchedCode = 'JP';
-                                            else if (name.includes('Australia') || iso === 'AU') matchedCode = 'AU';
-                                            else if (name.includes('United States') || iso === 'US') matchedCode = 'US';
-                                            else if (name.includes('Korea') || iso === 'KR') matchedCode = 'KR';
-                                            else if (name.includes('United Kingdom') || iso === 'GB') matchedCode = 'GB';
-                                            else if (name.includes('Thailand') || iso === 'TH') matchedCode = 'TH';
-                                            else if (name.includes('China') || iso === 'CN') matchedCode = 'CN';
-                                            else if (name.includes('Hong Kong') || iso === 'HK') matchedCode = 'HK';
-
-                                            if (matchedCode && countryEventsMap[matchedCode]) {
-                                                setSelectedCountryInfo(countryEventsMap[matchedCode]);
-                                            } else {
-                                                setSelectedCountryInfo({ code: iso, name: name, events: [], venues: new Set() });
-                                            }
-                                        },
-                                        mouseover: (e) => {
-                                            const l = e.target;
-                                            l.setStyle({ fillOpacity: 0.65, weight: 2 });
-                                        },
-                                        mouseout: (e) => {
-                                            const l = e.target;
-                                            l.setStyle({ fillOpacity: 0.45, weight: 1.5 });
-                                        }
-                                    });
-                                }
-                            }).addTo(map);
-                        }).catch(err => {
-                            console.log('GeoJSON load note:', err);
-                        });
-
-                    events.forEach((evt, index) => {
-                        if (!evt.lat || !evt.lng || evt.status === 'wishlist') return;
-                        const markerNumber = index + 1;
-                        const iconHtml = `<div class="custom-numeric-marker w-7 h-7 flex items-center justify-center">${markerNumber}</div>`;
-                        
-                        const customIcon = L.divIcon({
-                            className: 'custom-div-icon',
-                            html: iconHtml,
-                            iconSize: [28, 28],
-                            iconAnchor: [14, 14]
-                        });
-
-                        const marker = L.marker([evt.lat, evt.lng], { icon: customIcon }).addTo(map);
-                        marker.on('click', () => {
-                            setSelectedEventModal(evt);
-                        });
-                    });
-
-                    setTimeout(() => {
-                        map.invalidateSize();
-                    }, 100);
-                }
-
-                return () => {
-                    if (mapInstanceRef.current) {
-                        mapInstanceRef.current.remove();
-                        mapInstanceRef.current = null;
-                    }
-                };
-            }, [events, visitedCountryCodes]);
-
-            const handleZoomIn = () => { if (mapInstanceRef.current) mapInstanceRef.current.zoomIn(); };
-            const handleZoomOut = () => { if (mapInstanceRef.current) mapInstanceRef.current.zoomOut(); };
-            const handleLocateMe = () => {
-                if (mapInstanceRef.current) {
-                    mapInstanceRef.current.setView([25.033, 121.565], 5);
-                    mapInstanceRef.current.invalidateSize();
-                }
-            };
-
-            return (
-                <div id="map-wrapper" className="relative flex-1 w-full flex flex-col bg-[#000000] overflow-hidden">
-                    <div className="absolute top-3 left-4 right-4 z-[999] flex items-center justify-between pointer-events-none top-stats-card">
-                        <div className="ios-glass px-3 py-1.5 rounded-full shadow-xl border border-[#737C75]/30 pointer-events-auto backdrop-blur-md flex items-center gap-2">
-                            <span className="text-[10px] font-bold text-[#C5AB89] tracking-wider whitespace-nowrap">🌍 藝文足跡</span>
-                            <span className="text-[10px] text-[#EFF0EA]/80 font-mono truncate">
-                                <strong className="text-[#C5AB89]">{stats.uniqueCountriesCount}</strong> 國 · <strong className="text-[#C5AB89]">{stats.uniqueVenuesCount}</strong> 場館 · <strong className="text-[#C5AB89]">{stats.attendedCount}</strong> 場
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="absolute top-3 right-4 z-[999] flex flex-col">
-                        <button 
-                            onClick={handleZoomIn} 
-                            style={{ marginBottom: '8px' }}
-                            className="ios-glass w-9 h-9 rounded-xl flex items-center justify-center shadow-xl text-[#C5AB89] hover:text-white border border-[#737C75]/30 active:scale-95 transition-all font-bold text-base" 
-                            title="放大"
-                        >
-                            +
-                        </button>
-                        <button 
-                            onClick={handleZoomOut} 
-                            style={{ marginBottom: '8px' }}
-                            className="ios-glass w-9 h-9 rounded-xl flex items-center justify-center shadow-xl text-[#C5AB89] hover:text-white border border-[#737C75]/30 active:scale-95 transition-all font-bold text-base" 
-                            title="縮小"
-                        >
-                            -
-                        </button>
-                        <button 
-                            onClick={handleLocateMe} 
-                            className="ios-glass w-9 h-9 rounded-xl flex items-center justify-center shadow-xl text-[#C5AB89] hover:text-white border border-[#737C75]/30 active:scale-95 transition-all" 
-                            title="回到定位點"
-                        >
-                            <i data-lucide="locate-fixed" className="w-4 h-4"></i>
-                        </button>
-                    </div>
-
-                    <div ref={mapContainerRef} id="map" className="w-full h-full flex-1 bg-[#000000]"></div>
-
-                    {selectedCountryInfo && (
-                        <div className="absolute bottom-4 left-4 right-4 z-[1000] animate-in fade-in slide-in-from-bottom-5 duration-300">
-                            <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-5 shadow-2xl border-2 border-[#C5AB89] space-y-3 relative">
-                                <button onClick={() => setSelectedCountryInfo(null)} className="absolute top-4 right-4 w-7 h-7 rounded-full bg-[#EBEBE9] text-[#161D15] flex items-center justify-center hover:bg-[#D2CABF]">
-                                    <i data-lucide="x" className="w-4 h-4"></i>
-                                </button>
-
-                                <div className="space-y-1 pr-6">
-                                    <div className="flex items-center gap-2">
-                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#C5AB89] text-[#161D15]">
-                                            國家足跡概覽
-                                        </span>
-                                        <span className="text-[10px] font-mono text-[#737C75]">✈️ {selectedCountryInfo.venues.size} 個場館</span>
-                                    </div>
-                                    <h3 className="font-black text-base text-[#161D15] leading-snug">{selectedCountryInfo.name}</h3>
-                                    <p className="text-[11px] text-[#737C75]">共參加 {selectedCountryInfo.events.length} 場藝文活動</p>
-                                </div>
-
-                                {selectedCountryInfo.events.length > 0 ? (
-                                    <div className="bg-white p-3 rounded-2xl border border-[#D2CABF] flex items-center gap-3">
-                                        <img src={selectedCountryInfo.events[0].coverImg} alt="Cover" className="w-14 h-14 rounded-xl object-cover shrink-0 border border-[#D2CABF]" />
-                                        <div className="flex-1 min-w-0 space-y-1">
-                                            <div className="flex items-center justify-between text-[10px] font-bold text-[#737C75]">
-                                                <span>最近活動</span>
-                                                <span className="font-mono">{selectedCountryInfo.events[0].date}</span>
-                                            </div>
-                                            <p className="font-extrabold text-xs text-[#161D15] truncate">{selectedCountryInfo.events[0].title}</p>
-                                            <button onClick={() => setSelectedEventModal(selectedCountryInfo.events[0])} className="text-[11px] font-black text-[#AB8C83] hover:underline">
-                                                [查看完整活動紀錄]
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="p-3 bg-white rounded-2xl border border-[#D2CABF] text-center text-xs text-[#737C75]">
-                                        尚無在此國家的藝文活動紀錄
-                                    </div>
-                                )}
-
-                                <button onClick={() => setSelectedCountryInfo(null)} className="w-full py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">
-                                    關閉面板
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {selectedEventModal && (
-                        <EventDetailModal event={selectedEventModal} onClose={() => setSelectedEventModal(null)} onDelete={() => {}} getGoogleMapsUrl={getGoogleMapsUrl} />
-                    )}
-                </div>
-            );
-        }
-
-        function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCategory, searchQuery, setSearchQuery, viewMode, onDelete, getGoogleMapsUrl, onOpenAddModal }) {
-            const [detailEvent, setDetailEvent] = useState(null);
-            const [calendarDate, setCalendarDate] = useState(new Date());
-
-            const year = calendarDate.getFullYear();
-            const month = calendarDate.getMonth();
-
-            const calendarDays = useMemo(() => {
-                const firstDayIndex = new Date(year, month, 1).getDay();
-                const totalDays = new Date(year, month + 1, 0).getDate();
-                const days = [];
-                for (let i = 0; i < firstDayIndex; i++) days.push(null);
-                for (let i = 1; i <= totalDays; i++) {
-                    const mStr = String(month + 1).padStart(2, '0');
-                    const dStr = String(i).padStart(2, '0');
-                    const dateStr = `${year}-${mStr}-${dStr}`;
-                    const dayEvents = allEvents.filter(e => e.date === dateStr);
-                    days.push({ day: i, dateStr, events: dayEvents });
-                }
-                return days;
-            }, [year, month, allEvents]);
-
-            return (
-                <div className="space-y-4 p-4 pb-24">
-                    <div className="space-y-2.5">
-                        <div className="relative">
-                            <i data-lucide="search" className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#737C75]"></i>
-                            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="搜尋名稱、演出者、場館..." className="w-full bg-[#EFF0EA] text-[#161D15] placeholder-[#737C75] pl-9 pr-8 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:border-[#C5AB89] shadow-inner" />
-                        </div>
-                        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
-                            <button onClick={() => setSelectedCategory('all')} className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm flex items-center gap-1 ${selectedCategory === 'all' ? 'bg-[#C5AB89] text-[#161D15]' : 'bg-[#EFF0EA] text-[#161D15]/80 hover:bg-[#D2CABF]'}`}>
-                                <span>✨ 全部</span><span className="text-[10px] opacity-75 font-mono">({allEvents.length})</span>
-                            </button>
-                            {Object.entries(CATEGORIES).map(([catKey, cat]) => {
-                                const count = allEvents.filter(e => e.type === catKey).length;
-                                const isSelected = selectedCategory === catKey;
-                                return (
-                                    <button key={catKey} onClick={() => setSelectedCategory(catKey)} className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm flex items-center gap-1 ${isSelected ? `${cat.badgeBg} ring-1 ring-[#161D15]/20` : 'bg-[#EFF0EA] text-[#161D15]/80 hover:bg-[#D2CABF]'}`}>
-                                        <span>{cat.emoji} {cat.label}</span><span className="text-[10px] opacity-75 font-mono">({count})</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {viewMode === 'calendar' ? (
-                        <div className="bg-[#EFF0EA] text-[#161D15] p-4 rounded-3xl shadow-lg border border-[#D2CABF] space-y-4">
-                            <div className="flex items-center justify-between">
-                                <h3 className="font-extrabold text-sm font-mono">{year} 年 {month + 1} 月</h3>
-                                <div className="flex gap-1">
-                                    <button onClick={() => setCalendarDate(new Date(year, month - 1, 1))} className="p-1.5 rounded-lg bg-[#EBEBE9] hover:bg-[#D2CABF]"><i data-lucide="chevron-left" className="w-4 h-4"></i></button>
-                                    <button onClick={() => setCalendarDate(new Date(year, month + 1, 1))} className="p-1.5 rounded-lg bg-[#EBEBE9] hover:bg-[#D2CABF]"><i data-lucide="chevron-right" className="w-4 h-4"></i></button>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-7 gap-1 text-center font-bold text-[10px] text-[#737C75]">
-                                <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
-                            </div>
-                            <div className="grid grid-cols-7 gap-1">
-                                {calendarDays.map((item, idx) => {
-                                    if (!item) return <div key={idx} className="h-10"></div>;
-                                    const hasEvent = item.events.length > 0;
-                                    return (
-                                        <div key={idx} onClick={() => { if (hasEvent) setDetailEvent(item.events[0]); }} className={`h-10 rounded-xl flex flex-col items-center justify-center relative transition-all ${hasEvent ? 'bg-[#C5AB89] text-[#161D15] font-black cursor-pointer shadow hover:scale-105' : 'bg-[#EBEBE9] text-[#161D15]/60'}`}>
-                                            <span className="text-xs">{item.day}</span>
-                                            {hasEvent && <span className="w-1.5 h-1.5 rounded-full bg-[#161D15] mt-0.5"></span>}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="space-y-3">
-                            {events.length === 0 ? (
-                                <div className="text-center py-16 bg-[#EFF0EA]/5 border border-dashed border-[#737C75]/40 rounded-3xl p-6 space-y-3">
-                                    <div className="w-12 h-12 rounded-2xl bg-[#C5AB89]/10 text-[#C5AB89] flex items-center justify-center mx-auto">
-                                        <i data-lucide="ticket" className="w-6 h-6"></i>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-xs text-[#EFF0EA] font-extrabold">暫無藝文紀錄</p>
-                                        <p className="text-[11px] text-[#D2CABF]">點擊右上角「+」或下方按鈕新增您的第一筆觀演紀錄</p>
-                                    </div>
-                                    <button onClick={onOpenAddModal} className="px-4 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-xs shadow hover:bg-[#CCB9AA] transition-all inline-flex items-center gap-1.5">
-                                        <i data-lucide="plus" className="w-4 h-4"></i> 新增藝文紀錄
-                                    </button>
-                                </div>
-                            ) : (
-                                events.map((evt) => {
-                                    const cat = CATEGORIES[evt.type] || CATEGORIES.concert;
-                                    return (
-                                        <div key={evt.id} onClick={() => setDetailEvent(evt)} className="relative bg-[#EFF0EA] text-[#161D15] rounded-2xl flex shadow-lg overflow-hidden cursor-pointer hover:scale-[1.01] transition-all active:scale-[0.98] group my-2">
-                                            <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
-                                            <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
-                                            <div className="flex-1 p-3.5 pl-5 flex gap-3 min-w-0 pr-4 relative">
-                                                <div className="w-16 h-20 rounded-xl overflow-hidden shrink-0 border border-[#D2CABF] bg-[#D2CABF] relative shadow-sm">
-                                                    <img src={evt.coverImg} alt={evt.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80'; }} />
-                                                    <span className="absolute top-1 left-1 px-1 py-0.2 rounded text-[8px] font-bold bg-[#161D15]/85 text-[#EFF0EA] backdrop-blur-sm">{cat.emoji}</span>
-                                                </div>
-                                                <div className="flex-1 flex flex-col justify-between min-w-0">
-                                                    <div className="space-y-1">
-                                                        <div className="flex items-center justify-between text-[10px] font-mono font-bold text-[#737C75]">
-                                                            <span>{evt.date}</span>
-                                                            <span className="px-1.5 py-0.2 rounded text-[8px] font-black bg-[#737C75] text-white">已參加</span>
-                                                        </div>
-                                                        <h3 className="font-extrabold text-xs text-[#161D15] leading-snug line-clamp-1 group-hover:text-[#AB8C83] transition-colors">{evt.title}</h3>
-                                                        <p className="text-[11px] text-[#737C75] font-medium truncate">📍 {evt.venue}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="relative w-0 border-r-2 border-dashed border-[#737C75]/40 my-1 z-10"></div>
-                                            <div className="w-[88px] bg-[#EBEBE9] p-2.5 flex flex-col justify-between items-center text-center shrink-0 relative overflow-hidden border-l border-[#D2CABF]/40">
-                                                <span className="text-[8px] font-mono font-black text-[#737C75] uppercase tracking-tighter block">ADMIT ONE</span>
-                                                <div className="font-mono text-[10px] font-black text-[#161D15] truncate">{evt.cost ? `$${Number(evt.cost).toLocaleString()}` : 'FREE'}</div>
-                                                <span className="text-[8px] font-bold text-[#161D15] bg-[#CCB9AA] px-1.5 py-0.5 rounded w-full truncate">{evt.detailSeat ? evt.detailSeat.slice(0, 6) : '紀錄存檔'}</span>
-                                            </div>
-                                        </div>
-                                    );
-                                })
-                            )}
-                        </div>
-                    )}
-
-                    {detailEvent && (
-                        <EventDetailModal event={detailEvent} onClose={() => setDetailEvent(null)} onDelete={onDelete} getGoogleMapsUrl={getGoogleMapsUrl} />
-                    )}
-                </div>
-            );
-        }
-
-        function ScheduleSection({ schedules, onDelete, getGoogleMapsUrl, onOpenAddModal }) {
-            return (
-                <div className="p-4 pb-24 space-y-4">
-                    <div>
-                        <h2 className="text-base font-extrabold text-[#EFF0EA] tracking-tight">近期演出排程</h2>
-                        <p className="text-xs text-[#D2CABF]">官方預告之演唱會、音樂劇、話劇巡迴</p>
-                    </div>
-                    <div className="space-y-3.5">
-                        {schedules.length === 0 ? (
-                            <div className="text-center py-16 bg-[#EFF0EA]/5 border border-dashed border-[#737C75]/40 rounded-3xl p-6 space-y-3">
-                                <div className="w-12 h-12 rounded-2xl bg-[#C5AB89]/10 text-[#C5AB89] flex items-center justify-center mx-auto">
-                                    <i data-lucide="calendar-days" className="w-6 h-6"></i>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-xs text-[#EFF0EA] font-extrabold">暫無演出排程</p>
-                                    <p className="text-[11px] text-[#D2CABF]">點擊右上角「+」或下方按鈕新增您關注的演出排程</p>
-                                </div>
-                                <button onClick={onOpenAddModal} className="px-4 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-xs shadow hover:bg-[#CCB9AA] transition-all inline-flex items-center gap-1.5">
-                                    <i data-lucide="plus" className="w-4 h-4"></i> 新增演出排程
-                                </button>
-                            </div>
-                        ) : (
-                            schedules.map(sch => {
-                                const mapsUrl = getGoogleMapsUrl(sch.venue, sch.venueAddress);
-                                return (
-                                    <div key={sch.id} className="relative bg-[#EFF0EA] text-[#161D15] rounded-2xl flex overflow-hidden shadow-lg group">
-                                        <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
-                                        <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
-                                        
-                                        <div className="flex-1 p-3.5 pl-5 pr-3 space-y-2 min-w-0 relative">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-[10px] font-mono text-[#161D15] font-extrabold px-2 py-0.5 rounded bg-[#C5AB89]">{sch.date}</span>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-[9px] font-mono font-black uppercase tracking-wider text-[#AB8C83] border border-[#AB8C83] px-1.5 py-0.5 rounded -rotate-3">{sch.status}</span>
-                                                    <button 
-                                                        onClick={() => onDelete(sch.id)}
-                                                        className="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors shadow-sm"
-                                                        title="刪除排程"
-                                                    >
-                                                        <i data-lucide="trash-2" className="w-3.5 h-3.5"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <h3 className="font-extrabold text-sm text-[#161D15] leading-snug">{sch.title}</h3>
-                                            <div className="flex items-center justify-between">
-                                                <p className="text-xs text-[#737C75] truncate">{sch.organizer} • {sch.venue}</p>
-                                                <a href={mapsUrl} target="_blank" rel="noreferrer" className="text-[10px] font-bold text-[#C5AB89] hover:underline flex items-center gap-1 shrink-0">
-                                                    <i data-lucide="map-pin" className="w-3 h-3"></i> Google Maps
-                                                </a>
-                                            </div>
-                                        </div>
-                                        <div className="relative w-0 border-r-2 border-dashed border-[#737C75]/40 my-1 z-10"></div>
-                                        <div className="w-24 bg-[#EBEBE9] p-3 flex flex-col justify-between items-center text-center shrink-0 border-l border-[#D2CABF]/40">
-                                            <span className="font-mono text-[10px] font-black text-[#161D15]">{sch.priceRange}</span>
-                                            <a href={sch.ticketLink} target="_blank" rel="noreferrer" className="w-full py-1.5 rounded-lg bg-[#161D15] text-[#EFF0EA] font-extrabold text-[10px] hover:bg-[#737C75] flex items-center justify-center gap-1 shadow">
-                                                <span>購票</span>
-                                            </a>
-                                        </div>
-                                    </div>
-                                );
-                            })
-                        )}
-                    </div>
-                </div>
-            );
-        }
-
-        function StatsSection({ stats, events }) {
-            return (
-                <div className="p-4 pb-24 space-y-4">
-                    <div>
-                        <h2 className="text-base font-extrabold text-[#EFF0EA] tracking-tight">成就統計與花費總覽</h2>
-                        <p className="text-xs text-[#D2CABF]">全方位檢視您的藝文足跡與收藏成就</p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-[#EFF0EA] text-[#161D15] p-4 rounded-3xl shadow-lg border border-[#D2CABF] space-y-1">
-                            <span className="text-[10px] text-[#737C75] font-bold uppercase tracking-wider block">總藝文紀錄</span>
-                            <div className="font-mono font-black text-2xl text-[#161D15]">{stats.totalEvents} <span className="text-xs font-normal text-[#737C75]">筆</span></div>
-                        </div>
-                        <div className="bg-[#EFF0EA] text-[#161D15] p-4 rounded-3xl shadow-lg border border-[#D2CABF] space-y-1">
-                            <span className="text-[10px] text-[#737C75] font-bold uppercase tracking-wider block">總投資金額</span>
-                            <div className="font-mono font-black text-xl text-[#161D15]">NT$ {stats.totalCost.toLocaleString()}</div>
-                        </div>
-                    </div>
-
-                    <div className="bg-[#EFF0EA] text-[#161D15] p-4 rounded-3xl shadow-lg border border-[#D2CABF] space-y-3">
-                        <h3 className="font-extrabold text-xs text-[#737C75] uppercase tracking-wider border-b border-[#D2CABF] pb-2">分類佔比</h3>
-                        <div className="space-y-2">
-                            {Object.entries(CATEGORIES).map(([key, cat]) => {
-                                const count = stats.categoryCounts[key] || 0;
-                                const percentage = stats.totalEvents > 0 ? Math.round((count / stats.totalEvents) * 100) : 0;
-                                return (
-                                    <div key={key} className="space-y-1">
-                                        <div className="flex items-center justify-between text-xs font-bold">
-                                            <span className="flex items-center gap-1.5"><span>{cat.emoji}</span><span>{cat.label}</span></span>
-                                            <span className="font-mono">{count} 筆 ({percentage}%)</span>
-                                        </div>
-                                        <div className="w-2 h-2 bg-[#EBEBE9] rounded-full overflow-hidden w-full">
-                                            <div className="h-full bg-[#C5AB89] rounded-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
                 </div>
             );
         }

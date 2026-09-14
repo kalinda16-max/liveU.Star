@@ -624,7 +624,7 @@
                                 <input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} placeholder="例如：台北市松山區南京東路四段2號" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                             </div>
 
-                            <div className="form-row">
+                            <div className="grid grid-cols-2 gap-2">
                                 <div className="form-group space-y-1">
                                     <label className="text-[11px] font-bold text-[#737C75] block">日期</label>
                                     <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
@@ -700,7 +700,7 @@
                                     <label className="text-[11px] font-bold text-[#737C75] block">主辦單位</label>
                                     <input type="text" value={organizer} onChange={(e) => setOrganizer(e.target.value)} placeholder="例如：相信音樂" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                                 </div>
-                                <div className="form-group space-y-1">
+                                <div className="grid grid-cols-2 gap-2">
                                     <label className="text-[11px] font-bold text-[#737C75] block">日期</label>
                                     <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
                                 </div>

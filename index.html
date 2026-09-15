@@ -106,19 +106,21 @@
                 drama: { label: '話劇/音樂劇', icon: 'theater', emoji: '🎭', badgeBg: 'bg-[#737C75] text-[#EFF0EA]' }
             };
 
-            // 修正點：加入精確經緯度 lat / lng
-            const VENUE_ADDRESS_DATABASE = {
-                '台北小巨蛋': { address: '105台北市松山區南京東路四段2號', city: '台北', country: '台灣', lat: 25.05110, lng: 121.54985 },
-                '台北大巨蛋': { address: '110臺北市信義區忠孝東路四段515號', city: '台北', country: '台灣', lat: 25.04230, lng: 121.56010 },
-                '國家音樂廳': { address: '100台北市中正區中山南路21-1號', city: '台北', country: '台灣', lat: 25.03690, lng: 121.51920 },
-                '台北流行音樂中心': { address: '115台北市南港區市民大道八段99號', city: '台北', country: '台灣', lat: 25.05194, lng: 121.59806 },
-                '高雄巨蛋': { address: '813高雄市左營區博愛二路757號', city: '高雄', country: '台灣', lat: 22.66917, lng: 120.30194 },
-                '高雄流行音樂中心': { address: '803高雄市鹽埕區真愛路1號', city: '高雄', country: '台灣', lat: 22.61780, lng: 120.28890 },
-                'legacy taipei': { address: '100台北市中正區八德路一段1號', city: '台北', country: '台灣', lat: 25.04497, lng: 121.52927 },
-                'clapper studio': { address: '100台北市中正區市民大道三段2號5樓', city: '台北', country: '台灣', lat: 25.04570, lng: 121.53100 },
-                'zepp new taipei': { address: '242新北市新莊區新北大道四段3號8樓', city: '新北', country: '台灣', lat: 25.05944, lng: 121.44944 },
-                'tokyo dome': { address: '1-3 Koraku, Bunkyo City, Tokyo 112-0004', city: '東京', country: '日本', lat: 35.705796, lng: 139.751891 },
-                'budokan': { address: '2-3 Kitanomarukoen, Chiyoda City, Tokyo 102-0091', city: '東京', country: '日本', lat: 35.69333, lng: 139.74972 }
+            // 預設獨立場館資料庫（融合 venues.json 精確座標）
+            const DEFAULT_VENUE_DATABASE = {
+                '台北小巨蛋': { address: '105台北市松山區南京東路四段2號', city: '台北', country: '台灣', lat: 25.050777, lng: 121.550125 },
+                '台北大巨蛋': { address: '110臺北市信義區忠孝東路四段515號', city: '台北', country: '台灣', lat: 25.042622, lng: 121.559447 },
+                '國家音樂廳': { address: '100台北市中正區中山南路21-1號', city: '台北', country: '台灣', lat: 25.037253, lng: 121.519225 },
+                '台北流行音樂中心': { address: '115台北市南港區市民大道八段99號', city: '台北', country: '台灣', lat: 25.052920, lng: 121.599074 },
+                '高雄巨蛋': { address: '813高雄市左營區博愛二路757號', city: '高雄', country: '台灣', lat: 22.669068, lng: 120.302688 },
+                '高雄流行音樂中心': { address: '803高雄市鹽埕區真愛路1號', city: '高雄', country: '台灣', lat: 22.617619, lng: 120.288489 },
+                'legacy taipei': { address: '100台北市中正區八德路一段1號', city: '台北', country: '台灣', lat: 25.045186, lng: 121.529411 },
+                'clapper studio': { address: '100台北市中正區市民大道三段2號5樓', city: '台北', country: '台灣', lat: 25.045704, lng: 121.531215 },
+                'zepp new taipei': { address: '242新北市新莊區新北大道四段3號8樓', city: '新北', country: '台灣', lat: 25.059882, lng: 121.449540 },
+                '東京巨蛋': { address: '日本東京都文京區後樂一丁目3番61號', city: '東京', country: '日本', lat: 35.705788, lng: 139.751913 },
+                'tokyo dome': { address: '1-3 Koraku, Bunkyo City, Tokyo 112-0004', city: '東京', country: '日本', lat: 35.705788, lng: 139.751913 },
+                '日本武道館': { address: '日本東京都千代田區北之丸公園2番3號', city: '東京', country: '日本', lat: 35.693628, lng: 139.749690 },
+                'budokan': { address: '2-3 Kitanomarukoen, Chiyoda City, Tokyo 102-0091', city: '東京', country: '日本', lat: 35.693628, lng: 139.749690 }
             };
 
             const COUNTRY_NAME_MAPPING = {
@@ -325,6 +327,12 @@
                         return saved ? JSON.parse(saved) : [];
                     } catch (e) { return []; }
                 });
+                const [venueDb, setVenueDb] = useState(() => {
+                    try {
+                        const saved = localStorage.getItem('liveecho_venue_db_v1');
+                        return saved ? JSON.parse(saved) : DEFAULT_VENUE_DATABASE;
+                    } catch (e) { return DEFAULT_VENUE_DATABASE; }
+                });
                 const [userProfile, setUserProfile] = useState(() => {
                     try {
                         const saved = localStorage.getItem('liveecho_user_profile_v12');
@@ -338,6 +346,7 @@
                 const [searchQuery, setSearchQuery] = useState('');
 
                 const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+                const [isVenueDbModalOpen, setIsVenueDbModalOpen] = useState(false);
                 const [isAddModalOpen, setIsAddModalOpen] = useState(false);
                 const [isAddScheduleModalOpen, setIsAddScheduleModalOpen] = useState(false);
                 const [editingEvent, setEditingEvent] = useState(null);
@@ -348,6 +357,7 @@
                     try { localStorage.setItem('liveecho_records_palette_v12', JSON.stringify(events)); } catch (e) { alert('儲存空間不足，建議清理部分圖片記錄！'); }
                 }, [events]);
                 useEffect(() => { localStorage.setItem('liveecho_schedules_v12', JSON.stringify(schedules)); }, [schedules]);
+                useEffect(() => { localStorage.setItem('liveecho_venue_db_v1', JSON.stringify(venueDb)); }, [venueDb]);
                 useEffect(() => { localStorage.setItem('liveecho_user_profile_v12', JSON.stringify(userProfile)); }, [userProfile]);
                 
                 useEffect(() => { 
@@ -439,6 +449,9 @@
                                 </div>
                             </button>
                             <div className="flex items-center gap-2">
+                                <button onClick={() => setIsVenueDbModalOpen(true)} className="w-8 h-8 rounded-lg bg-[#737C75]/40 text-[#EFF0EA] flex items-center justify-center shadow" title="管理場館資料庫">
+                                    <i data-lucide="database" className="w-4 h-4 font-black"></i>
+                                </button>
                                 {activeTab === 'archive' && (
                                     <>
                                         <div className="flex bg-[#161D15] p-0.5 rounded-lg border border-[#737C75]/40">
@@ -471,8 +484,86 @@
                         </nav>
 
                         {isEditProfileOpen && <EditProfileModal userProfile={userProfile} setUserProfile={setUserProfile} onClose={() => setIsEditProfileOpen(false)} showAlert={showAlert} />}
-                        {(isAddModalOpen || editingEvent) && <AddEventModal initialData={editingEvent} onSave={handleSaveEvent} onClose={() => { setIsAddModalOpen(false); setEditingEvent(null); }} />}
+                        {isVenueDbModalOpen && <VenueDbManagerModal venueDb={venueDb} setVenueDb={setVenueDb} onClose={() => setIsVenueDbModalOpen(false)} showAlert={showAlert} />}
+                        {(isAddModalOpen || editingEvent) && <AddEventModal initialData={editingEvent} venueDb={venueDb} onSave={handleSaveEvent} onClose={() => { setIsAddModalOpen(false); setEditingEvent(null); }} />}
                         {(isAddScheduleModalOpen || editingSchedule) && <AddScheduleModal initialData={editingSchedule} onSave={handleSaveSchedule} onDelete={handleDeleteSchedule} onClose={() => { setIsAddScheduleModalOpen(false); setEditingSchedule(null); }} />}
+                    </div>
+                );
+            }
+
+            // 新增自訂獨立場館資料庫 Modal
+            function VenueDbManagerModal({ venueDb, setVenueDb, onClose, showAlert }) {
+                const [name, setName] = useState('');
+                const [address, setAddress] = useState('');
+                const [city, setCity] = useState('台北');
+                const [country, setCountry] = useState('台灣');
+                const [lat, setLat] = useState('');
+                const [lng, setLng] = useState('');
+
+                const handleAddVenue = (e) => {
+                    e.preventDefault();
+                    if (!name || !lat || !lng) return;
+                    const updated = {
+                        ...venueDb,
+                        [name.trim()]: {
+                            address: address.trim(),
+                            city: city.trim() || '未定',
+                            country: country.trim() || '台灣',
+                            lat: parseFloat(lat),
+                            lng: parseFloat(lng)
+                        }
+                    };
+                    setVenueDb(updated);
+                    showAlert(`成功新增場館：${name}`);
+                    setName(''); setAddress(''); setLat(''); setLng('');
+                };
+
+                const handleDeleteVenue = (key) => {
+                    const updated = { ...venueDb };
+                    delete updated[key];
+                    setVenueDb(updated);
+                    showAlert(`已刪除場館：${key}`);
+                };
+
+                return (
+                    <div className="modal-overlay bg-black/85">
+                        <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[90vh] flex flex-col">
+                            <div className="flex items-center justify-between border-b border-[#D2CABF] pb-2 shrink-0">
+                                <h3 className="font-extrabold text-sm"><i data-lucide="database" className="w-4 h-4 inline"></i> 管理場館資料庫 ({Object.keys(venueDb).length})</h3>
+                                <button onClick={onClose}><i data-lucide="x" className="w-5 h-5"></i></button>
+                            </div>
+
+                            <form onSubmit={handleAddVenue} className="space-y-2 bg-white p-3 rounded-2xl border border-[#D2CABF] shrink-0">
+                                <h4 className="text-[11px] font-black text-[#161D15]">新增獨立場館與經緯度</h4>
+                                <input type="text" placeholder="場館名稱 (如: 台北小巨蛋)" value={name} onChange={e=>setName(e.target.value)} required className="w-full bg-[#EFF0EA] px-2.5 py-1.5 rounded-xl text-xs border border-[#D2CABF]" />
+                                <input type="text" placeholder="完整地址" value={address} onChange={e=>setAddress(e.target.value)} className="w-full bg-[#EFF0EA] px-2.5 py-1.5 rounded-xl text-xs border border-[#D2CABF]" />
+                                <div className="grid grid-cols-2 gap-1.5">
+                                    <input type="text" placeholder="國家" value={country} onChange={e=>setCountry(e.target.value)} className="bg-[#EFF0EA] px-2.5 py-1.5 rounded-xl text-xs border border-[#D2CABF]" />
+                                    <input type="text" placeholder="城市" value={city} onChange={e=>setCity(e.target.value)} className="bg-[#EFF0EA] px-2.5 py-1.5 rounded-xl text-xs border border-[#D2CABF]" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-1.5">
+                                    <input type="number" step="any" placeholder="緯度 Lat (如 25.0507)" value={lat} onChange={e=>setLat(e.target.value)} required className="bg-[#EFF0EA] px-2.5 py-1.5 rounded-xl text-xs border border-[#D2CABF]" />
+                                    <input type="number" step="any" placeholder="經度 Lng (如 121.5501)" value={lng} onChange={e=>setLng(e.target.value)} required className="bg-[#EFF0EA] px-2.5 py-1.5 rounded-xl text-xs border border-[#D2CABF]" />
+                                </div>
+                                <button type="submit" className="w-full py-2 bg-[#161D15] text-[#EFF0EA] rounded-xl font-bold text-xs mt-1">新增至場館庫</button>
+                            </form>
+
+                            <div className="flex-1 overflow-y-auto space-y-2 no-scrollbar pr-1">
+                                <h4 className="text-[11px] font-black text-[#737C75]">既存場館清單</h4>
+                                {Object.entries(venueDb).map(([vName, vData]) => (
+                                    <div key={vName} className="bg-white p-2.5 rounded-xl border border-[#D2CABF] flex items-center justify-between text-xs">
+                                        <div className="min-w-0 flex-1 pr-2">
+                                            <div className="font-bold text-[#161D15] truncate">{vName}</div>
+                                            <div className="text-[10px] text-[#737C75] truncate">{vData.address || `${vData.country} ${vData.city}`}</div>
+                                            <div className="text-[9px] font-mono text-[#C5AB89] font-bold">{vData.lat}, {vData.lng}</div>
+                                        </div>
+                                        <button type="button" onClick={() => handleDeleteVenue(vName)} className="p-1.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 shrink-0">
+                                            <i data-lucide="trash-2" className="w-3.5 h-3.5"></i>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 );
             }
@@ -537,7 +628,7 @@
                 );
             }
 
-            function AddEventModal({ initialData, onSave, onClose }) {
+            function AddEventModal({ initialData, venueDb, onSave, onClose }) {
                 const [title, setTitle] = useState(initialData?.title || '');
                 const [type, setType] = useState(initialData?.type || 'concert');
                 const [date, setDate] = useState(initialData?.date || new Date().toISOString().slice(0, 10));
@@ -553,7 +644,7 @@
                 const [notes, setNotes] = useState(initialData?.notes || '');
                 const [coverImg, setCoverImg] = useState(initialData?.coverImg || '');
                 const [imageTransform, setImageTransform] = useState(initialData?.imageTransform || { scale: 1, x: 0, y: 0 });
-                // 新增獨立經緯度狀態
+                
                 const [lat, setLat] = useState(initialData?.lat || null);
                 const [lng, setLng] = useState(initialData?.lng || null);
 
@@ -562,9 +653,10 @@
                 const handleVenueChange = (e) => {
                     const val = e.target.value; 
                     setVenue(val);
-                    const matchedKey = Object.keys(VENUE_ADDRESS_DATABASE).find(k => k.toLowerCase() === val.trim().toLowerCase());
+                    const dbToUse = venueDb || DEFAULT_VENUE_DATABASE;
+                    const matchedKey = Object.keys(dbToUse).find(k => k.toLowerCase() === val.trim().toLowerCase());
                     if (matchedKey) {
-                        const m = VENUE_ADDRESS_DATABASE[matchedKey];
+                        const m = dbToUse[matchedKey];
                         setVenueAddress(m.address); 
                         setCity(m.city); 
                         setCountryName(m.country);
@@ -578,9 +670,8 @@
                     const resolved = resolveCountryInfo(countryName);
                     const finalImg = await compressImageFile(coverImg, 1600, 1600, 0.92);
 
-                    // 優先取用自動獲取或手動對應到的經緯度，否則才回退到國家預設中心點
-                    const finalLat = lat || resolved.lat;
-                    const finalLng = lng || resolved.lng;
+                    const finalLat = lat !== null ? Number(lat) : resolved.lat;
+                    const finalLng = lng !== null ? Number(lng) : resolved.lng;
 
                     onSave({
                         id: initialData?.id || null, title, type, date, time,
@@ -618,8 +709,14 @@
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">活動分類</label><select value={type} onChange={(e) => setType(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]">{Object.entries(CATEGORIES).map(([k, v]) => <option key={k} value={k}>{v.emoji} {v.label}</option>)}</select></div>
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">活動名稱</label><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">演出藝人</label><input type="text" value={artist} onChange={(e) => setArtist(e.target.value)} placeholder="例如：五月天" className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">場館名稱</label><input type="text" value={venue} onChange={handleVenueChange} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
+                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">場館名稱 (自動匹配庫內座標)</label><input type="text" value={venue} onChange={handleVenueChange} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">地址</label><input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
+                                
+                                <div className="grid grid-cols-2 gap-2 bg-white p-2 rounded-xl border border-[#D2CABF]">
+                                    <div className="space-y-1"><label className="text-[10px] font-bold text-[#737C75]">緯度 Lat</label><input type="number" step="any" value={lat || ''} onChange={(e) => setLat(e.target.value)} placeholder="如 25.0507" className="w-full h-8 bg-[#EFF0EA] px-2 py-1 rounded-lg text-xs border border-[#D2CABF]" /></div>
+                                    <div className="space-y-1"><label className="text-[10px] font-bold text-[#737C75]">經度 Lng</label><input type="number" step="any" value={lng || ''} onChange={(e) => setLng(e.target.value)} placeholder="如 121.5501" className="w-full h-8 bg-[#EFF0EA] px-2 py-1 rounded-lg text-xs border border-[#D2CABF]" /></div>
+                                </div>
+
                                 <div className="grid grid-cols-2 gap-2">
                                     <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">國家</label><input type="text" value={countryName} onChange={(e) => setCountryName(e.target.value)} required className="w-full h-9 bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                     <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">城市</label><input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="w-full h-9 bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
@@ -759,9 +856,11 @@
                 );
             }
 
+            // 地圖組件（修正 Leaflet 渲染與 Marker 計算邏輯）
             function LeafletMapSection({ events, stats, getGoogleMapsUrl }) {
                 const mapRef = useRef(null);
                 const mapInst = useRef(null);
+                const markersLayerRef = useRef(L.layerGroup());
                 const activeLayerRef = useRef(null);
                 const geoJsonLayerRef = useRef(null);
                 const [selectedCountry, setSelectedCountry] = useState(null);
@@ -781,6 +880,7 @@
 
                 const visited = useMemo(() => Object.keys(countryMap), [countryMap]);
 
+                // 初始化 Leaflet 地圖
                 useEffect(() => {
                     if (!mapRef.current) return;
                     if (!mapInst.current) {
@@ -801,6 +901,8 @@
                             noWrap: true,
                             bounds: bounds
                         }).addTo(map);
+
+                        markersLayerRef.current.addTo(map);
                         mapInst.current = map;
 
                         fetch('https://raw.githubusercontent.com/datasets/geo-boundaries-world-110m/master/countries.geojson')
@@ -832,17 +934,42 @@
                                 }).addTo(map);
                                 geoJsonLayerRef.current = layer;
                             }).catch(() => {});
-
-                        events.forEach((evt, idx) => {
-                            if (!evt.lat || !evt.lng) return;
-                            L.marker([evt.lat, evt.lng], {
-                                icon: L.divIcon({ className: 'custom-div-icon', html: `<div class="custom-numeric-marker w-7 h-7 flex items-center justify-center">${idx + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14] })
-                            }).addTo(map).on('click', () => setSelectedEventModal(evt));
-                        });
-                        setTimeout(() => map.invalidateSize(), 100);
                     }
-                    return () => { if (mapInst.current) { mapInst.current.remove(); mapInst.current = null; } };
-                }, [events, visited]);
+
+                    // 強制重算 Leaflet 高度與寬度，修復手機端尺寸計算偏差問題
+                    const timer = requestAnimationFrame(() => {
+                        if (mapInst.current) mapInst.current.invalidateSize();
+                    });
+
+                    return () => { 
+                        cancelAnimationFrame(timer);
+                    };
+                }, []);
+
+                // 動態更新與繪製 Marker 座標
+                useEffect(() => {
+                    if (!mapInst.current) return;
+                    markersLayerRef.current.clearLayers();
+
+                    events.forEach((evt, idx) => {
+                        const latVal = parseFloat(evt.lat);
+                        const lngVal = parseFloat(evt.lng);
+
+                        if (isNaN(latVal) || isNaN(lngVal)) return;
+
+                        const marker = L.marker([latVal, lngVal], {
+                            icon: L.divIcon({ 
+                                className: 'custom-div-icon', 
+                                html: `<div class="custom-numeric-marker w-7 h-7 flex items-center justify-center">${idx + 1}</div>`, 
+                                iconSize: [28, 28], 
+                                iconAnchor: [14, 14] 
+                            })
+                        });
+                        
+                        marker.on('click', () => setSelectedEventModal(evt));
+                        markersLayerRef.current.addLayer(marker);
+                    });
+                }, [events]);
 
                 const handleCloseCountryModal = () => {
                     if (activeLayerRef.current && geoJsonLayerRef.current) {

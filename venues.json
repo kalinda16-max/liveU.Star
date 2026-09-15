@@ -1,0 +1,72 @@
+{
+  "台北小巨蛋": {
+    "address": "105台北市松山區南京東路四段2號",
+    "city": "台北",
+    "country": "台灣",
+    "lat": 25.0512,
+    "lng": 121.5505
+  },
+  "高雄巨蛋": {
+    "address": "813高雄市左營區博愛二路757號",
+    "city": "高雄",
+    "country": "台灣",
+    "lat": 22.6661,
+    "lng": 120.3028
+  },
+  "國家音樂廳": {
+    "address": "100台北市中正區中山南路21-1號",
+    "city": "台北",
+    "country": "台灣",
+    "lat": 25.0363,
+    "lng": 121.5186
+  },
+  "台北流行音樂中心": {
+    "address": "115台北市南港區市民大道八段99號",
+    "city": "台北",
+    "country": "台灣",
+    "lat": 25.0531,
+    "lng": 121.5986
+  },
+  "高雄流行音樂中心": {
+    "address": "803高雄市鹽埕區真愛路1號",
+    "city": "高雄",
+    "country": "台灣",
+    "lat": 22.6202,
+    "lng": 120.2882
+  },
+  "legacy taipei": {
+    "address": "100台北市中正區八德路一段1號",
+    "city": "台北",
+    "country": "台灣",
+    "lat": 25.0442,
+    "lng": 121.5294
+  },
+  "clapper studio": {
+    "address": "100台北市中正區市民大道三段2號5樓",
+    "city": "台北",
+    "country": "台灣",
+    "lat": 25.0454,
+    "lng": 121.5312
+  },
+  "zepp new taipei": {
+    "address": "242新北市新莊區新北大道四段3號8樓",
+    "city": "新北",
+    "country": "台灣",
+    "lat": 25.0609,
+    "lng": 121.4593
+  },
+  "tokyo dome": {
+    "address": "1-3 Koraku, Bunkyo City, Tokyo 112-0004",
+    "city": "東京",
+    "country": "日本",
+    "lat": 35.7056,
+    "lng": 139.7519
+  },
+  "budokan": {
+    "address": "2-3 Kitanomarukoen, Chiyoda City, Tokyo 102-0091",
+    "city": "東京",
+    "country": "日本",
+    "lat": 35.6933,
+    "lng": 139.7500
+  }
+}

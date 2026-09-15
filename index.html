@@ -157,7 +157,6 @@
                 return null;
             }
 
-            // 高解析度圖片處理
             function compressImageFile(fileOrUrl, maxWidth = 1600, maxHeight = 1600, quality = 0.92) {
                 return new Promise((resolve) => {
                     if (!fileOrUrl) {
@@ -194,8 +193,8 @@
                 });
             }
 
-            function TouchImageTransform({ src, initialTransform, onChange, className = "w-full h-full object-contain bg-black/40" }) {
-                const containerRef = useRef(null);
+            // 修改 3: 編輯個人檔案照片 - 只允許雙指放大縮小與單指平移圖片，底圖灰色色塊固定不動且不自動裁切
+            function TouchImageTransform({ src, initialTransform, onChange, className = "w-full h-full object-contain" }) {
                 const [transform, setTransform] = useState(() => initialTransform || { scale: 1, x: 0, y: 0 });
                 const isDragging = useRef(false);
                 const dragStart = useRef({ x: 0, y: 0 });
@@ -229,19 +228,18 @@
                 const handleTouchEnd = () => { isDragging.current = false; pinchStartDist.current = null; };
 
                 return (
-                    <div ref={containerRef} className="overflow-hidden relative select-none w-full h-full cursor-grab active:cursor-grabbing flex items-center justify-center"
+                    <div className="overflow-hidden relative select-none w-full h-full cursor-grab active:cursor-grabbing flex items-center justify-center bg-[#EBEBE9]"
                         onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
                         onMouseDown={(e) => { isDragging.current = true; dragStart.current = { x: e.clientX - transform.x, y: e.clientY - transform.y }; }}
-                        onMouseMove={(e) => { if (!isDragging.current) return; const updated = { ...transform, x: e.clientX - dragStart.current.x, y: e.clientY - dragStart.current.y }; setTransform(updated); if (onChange) onChange(updated); }}
+                        onMouseMove={(e) => { if (!isDragging.current) return; const updated = { ...transform, x: e.clientX - dragStart.current.x, y: e.clientY - transform.y }; setTransform(updated); if (onChange) onChange(updated); }}
                         onMouseUp={() => { isDragging.current = false; }} onMouseLeave={() => { isDragging.current = false; }}>
                         <img src={src} alt="Preview" className={className}
-                            style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`, transition: isDragging.current ? 'none' : 'transform 0.1s ease-out' }}
+                            style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`, transition: isDragging.current ? 'none' : 'transform 0.1s ease-out', maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
                             draggable={false} />
                     </div>
                 );
             }
 
-            // 附圖一：皇冠與星形圖示元件
             function RankIcon({ rank }) {
                 if (rank === 1) {
                     return (
@@ -295,7 +293,6 @@
                 );
             }
 
-            // 附圖二：八角指南針星圖示
             function CompassStarIcon({ className = "w-5 h-5" }) {
                 return (
                     <svg viewBox="0 0 500 500" className={className}>
@@ -468,7 +465,7 @@
                         <nav className="bottom-nav ios-glass pt-3 px-4 flex items-center justify-around app-safe-bottom border-t border-[#737C75]/30">
                             <button onClick={() => setActiveTab('archive')} className={`flex flex-col items-center gap-1 ${activeTab === 'archive' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}><i data-lucide="library" className="w-5 h-5"></i><span className="text-[10px]">藝文紀錄</span></button>
                             <button onClick={() => setActiveTab('schedule')} className={`flex flex-col items-center gap-1 ${activeTab === 'schedule' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}><i data-lucide="calendar-days" className="w-5 h-5"></i><span className="text-[10px]">演出排程</span></button>
-                            <button onClick={() => setActiveTab('map')} className={`flex flex-col items-center gap-1 ${activeTab === 'map' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}><i data-lucide="map-pin" className="w-5 h-5"></i><span className="text-[10px]">地圖足跡</span></button>
+                            <button onClick={() => setActiveTab('map')} className={`flex flex-col items-center gap-1 ${activeTab === 'map' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}><i data-lucide="map-pin" className="w-5 h-5"></i><span className="text-[10px]">星跡Map</span></button>
                             <button onClick={() => setActiveTab('stats')} className={`flex flex-col items-center gap-1 ${activeTab === 'stats' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}><i data-lucide="trophy" className="w-5 h-5"></i><span className="text-[10px]">成就統計</span></button>
                         </nav>
 
@@ -479,7 +476,6 @@
                 );
             }
 
-            // 修改 6 & 9: 編輯個人檔案面板（IG風格縮放拖曳、高解析度、取消按鈕顏色改為 #C5AB89）
             function EditProfileModal({ userProfile, setUserProfile, onClose, showAlert }) {
                 const [name, setName] = useState(userProfile.name);
                 const [subtitle, setSubtitle] = useState(userProfile.subtitle);
@@ -510,13 +506,13 @@
                             <form onSubmit={handleSave} className="space-y-4">
                                 <div className="flex flex-col items-center gap-2">
                                     <div className="flex items-center justify-between w-full px-1">
-                                        <label className="text-[11px] font-bold text-[#737C75]">頭像圖片（可雙指縮放與拖曳）</label>
+                                        <label className="text-[11px] font-bold text-[#737C75]">頭像圖片（雙指縮放與拖曳移動圖片）</label>
                                         <button type="button" onClick={() => fileRef.current?.click()} className="px-2.5 py-1 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-[10px]">選擇照片</button>
                                         <input type="file" ref={fileRef} onChange={async (e) => { if (e.target.files[0]) { setAvatarUrl(await compressImageFile(e.target.files[0], 1600, 1600, 0.92)); setAvatarTransform({ scale: 1, x: 0, y: 0 }); } }} accept="image/*" className="hidden" />
                                     </div>
-                                    <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-[#C5AB89] relative bg-black/40 flex items-center justify-center shadow-inner">
+                                    <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-[#C5AB89] relative bg-[#EBEBE9] flex items-center justify-center shadow-inner">
                                         {avatarUrl ? (
-                                            <TouchImageTransform src={avatarUrl} initialTransform={avatarTransform} onChange={setAvatarTransform} className="w-full h-full object-cover" />
+                                            <TouchImageTransform src={avatarUrl} initialTransform={avatarTransform} onChange={setAvatarTransform} className="w-full h-full object-contain" />
                                         ) : (
                                             <div className="w-full h-full bg-[#C5AB89] text-[#161D15] flex items-center justify-center font-black text-2xl">{name ? name.substring(0, 2).toUpperCase() : 'LU'}</div>
                                         )}
@@ -540,7 +536,6 @@
                 );
             }
 
-            // 修改 7 & 8: 藝文紀錄高解析度與取消按鈕顏色 #C5AB89
             function AddEventModal({ initialData, onSave, onClose }) {
                 const [title, setTitle] = useState(initialData?.title || '');
                 const [type, setType] = useState(initialData?.type || 'concert');
@@ -555,7 +550,7 @@
                 const [detailSeat, setDetailSeat] = useState(initialData?.detailSeat || '');
                 const [spotifyUrl, setSpotifyUrl] = useState(initialData?.spotifyUrl || '');
                 const [notes, setNotes] = useState(initialData?.notes || '');
-                const [coverImg, setCoverImg] = useState(initialData?.coverImg || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=90');
+                const [coverImg, setCoverImg] = useState(initialData?.coverImg || '');
                 const [imageTransform, setImageTransform] = useState(initialData?.imageTransform || { scale: 1, x: 0, y: 0 });
                 const fileRef = useRef(null);
 
@@ -592,12 +587,17 @@
                             <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar">
                                 <div className="bg-white p-3 rounded-2xl border border-[#D2CABF] space-y-2">
                                     <div className="flex items-center justify-between">
-                                        <label className="text-[11px] font-bold text-[#737C75]">高畫質照片調整（雙指縮放與拖曳）</label>
+                                        <label className="text-[11px] font-bold text-[#737C75]">圖片調整（雙指縮放與拖曳）</label>
                                         <button type="button" onClick={() => fileRef.current?.click()} className="px-2.5 py-1 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-[10px]">選擇照片</button>
                                         <input type="file" ref={fileRef} onChange={async (e) => { if(e.target.files[0]) { setCoverImg(await compressImageFile(e.target.files[0], 1600, 1600, 0.92)); setImageTransform({ scale: 1, x: 0, y: 0 }); }}} accept="image/*" className="hidden" />
                                     </div>
+                                    {/* 修改 6: 新增藝文紀錄內的預設圖片拿掉，留灰色塊就好 */}
                                     <div className="w-full h-40 rounded-xl overflow-hidden bg-[#EBEBE9] border border-[#D2CABF] relative flex items-center justify-center">
-                                        <TouchImageTransform src={coverImg} initialTransform={imageTransform} onChange={setImageTransform} />
+                                        {coverImg ? (
+                                            <TouchImageTransform src={coverImg} initialTransform={imageTransform} onChange={setImageTransform} />
+                                        ) : (
+                                            <div className="text-[11px] font-bold text-[#737C75]">尚未上傳圖片（留空顯示灰色塊）</div>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">活動分類</label><select value={type} onChange={(e) => setType(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]">{Object.entries(CATEGORIES).map(([k, v]) => <option key={k} value={k}>{v.emoji} {v.label}</option>)}</select></div>
@@ -626,7 +626,6 @@
                 );
             }
 
-            // 修改 2, 4, 5: 編輯演出排程面板（取消下拉選單改為按鈕點選、刪除地址欄位、取消按鈕顏色改為 #C5AB89）
             function AddScheduleModal({ initialData, onSave, onDelete, onClose }) {
                 const [title, setTitle] = useState(initialData?.title || '');
                 const [organizer, setOrganizer] = useState(initialData?.organizer || '');
@@ -634,7 +633,8 @@
                 const [venue, setVenue] = useState(initialData?.venue || '');
                 const [city, setCity] = useState(initialData?.city || '台北');
                 const [status, setStatus] = useState(initialData?.status || '即將開賣');
-                const [priceRange, setPriceRange] = useState(initialData?.priceRange || 'NT$ 1,000\n- 3,500');
+                // 修改 5: 近期演出排程面板，票價範圍的預設資料拿掉
+                const [priceRange, setPriceRange] = useState(initialData?.priceRange || '');
                 const [ticketLink, setTicketLink] = useState(initialData?.ticketLink || 'https://tixcraft.com');
 
                 const handleSubmit = (e) => {
@@ -661,7 +661,6 @@
                                 </div>
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">場館名稱</label><input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                 
-                                {/* 修改 2: 不使用下拉選單，改為點擊選擇 */}
                                 <div className="space-y-1">
                                     <label className="text-[11px] font-bold text-[#737C75]">售票狀態</label>
                                     <div className="flex gap-1.5 pt-0.5">
@@ -680,7 +679,7 @@
 
                                 <div className="space-y-1">
                                     <label className="text-[11px] font-bold text-[#737C75]">票價範圍 (可換行)</label>
-                                    <textarea value={priceRange} onChange={(e) => setPriceRange(e.target.value)} rows="2" className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF] font-mono resize-none"></textarea>
+                                    <textarea value={priceRange} onChange={(e) => setPriceRange(e.target.value)} rows="2" placeholder="例如：NT$ 1,000&#10;- 3,500" className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF] font-mono resize-none"></textarea>
                                 </div>
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">售票連結</label><input type="url" value={ticketLink} onChange={(e) => setTicketLink(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                 
@@ -713,7 +712,11 @@
                     <div className="modal-overlay bg-black/85 backdrop-blur-md">
                         <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-[#D2CABF] my-auto flex flex-col max-h-[85vh]">
                             <div className="relative h-48 bg-[#D2CABF] shrink-0 overflow-hidden flex items-center justify-center">
-                                <img src={event.coverImg} alt={event.title} className="w-full h-full object-contain bg-black/40" style={{ transform: `translate(${t.x}px, ${t.y}px) scale(${t.scale})` }} />
+                                {event.coverImg ? (
+                                    <img src={event.coverImg} alt={event.title} className="w-full h-full object-contain bg-black/40" style={{ transform: `translate(${t.x}px, ${t.y}px) scale(${t.scale})` }} />
+                                ) : (
+                                    <div className="w-full h-full bg-[#EBEBE9]" />
+                                )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-4 pointer-events-none">
                                     <div>
                                         <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${cat.badgeBg} inline-block mb-1`}>{cat.emoji} {cat.label}</span>
@@ -742,7 +745,7 @@
                 );
             }
 
-            // 修改 11 & 12: 地圖足跡，點擊國家亮起、彈出小面板、附圖二圖示與簡單多筆面板
+            // 修改 1 & 2: 名稱改為「星跡Map」，且修復地圖移動到最右邊出現黑邊的問題 (maxBounds / worldCopyJump / tile load settings)
             function LeafletMapSection({ events, stats, getGoogleMapsUrl }) {
                 const mapRef = useRef(null);
                 const mapInst = useRef(null);
@@ -768,8 +771,24 @@
                 useEffect(() => {
                     if (!mapRef.current) return;
                     if (!mapInst.current) {
-                        const map = L.map(mapRef.current, { zoomControl: false, attributionControl: false, minZoom: 2 }).setView([25.033, 121.565], 3);
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, noWrap: true }).addTo(map);
+                        // 設定 maxBounds 限制地圖平移邊界，防止拖到最右側時出現黑邊空白
+                        const southWest = L.latLng(-85, -180);
+                        const northEast = L.latLng(85, 180);
+                        const bounds = L.latLngBounds(southWest, northEast);
+
+                        const map = L.map(mapRef.current, { 
+                            zoomControl: false, 
+                            attributionControl: false, 
+                            minZoom: 2,
+                            maxBounds: bounds,
+                            maxBoundsViscosity: 1.0
+                        }).setView([25.033, 121.565], 3);
+
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+                            maxZoom: 19, 
+                            noWrap: true,
+                            bounds: bounds
+                        }).addTo(map);
                         mapInst.current = map;
 
                         fetch('https://raw.githubusercontent.com/datasets/geo-boundaries-world-110m/master/countries.geojson')
@@ -825,13 +844,12 @@
                     <div id="map-wrapper" className="relative flex-1 w-full flex flex-col bg-[#000000] overflow-hidden">
                         <div className="absolute top-3 left-4 right-4 z-[999] flex items-center justify-between pointer-events-none top-stats-card">
                             <div className="ios-glass px-3 py-1.5 rounded-full shadow-xl border border-[#737C75]/30 pointer-events-auto flex items-center gap-2">
-                                <span className="text-[10px] font-bold text-[#C5AB89]">🌍 藝文足跡</span>
+                                <span className="text-[10px] font-bold text-[#C5AB89]">🌍 星跡Map</span>
                                 <span className="text-[10px] font-mono"><strong className="text-[#C5AB89]">{stats.uniqueCountriesCount}</strong> 國 · <strong className="text-[#C5AB89]">{stats.attendedCount}</strong> 場</span>
                             </div>
                         </div>
                         <div ref={mapRef} id="map" className="w-full h-full flex-1"></div>
                         
-                        {/* 修改 11 & 12: 點擊國家彈出小面板與多筆資料簡單面板 */}
                         {selectedCountry && (
                             <div className="absolute bottom-4 left-4 right-4 z-[1000]">
                                 <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-2xl border-2 border-[#C5AB89] space-y-3 relative">
@@ -844,7 +862,6 @@
                                         已去過當地 <span className="text-[#C5AB89] font-black">{selectedCountry.venues ? selectedCountry.venues.size : 0}</span> 個場館
                                     </div>
 
-                                    {/* 多筆資料時顯示簡單面板：演出藝人、日期、場館名稱 */}
                                     {selectedCountry.events && selectedCountry.events.length > 0 ? (
                                         <div className="space-y-1.5 max-h-44 overflow-y-auto no-scrollbar pt-1">
                                             {selectedCountry.events.map(e => (
@@ -871,7 +888,6 @@
                 );
             }
 
-            // 修改 8: 藝文紀錄面板高解析度圖片縮圖顯示
             function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCategory, searchQuery, setSearchQuery, viewMode, onDelete, onEdit, getGoogleMapsUrl, onOpenAddModal }) {
                 const [detailEvent, setDetailEvent] = useState(null);
                 const [calendarDate, setCalendarDate] = useState(new Date());
@@ -926,23 +942,27 @@
                                                 <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
                                                 
                                                 <div className="flex-1 p-3.5 pl-5 flex gap-3 min-w-0 pr-4 relative">
-                                                    {/* 高解析小圖片縮圖 */}
+                                                    {/* 修改 4: 藝文紀錄面板顯示場館名稱的欄位 - 在手機版樣式優化不被切到字 */}
                                                     <div 
                                                         onClick={(e) => { e.stopPropagation(); setDetailEvent(evt); }}
-                                                        className="w-16 h-20 rounded-xl overflow-hidden shrink-0 border border-[#D2CABF] bg-black relative shadow-sm cursor-pointer hover:opacity-95 flex items-center justify-center"
+                                                        className="w-16 h-20 rounded-xl overflow-hidden shrink-0 border border-[#D2CABF] bg-[#EBEBE9] relative shadow-sm cursor-pointer hover:opacity-95 flex items-center justify-center"
                                                     >
-                                                        <img src={evt.coverImg} alt={evt.title} className="w-full h-full object-cover" style={{ transform: `translate(${t.x * 0.25}px, ${t.y * 0.25}px) scale(${t.scale})` }} />
+                                                        {evt.coverImg ? (
+                                                            <img src={evt.coverImg} alt={evt.title} className="w-full h-full object-cover" style={{ transform: `translate(${t.x * 0.25}px, ${t.y * 0.25}px) scale(${t.scale})` }} />
+                                                        ) : (
+                                                            <div className="w-full h-full bg-[#EBEBE9]" />
+                                                        )}
                                                     </div>
                                                     <div className="flex-1 flex flex-col justify-between min-w-0">
                                                         <div className="space-y-1">
-                                                            <div className="flex items-center justify-between gap-2 text-[10px] font-mono font-bold text-[#737C75]">
-                                                                <div className="flex items-center gap-2">
-                                                                     <span className="whitespace-nowrap">{evt.date}</span>
-                                                                     <span>{cat.emoji}</span>
-                                                                </div>
-                                                                <span className="flex items-center gap-0.5 truncate">📍 {evt.venue}</span>
+                                                            <div className="flex items-center justify-between gap-1 text-[10px] font-mono font-bold text-[#737C75]">
+                                                                <span className="whitespace-nowrap">{evt.date}</span>
+                                                                <span className="truncate max-w-[120px] sm:max-w-none text-right" title={evt.venue}>📍 {evt.venue}</span>
                                                             </div>
                                                             <h3 className="font-extrabold text-xs text-[#161D15] leading-snug line-clamp-2">{evt.title}</h3>
+                                                        </div>
+                                                        <div className="text-[10px] text-[#737C75] flex items-center gap-1">
+                                                            <span>{cat.emoji} {cat.label}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -963,7 +983,6 @@
                 );
             }
 
-            // 修改 1, 2, 3: 演出排程面板（自動換行不出框、點擊狀態切換、票價兩行齊左對齊）
             function ScheduleSection({ schedules, onDelete, onEdit, onSaveSchedule, getGoogleMapsUrl, onOpenAddModal }) {
                 const STATUS_CYCLE = ['即將開賣', '售票中', '已完售'];
 
@@ -985,7 +1004,7 @@
                                 </div>
                             ) : (
                                 schedules.map(sch => {
-                                    const priceLines = (sch.priceRange || 'NT$ 1,000\n- 3,500').split('\n');
+                                    const priceLines = (sch.priceRange || '').split('\n');
                                     return (
                                         <div key={sch.id} className="relative bg-[#EFF0EA] text-[#161D15] rounded-2xl flex shadow-lg overflow-hidden my-2">
                                             <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
@@ -996,7 +1015,6 @@
                                                     <div className="flex items-center justify-between">
                                                         <span className="px-2.5 py-1 rounded-lg bg-[#CCB9AA]/40 text-[#161D15] font-mono text-[10px] font-extrabold">{sch.date}</span>
                                                         <div className="flex items-center gap-1.5">
-                                                            {/* 修改 2: 點擊即可選擇 switch 狀態 */}
                                                             <button
                                                                 onClick={(e) => handleCycleStatus(sch, e)}
                                                                 className={`px-2.5 py-1 rounded-xl font-bold text-[10px] border transition-all cursor-pointer ${
@@ -1015,7 +1033,6 @@
                                                             </button>
                                                         </div>
                                                     </div>
-                                                    {/* 修改 1: 活動名稱自動換行不出框且不壓到下排文字 */}
                                                     <div className="min-w-0 overflow-hidden">
                                                         <h3 className="font-black text-sm text-[#161D15] leading-snug break-words whitespace-normal max-w-full">
                                                             {sch.title}
@@ -1029,12 +1046,15 @@
 
                                             <div className="relative w-0 border-r-2 border-dashed border-[#737C75]/40 my-1 z-10"></div>
 
-                                            {/* 修改 3: 第1行與第2行數字齊左對齊 */}
                                             <div className="w-[110px] bg-[#EBEBE9] p-3 flex flex-col justify-between items-start text-left shrink-0 border-l border-[#D2CABF]/40">
                                                 <div className="font-mono text-[11px] font-black leading-tight tracking-tight text-[#161D15] w-full text-left flex flex-col items-start justify-center">
-                                                    {priceLines.map((line, idx) => (
-                                                        <span key={idx} className="block text-left w-full truncate">{line}</span>
-                                                    ))}
+                                                    {priceLines.length > 0 && priceLines[0] !== '' ? (
+                                                        priceLines.map((line, idx) => (
+                                                            <span key={idx} className="block text-left w-full truncate">{line}</span>
+                                                        ))
+                                                    ) : (
+                                                        <span className="text-[#737C75] font-normal text-[10px]">票價未定</span>
+                                                    )}
                                                 </div>
                                                 <a href={sch.ticketLink || 'https://tixcraft.com'} target="_blank" rel="noopener noreferrer" className="w-full py-1.5 bg-[#161D15] text-[#EFF0EA] rounded-xl font-bold text-[11px] shadow hover:bg-black transition-colors block text-center mt-2">
                                                     購票
@@ -1049,7 +1069,6 @@
                 );
             }
 
-            // 修改 10: 演出藝人次數排名（附圖一風格：1金 2銀 3銅皇冠、4位起五角星圖示）
             function StatsSection({ stats, events }) {
                 const artistRankings = useMemo(() => {
                     const counts = {};
@@ -1071,26 +1090,27 @@
                             <p className="text-[11px] text-[#737C75]">全方位檢視您的藝文足跡與收藏成就</p>
                         </div>
 
+                        {/* 修改 8: 『總藝文紀錄』和『總花費金額』的樣式高再矮一點（調整 padding 讓卡片更為精煉緊湊） */}
                         <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-[#EFF0EA] text-[#161D15] p-4 rounded-3xl shadow-lg border border-[#D2CABF] space-y-1">
-                                <span className="text-[11px] text-[#737C75] font-bold">總藝文紀錄</span>
-                                <div className="font-mono font-black text-2xl flex items-baseline gap-1">
+                            <div className="bg-[#EFF0EA] text-[#161D15] px-3 py-2.5 rounded-2xl shadow-lg border border-[#D2CABF] space-y-0.5">
+                                <span className="text-[10px] text-[#737C75] font-bold block">總藝文紀錄</span>
+                                <div className="font-mono font-black text-xl flex items-baseline gap-1">
                                     {stats.totalEvents} <span className="text-xs font-bold text-[#737C75]">筆</span>
                                 </div>
                             </div>
-                            <div className="bg-[#EFF0EA] text-[#161D15] p-4 rounded-3xl shadow-lg border border-[#D2CABF] space-y-1">
-                                <span className="text-[11px] text-[#737C75] font-bold">總投資金額</span>
-                                <div className="font-mono font-black text-xl tracking-tight">
+                            <div className="bg-[#EFF0EA] text-[#161D15] px-3 py-2.5 rounded-2xl shadow-lg border border-[#D2CABF] space-y-0.5">
+                                <span className="text-[10px] text-[#737C75] font-bold block">總花費金額</span>
+                                <div className="font-mono font-black text-base tracking-tight pt-0.5">
                                     NT$ {stats.totalCost.toLocaleString()}
                                 </div>
                             </div>
                         </div>
 
-                        {/* 修改 10: 演出藝人次數排名 */}
+                        {/* 修改 7: 成就與統計，將演出藝人排名面板最右邊的『位獨立藝人』刪掉（改為顯示總獨立藝人數或其他乾淨標題） */}
                         <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-lg border border-[#D2CABF] space-y-3">
                             <div className="flex items-center justify-between border-b border-[#D2CABF] pb-2">
                                 <h3 className="font-extrabold text-sm text-[#161D15]">演出藝人次數排名</h3>
-                                <span className="text-[10px] text-[#737C75] font-bold">共 {stats.uniqueArtistsCount} 位獨立藝人</span>
+                                <span className="text-[10px] text-[#737C75] font-bold">共 {stats.uniqueArtistsCount} 人</span>
                             </div>
                             {artistRankings.length === 0 ? (
                                 <p className="text-xs text-[#737C75] text-center py-2">尚未紀錄任何演出藝人</p>

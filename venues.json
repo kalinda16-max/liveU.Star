@@ -19,8 +19,8 @@
         "ja": "台北市松山区南京東路四段2号"
       },
       "coordinates": {
-        "lat": 25.05110,
-        "lng": 121.54985
+        "lat": 25.050777,
+        "lng": 121.550125
       }
     },
     {
@@ -35,6 +35,226 @@
         "zh-TW": "台北",
         "en": "Taipei",
         "ja": "台北"
+      },
+      "address": {
+        "zh-TW": "110臺北市信義區忠孝東路四段515號",
+        "en": "No. 515, Sec. 4, Zhongxiao E. Rd., Xinyi Dist., Taipei City",
+        "ja": "台北市信義区忠孝東路四段515号"
+      },
+      "coordinates": {
+        "lat": 25.042622,
+        "lng": 121.559447
+      }
+    },
+    {
+      "id": "national-concert-hall",
+      "name": {
+        "zh-TW": "國家音樂廳",
+        "en": "National Concert Hall",
+        "ja": "国家音楽庁"
+      },
+      "country_code": "TW",
+      "city": {
+        "zh-TW": "台北",
+        "en": "Taipei",
+        "ja": "台北"
+      },
+      "address": {
+        "zh-TW": "100台北市中正區中山南路21-1號",
+        "en": "No. 21-1, Zhongshan S. Rd., Zhongzheng Dist., Taipei City",
+        "ja": "台北市中正区中山南路21-1号"
+      },
+      "coordinates": {
+        "lat": 25.037253,
+        "lng": 121.519225
+      }
+    },
+    {
+      "id": "taipei-music-center",
+      "name": {
+        "zh-TW": "台北流行音樂中心",
+        "en": "Taipei Music Center",
+        "ja": "台北ポップミュージックセンター"
+      },
+      "country_code": "TW",
+      "city": {
+        "zh-TW": "台北",
+        "en": "Taipei",
+        "ja": "台北"
+      },
+      "address": {
+        "zh-TW": "115台北市南港區市民大道八段99號",
+        "en": "No. 99, Sec. 8, Civic Blvd., Nangang Dist., Taipei City",
+        "ja": "台北市南港区市民大道八段99号"
+      },
+      "coordinates": {
+        "lat": 25.052920,
+        "lng": 121.599074
+      }
+    },
+    {
+      "id": "kaohsiung-arena",
+      "name": {
+        "zh-TW": "高雄巨蛋",
+        "en": "Kaohsiung Arena",
+        "ja": "高雄アリーナ"
+      },
+      "country_code": "TW",
+      "city": {
+        "zh-TW": "高雄",
+        "en": "Kaohsiung",
+        "ja": "高雄"
+      },
+      "address": {
+        "zh-TW": "813高雄市左營區博愛二路757號",
+        "en": "No. 757, Bo'ai 2nd Rd., Zuoying Dist., Kaohsiung City",
+        "ja": "高雄市左営区博愛二路757号"
+      },
+      "coordinates": {
+        "lat": 22.669068,
+        "lng": 120.302688
+      }
+    },
+    {
+      "id": "kaohsiung-music-center",
+      "name": {
+        "zh-TW": "高雄流行音樂中心",
+        "en": "Kaohsiung Music Center",
+        "ja": "高雄ポップミュージックセンター"
+      },
+      "country_code": "TW",
+      "city": {
+        "zh-TW": "高雄",
+        "en": "Kaohsiung",
+        "ja": "高雄"
+      },
+      "address": {
+        "zh-TW": "803高雄市鹽埕區真愛路1號",
+        "en": "No. 1, Zhen'ai Rd., Yancheng Dist., Kaohsiung City",
+        "ja": "高雄市塩テイ区真愛路1号"
+      },
+      "coordinates": {
+        "lat": 22.617619,
+        "lng": 120.288489
+      }
+    },
+    {
+      "id": "legacy-taipei",
+      "name": {
+        "zh-TW": "Legacy Taipei",
+        "en": "Legacy Taipei",
+        "ja": "Legacy Taipei"
+      },
+      "country_code": "TW",
+      "city": {
+        "zh-TW": "台北",
+        "en": "Taipei",
+        "ja": "台北"
+      },
+      "address": {
+        "zh-TW": "100台北市中正區八德路一段1號",
+        "en": "No. 1, Sec. 1, Bade Rd., Zhongzheng Dist., Taipei City",
+        "ja": "台北市中正区八徳路一段1号"
+      },
+      "coordinates": {
+        "lat": 25.045186,
+        "lng": 121.529411
+      }
+    },
+    {
+      "id": "clapper-studio",
+      "name": {
+        "zh-TW": "Clapper Studio",
+        "en": "Clapper Studio",
+        "ja": "Clapper Studio"
+      },
+      "country_code": "TW",
+      "city": {
+        "zh-TW": "台北",
+        "en": "Taipei",
+        "ja": "台北"
+      },
+      "address": {
+        "zh-TW": "100台北市中正區市民大道三段2號5樓",
+        "en": "5F., No. 2, Sec. 3, Civic Blvd., Zhongzheng Dist., Taipei City",
+        "ja": "台北市中正区市民大道三段2号5階"
+      },
+      "coordinates": {
+        "lat": 25.045704,
+        "lng": 121.531215
+      }
+    },
+    {
+      "id": "zepp-new-taipei",
+      "name": {
+        "zh-TW": "Zepp New Taipei",
+        "en": "Zepp New Taipei",
+        "ja": "Zepp New Taipei"
+      },
+      "country_code": "TW",
+      "city": {
+        "zh-TW": "新北",
+        "en": "New Taipei",
+        "ja": "新北"
+      },
+      "address": {
+        "zh-TW": "242新北市新莊區新北大道四段3號8樓",
+        "en": "8F., No. 3, Sec. 4, Xinbei Blvd., Xinzhuang Dist., New Taipei City",
+        "ja": "新北市新荘区新北大道四段3号8階"
+      },
+      "coordinates": {
+        "lat": 25.059882,
+        "lng": 121.449540
+      }
+    },
+    {
+      "id": "tokyo-dome",
+      "name": {
+        "zh-TW": "東京巨蛋",
+        "en": "Tokyo Dome",
+        "ja": "東京ドーム"
+      },
+      "country_code": "JP",
+      "city": {
+        "zh-TW": "東京",
+        "en": "Tokyo",
+        "ja": "東京"
+      },
+      "address": {
+        "zh-TW": "日本東京都文京區後樂一丁目3番61號",
+        "en": "1-3-61 Koraku, Bunkyo-ku, Tokyo 112-0004, Japan",
+        "ja": "〒112-0004 東京都文京区後楽1丁目3-61"
+      },
+      "coordinates": {
+        "lat": 35.705788,
+        "lng": 139.751913
+      }
+    },
+    {
+      "id": "budokan",
+      "name": {
+        "zh-TW": "日本武道館",
+        "en": "Nippon Budokan",
+        "ja": "日本武道館"
+      },
+      "country_code": "JP",
+      "city": {
+        "zh-TW": "東京",
+        "en": "Tokyo",
+        "ja": "東京"
+      },
+      "address": {
+        "zh-TW": "日本東京都千代田區北之丸公園2番3號",
+        "en": "2-3 Kitanomarukoen, Chiyoda-ku, Tokyo 102-0091, Japan",
+        "ja": "〒102-0091 東京都千代田区北の丸公園2番3号"
+      },
+      "coordinates": {
+        "lat": 35.693628,
+        "lng": 139.749690
+      }
+    }
+  ]
+}        "ja": "台北"
       },
       "address": {
         "zh-TW": "110臺北市信義區忠孝東路四段515號",

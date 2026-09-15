@@ -10,22 +10,22 @@
     "address": "110臺北市信義區忠孝東路四段515號",
     "city": "台北",
     "country": "台灣",
-    "lat": 25°02′32″N
-    "lng": 121°33′36″E
+    "lat": 25.0423
+    "lng": 121.5601
  },
   "國家音樂廳": {
     "address": "100台北市中正區中山南路21-1號",
     "city": "台北",
     "country": "台灣",
-    "lat": 25.0363,
-    "lng": 121.5186
+    "lat": 25.0369,
+    "lng": 121.5192
  },
   "台北流行音樂中心": {
     "address": "115台北市南港區市民大道八段99號",
     "city": "台北",
     "country": "台灣",
-    "lat": 25.0531,
-    "lng": 121.5986
+    "lat": 25.05194,
+    "lng": 121.59806
  },
   "高雄巨蛋": {
     "address": "813高雄市左營區博愛二路757號",
@@ -45,35 +45,43 @@
     "address": "100台北市中正區八德路一段1號",
     "city": "台北",
     "country": "台灣",
-    "lat": 25.0442,
-    "lng": 121.5294
+    "lat": 25.044974,
+    "lng": 121.529266
   },
   "clapper studio": {
     "address": "100台北市中正區市民大道三段2號5樓",
     "city": "台北",
     "country": "台灣",
-    "lat": 25.0454,
-    "lng": 121.5312
+    "lat": 25.0457,
+    "lng": 121.5310
   },
   "zepp new taipei": {
     "address": "242新北市新莊區新北大道四段3號8樓",
     "city": "新北",
     "country": "台灣",
-    "lat": 25.0609,
-    "lng": 121.4593
+    "lat": 25.05944,
+    "lng": 121.44944
   },
-  "tokyo dome": {
-    "address": "1-3 Koraku, Bunkyo City, Tokyo 112-0004",
-    "city": "東京",
-    "country": "日本",
-    "lat": 35.7056,
-    "lng": 139.7519
-  },
-  "budokan": {
-    "address": "2-3 Kitanomarukoen, Chiyoda City, Tokyo 102-0091",
-    "city": "東京",
-    "country": "日本",
-    "lat": 35.6933,
-    "lng": 139.7500
-  }
+{
+  "venues": [
+    {
+      "id": "tokyo-dome",
+      "name": {
+        "zh-TW": "東京巨蛋",
+        "en": "Tokyo Dome",
+        "ja": "東京ドーム"
+      },
+      "country_code": "JP",
+      "address": {
+        "zh-TW": "日本東京都文京區後樂一丁目3番61號",
+        "en": "1-3-61 Koraku, Bunkyo-ku, Tokyo 112-0004, Japan",
+        "ja": "〒112-0004 東京都文京区後楽1-3-61"
+      },
+      "coordinates": {
+        "latitude": 35.7056,
+        "longitude": 139.75139
+      }
+    }
+  ]
+ }
 }

@@ -47,7 +47,7 @@
     <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     
     <style>
         *, *::before, *::after { box-sizing: border-box !important; }
@@ -107,28 +107,31 @@
             };
 
             const VENUE_ADDRESS_DATABASE = {
-                '台北小巨蛋': { address: '105台北市松山區南京東路四段2號', city: '台北', country: '台灣' },
-                '高雄巨蛋': { address: '813高雄市左營區博愛二路757號', city: '高雄', country: '台灣' },
-                '國家音樂廳': { address: '100台北市中正區中山南路21-1號', city: '台北', country: '台灣' },
-                '台北流行音樂中心': { address: '115台北市南港區市民大道八段99號', city: '台北', country: '台灣' },
-                '高雄流行音樂中心': { address: '803高雄市鹽埕區真愛路1號', city: '高雄', country: '台灣' },
-                'legacy taipei': { address: '100台北市中正區八德路一段1號', city: '台北', country: '台灣' },
-                'clapper studio': { address: '100台北市中正區市民大道三段2號5樓', city: '台北', country: '台灣' },
-                'zepp new taipei': { address: '242新北市新莊區新北大道四段3號8樓', city: '新北', country: '台灣' },
-                'tokyo dome': { address: '1-3 Koraku, Bunkyo City, Tokyo 112-0004', city: '東京', country: '日本' },
-                'budokan': { address: '2-3 Kitanomarukoen, Chiyoda City, Tokyo 102-0091', city: '東京', country: '日本' }
+                '台北小巨蛋': { address: '105台北市松山區南京東路四段2號', city: '台北', country: '台灣', lat: 25.0511, lng: 121.5512 },
+                '高雄巨蛋': { address: '813高雄市左營區博愛二路757號', city: '高雄', country: '台灣', lat: 22.6696, lng: 120.3023 },
+                '國家音樂廳': { address: '100台北市中正區中山南路21-1號', city: '台北', country: '台灣', lat: 25.0365, lng: 121.5186 },
+                '台北流行音樂中心': { address: '115台北市南港區市民大道八段99號', city: '台北', country: '台灣', lat: 25.0522, lng: 121.5985 },
+                '高雄流行音樂中心': { address: '803高雄市鹽埕區真愛路1號', city: '高雄', country: '台灣', lat: 22.6191, lng: 120.2872 },
+                'legacy taipei': { address: '100台北市中正區八德路一段1號', city: '台北', country: '台灣', lat: 25.0441, lng: 121.5294 },
+                'clapper studio': { address: '100台北市中正區市民大道三段2號5樓', city: '台北', country: '台灣', lat: 25.0447, lng: 121.5323 },
+                'zepp new taipei': { address: '242新北市新莊區新北大道四段3號8樓', city: '新北', country: '台灣', lat: 25.0609, lng: 121.4589 },
+                'tokyo dome': { address: '1-3 Koraku, Bunkyo City, Tokyo 112-0004', city: '東京', country: '日本', lat: 35.7056, lng: 139.7519 },
+                'budokan': { address: '2-3 Kitanomarukoen, Chiyoda City, Tokyo 102-0091', city: '東京', country: '日本', lat: 35.6933, lng: 139.7499 }
             };
 
             const COUNTRY_NAME_MAPPING = {
                 'Taiwan': '台灣', 'TW': '台灣',
                 'Japan': '日本', 'JP': '日本',
-                'South Korea': '南韓', 'Korea': '南韓', 'KR': '南韓',
-                'United States': '美國', 'US': '美國', 'USA': '美國',
+                'South Korea': '南韓', 'Korea': '南韓', 'KR': '南韓', 'Republic of Korea': '南韓',
+                'United States': '美國', 'US': '美國', 'USA': '美國', 'United States of America': '美國',
                 'Australia': '澳大利亞', 'AU': '澳大利亞',
                 'United Kingdom': '英國', 'GB': '英國', 'UK': '英國',
                 'Thailand': '泰國', 'TH': '泰國',
                 'China': '中國', 'CN': '中國',
-                'Hong Kong': '香港', 'HK': '香港'
+                'Hong Kong': '香港', 'HK': '香港',
+                'Singapore': '新加坡', 'SG': '新加坡',
+                'France': '法國', 'FR': '法國',
+                'Germany': '德國', 'DE': '德國'
             };
 
             function resolveCountryInfo(countryInput) {
@@ -137,7 +140,35 @@
                 if (clean.includes('日') || clean.includes('jp') || clean.includes('japan')) return { code: 'JP', name: '日本', lat: 35.676, lng: 139.650 };
                 if (clean.includes('韓') || clean.includes('kr') || clean.includes('korea')) return { code: 'KR', name: '南韓', lat: 37.566, lng: 126.978 };
                 if (clean.includes('美') || clean.includes('us') || clean.includes('america')) return { code: 'US', name: '美國', lat: 40.712, lng: -74.006 };
+                if (clean.includes('英') || clean.includes('uk') || clean.includes('kingdom')) return { code: 'GB', name: '英國', lat: 51.507, lng: -0.127 };
                 return { code: 'OTHER', name: countryInput || '台灣', lat: 25.033, lng: 121.565 };
+            }
+
+            async function fetchCoordinates(address, venue, countryName) {
+                const cleanKey = (venue || '').trim().toLowerCase();
+                if (VENUE_ADDRESS_DATABASE[cleanKey] && VENUE_ADDRESS_DATABASE[cleanKey].lat) {
+                    return {
+                        lat: VENUE_ADDRESS_DATABASE[cleanKey].lat,
+                        lng: VENUE_ADDRESS_DATABASE[cleanKey].lng
+                    };
+                }
+
+                const query = address || `${venue} ${countryName}`;
+                if (!query.trim()) return null;
+
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+                    const data = await res.json();
+                    if (data && data.length > 0) {
+                        return {
+                            lat: parseFloat(data[0].lat),
+                            lng: parseFloat(data[0].lon)
+                        };
+                    }
+                } catch (err) {
+                    console.warn('Geocoding error:', err);
+                }
+                return null;
             }
 
             function parseSpotifyEmbedUrl(urlOrUri) {
@@ -193,7 +224,6 @@
                 });
             }
 
-            // 修改 3: 編輯個人檔案照片 - 只允許雙指放大縮小與單指平移圖片，底圖灰色色塊固定不動且不自動裁切
             function TouchImageTransform({ src, initialTransform, onChange, className = "w-full h-full object-contain" }) {
                 const [transform, setTransform] = useState(() => initialTransform || { scale: 1, x: 0, y: 0 });
                 const isDragging = useRef(false);
@@ -552,6 +582,7 @@
                 const [notes, setNotes] = useState(initialData?.notes || '');
                 const [coverImg, setCoverImg] = useState(initialData?.coverImg || '');
                 const [imageTransform, setImageTransform] = useState(initialData?.imageTransform || { scale: 1, x: 0, y: 0 });
+                const [isSubmitting, setIsSubmitting] = useState(false);
                 const fileRef = useRef(null);
 
                 const handleVenueChange = (e) => {
@@ -564,16 +595,28 @@
 
                 const handleSubmit = async (e) => {
                     e.preventDefault();
+                    setIsSubmitting(true);
                     const resolved = resolveCountryInfo(countryName);
+
+                    let finalLat = resolved.lat;
+                    let finalLng = resolved.lng;
+
+                    const coords = await fetchCoordinates(venueAddress, venue, resolved.name);
+                    if (coords) {
+                        finalLat = coords.lat;
+                        finalLng = coords.lng;
+                    }
+
                     const finalImg = await compressImageFile(coverImg, 1600, 1600, 0.92);
                     onSave({
                         id: initialData?.id || null, title, type, date, time,
                         venue: venue || '未指定場館', venueAddress: venueAddress || venue || '台灣',
                         artist: artist || '',
                         city: city || '台北', countryCode: resolved.code, countryName: resolved.name,
-                        lat: resolved.lat, lng: resolved.lng, status: 'attended',
+                        lat: finalLat, lng: finalLng, status: 'attended',
                         cost: Number(cost) || 0, detailSeat, coverImg: finalImg, imageTransform, spotifyUrl, notes
                     });
+                    setIsSubmitting(false);
                     onClose();
                 };
 
@@ -582,7 +625,7 @@
                         <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[90vh] flex flex-col">
                             <div className="flex items-center justify-between border-b border-[#D2CABF] pb-2 shrink-0">
                                 <h3 className="font-extrabold text-sm"><i data-lucide="ticket-plus" className="w-4 h-4 inline"></i> {initialData ? '編輯藝文紀錄' : '新增藝文紀錄'}</h3>
-                                <button onClick={onClose}><i data-lucide="x" className="w-5 h-5"></i></button>
+                                <button onClick={onClose} disabled={isSubmitting}><i data-lucide="x" className="w-5 h-5"></i></button>
                             </div>
                             <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar">
                                 <div className="bg-white p-3 rounded-2xl border border-[#D2CABF] space-y-2">
@@ -591,7 +634,6 @@
                                         <button type="button" onClick={() => fileRef.current?.click()} className="px-2.5 py-1 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-[10px]">選擇照片</button>
                                         <input type="file" ref={fileRef} onChange={async (e) => { if(e.target.files[0]) { setCoverImg(await compressImageFile(e.target.files[0], 1600, 1600, 0.92)); setImageTransform({ scale: 1, x: 0, y: 0 }); }}} accept="image/*" className="hidden" />
                                     </div>
-                                    {/* 修改 6: 新增藝文紀錄內的預設圖片拿掉，留灰色塊就好 */}
                                     <div className="w-full h-40 rounded-xl overflow-hidden bg-[#EBEBE9] border border-[#D2CABF] relative flex items-center justify-center">
                                         {coverImg ? (
                                             <TouchImageTransform src={coverImg} initialTransform={imageTransform} onChange={setImageTransform} />
@@ -604,7 +646,7 @@
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">活動名稱</label><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">演出藝人</label><input type="text" value={artist} onChange={(e) => setArtist(e.target.value)} placeholder="例如：五月天" className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">場館名稱</label><input type="text" value={venue} onChange={handleVenueChange} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">地址</label><input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
+                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">地址</label><input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} placeholder="例如：105台北市松山區南京東路四段2號" className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                 <div className="grid grid-cols-2 gap-2">
                                     <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">國家</label><input type="text" value={countryName} onChange={(e) => setCountryName(e.target.value)} required className="w-full h-9 bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                     <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">城市</label><input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="w-full h-9 bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
@@ -617,8 +659,10 @@
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">Spotify 音樂連結</label><input type="text" value={spotifyUrl} onChange={(e) => setSpotifyUrl(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">心得筆記</label><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows="2" className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF] resize-none"></textarea></div>
                                 <div className="flex gap-2 pt-2">
-                                    <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-bold">取消</button>
-                                    <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] text-xs font-bold">{initialData ? '儲存修改' : '確認新增'}</button>
+                                    <button type="button" onClick={onClose} disabled={isSubmitting} className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-bold">取消</button>
+                                    <button type="submit" disabled={isSubmitting} className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] text-xs font-bold flex items-center justify-center gap-1">
+                                        {isSubmitting ? '定位定位中...' : (initialData ? '儲存修改' : '確認新增')}
+                                    </button>
                                 </div>
                             </form>
                         </div>
@@ -633,7 +677,6 @@
                 const [venue, setVenue] = useState(initialData?.venue || '');
                 const [city, setCity] = useState(initialData?.city || '台北');
                 const [status, setStatus] = useState(initialData?.status || '即將開賣');
-                // 修改 5: 近期演出排程面板，票價範圍的預設資料拿掉
                 const [priceRange, setPriceRange] = useState(initialData?.priceRange || '');
                 const [ticketLink, setTicketLink] = useState(initialData?.ticketLink || 'https://tixcraft.com');
 
@@ -745,7 +788,6 @@
                 );
             }
 
-            // 修改 1 & 2: 名稱改為「星跡Map」，且修復地圖移動到最右邊出現黑邊的問題 (maxBounds / worldCopyJump / tile load settings)
             function LeafletMapSection({ events, stats, getGoogleMapsUrl }) {
                 const mapRef = useRef(null);
                 const mapInst = useRef(null);
@@ -771,7 +813,6 @@
                 useEffect(() => {
                     if (!mapRef.current) return;
                     if (!mapInst.current) {
-                        // 設定 maxBounds 限制地圖平移邊界，防止拖到最右側時出現黑邊空白
                         const southWest = L.latLng(-85, -180);
                         const northEast = L.latLng(85, 180);
                         const bounds = L.latLngBounds(southWest, northEast);
@@ -798,7 +839,7 @@
                                     style: (feature) => {
                                         const p = feature.properties || {};
                                         const name = COUNTRY_NAME_MAPPING[p.name || p.ADMIN] || p.name || '';
-                                        const isV = visited.some(v => name.includes(v));
+                                        const isV = visited.some(v => name.includes(v) || v.includes(name));
                                         return { fillColor: isV ? '#C2A175' : '#1A2218', fillOpacity: isV ? 0.45 : 0.2, color: isV ? '#C5AB89' : '#2A3626', weight: isV ? 1.5 : 0.8 };
                                     },
                                     onEachFeature: (feature, layer) => {
@@ -812,7 +853,7 @@
                                                 }
                                                 activeLayerRef.current = e.target;
                                                 e.target.setStyle({ fillColor: '#FFC800', fillOpacity: 0.75, color: '#FFFFFF', weight: 2.5 });
-                                                const match = visited.find(v => zh.includes(v));
+                                                const match = visited.find(v => zh.includes(v) || v.includes(zh));
                                                 setSelectedCountry(match ? countryMap[match] : { name: zh, events: [], venues: new Set() });
                                             }
                                         });
@@ -942,7 +983,6 @@
                                                 <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
                                                 
                                                 <div className="flex-1 p-3.5 pl-5 flex gap-3 min-w-0 pr-4 relative">
-                                                    {/* 修改 4: 藝文紀錄面板顯示場館名稱的欄位 - 在手機版樣式優化不被切到字 */}
                                                     <div 
                                                         onClick={(e) => { e.stopPropagation(); setDetailEvent(evt); }}
                                                         className="w-16 h-20 rounded-xl overflow-hidden shrink-0 border border-[#D2CABF] bg-[#EBEBE9] relative shadow-sm cursor-pointer hover:opacity-95 flex items-center justify-center"
@@ -1090,7 +1130,6 @@
                             <p className="text-[11px] text-[#737C75]">全方位檢視您的藝文足跡與收藏成就</p>
                         </div>
 
-                        {/* 修改 8: 『總藝文紀錄』和『總花費金額』的樣式高再矮一點（調整 padding 讓卡片更為精煉緊湊） */}
                         <div className="grid grid-cols-2 gap-3">
                             <div className="bg-[#EFF0EA] text-[#161D15] px-3 py-2.5 rounded-2xl shadow-lg border border-[#D2CABF] space-y-0.5">
                                 <span className="text-[10px] text-[#737C75] font-bold block">總藝文紀錄</span>
@@ -1106,7 +1145,6 @@
                             </div>
                         </div>
 
-                        {/* 修改 7: 成就與統計，將演出藝人排名面板最右邊的『位獨立藝人』刪掉（改為顯示總獨立藝人數或其他乾淨標題） */}
                         <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-lg border border-[#D2CABF] space-y-3">
                             <div className="flex items-center justify-between border-b border-[#D2CABF] pb-2">
                                 <h3 className="font-extrabold text-sm text-[#161D15]">演出藝人次數排名</h3>

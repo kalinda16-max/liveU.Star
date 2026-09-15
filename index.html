@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>LiveU - 藝文紀錄 & 演出追蹤 iOS App[cite: 3]</title>
+    <title>LiveU - 藝文紀錄 & 演出追蹤 iOS App</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="LiveU">
@@ -88,6 +88,7 @@
             padding: 12px; box-sizing: border-box !important; touch-action: pan-y;
         }
         input::-webkit-contacts-auto-fill-button { display: none !important; visibility: hidden; pointer-events: none; }
+        img { image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
     </style>
 </head>
 <body class="bg-[#161D15] text-[#EFF0EA] font-sans antialiased min-h-screen select-none overflow-x-hidden max-w-[100vw]">
@@ -156,9 +157,13 @@
                 return null;
             }
 
-            // 提升解析度與畫素，避免圖片模糊
-            function compressImageFile(fileOrUrl, maxWidth = 1200, maxHeight = 1200, quality = 0.85) {
+            // 高解析度圖片處理
+            function compressImageFile(fileOrUrl, maxWidth = 1600, maxHeight = 1600, quality = 0.92) {
                 return new Promise((resolve) => {
+                    if (!fileOrUrl) {
+                        resolve('https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=90');
+                        return;
+                    }
                     if (typeof fileOrUrl === 'string' && (fileOrUrl.startsWith('http') || fileOrUrl.length < 400)) {
                         resolve(fileOrUrl);
                         return;
@@ -174,16 +179,18 @@
                         const canvas = document.createElement('canvas');
                         canvas.width = width; canvas.height = height;
                         const ctx = canvas.getContext('2d');
+                        ctx.imageSmoothingEnabled = true;
+                        ctx.imageSmoothingQuality = 'high';
                         ctx.drawImage(img, 0, 0, width, height);
                         resolve(canvas.toDataURL('image/jpeg', quality));
                     };
-                    img.onerror = () => resolve('https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80');
+                    img.onerror = () => resolve('https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=90');
                     if (typeof fileOrUrl === 'string') img.src = fileOrUrl;
                     else if (fileOrUrl instanceof File || fileOrUrl instanceof Blob) {
                         const reader = new FileReader();
                         reader.onload = (e) => { img.src = e.target.result; };
                         reader.readAsDataURL(fileOrUrl);
-                    } else resolve('https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80');
+                    } else resolve('https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=90');
                 });
             }
 
@@ -234,6 +241,79 @@
                 );
             }
 
+            // 附圖一：皇冠與星形圖示元件
+            function RankIcon({ rank }) {
+                if (rank === 1) {
+                    return (
+                        <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
+                            <svg viewBox="0 0 100 80" className="w-7 h-7 filter drop-shadow">
+                                <path d="M10,65 L90,65 L85,25 L65,45 L50,15 L35,45 L15,25 Z" fill="#E5A912" />
+                                <circle cx="10" cy="22" r="5" fill="#E5A912" />
+                                <circle cx="50" cy="12" r="6" fill="#E5A912" />
+                                <circle cx="90" cy="22" r="5" fill="#E5A912" />
+                                <path d="M15,65 L85,65 L82,72 L18,72 Z" fill="#C58D00" />
+                                <text x="50" y="56" textAnchor="middle" fill="#FFFFFF" fontSize="28" fontWeight="900" fontFamily="sans-serif">1</text>
+                            </svg>
+                        </div>
+                    );
+                }
+                if (rank === 2) {
+                    return (
+                        <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
+                            <svg viewBox="0 0 100 80" className="w-7 h-7 filter drop-shadow">
+                                <path d="M10,65 L90,65 L85,25 L65,45 L50,15 L35,45 L15,25 Z" fill="#B5B8BC" />
+                                <circle cx="10" cy="22" r="5" fill="#B5B8BC" />
+                                <circle cx="50" cy="12" r="6" fill="#B5B8BC" />
+                                <circle cx="90" cy="22" r="5" fill="#B5B8BC" />
+                                <path d="M15,65 L85,65 L82,72 L18,72 Z" fill="#8F9296" />
+                                <text x="50" y="56" textAnchor="middle" fill="#FFFFFF" fontSize="28" fontWeight="900" fontFamily="sans-serif">2</text>
+                            </svg>
+                        </div>
+                    );
+                }
+                if (rank === 3) {
+                    return (
+                        <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
+                            <svg viewBox="0 0 100 80" className="w-7 h-7 filter drop-shadow">
+                                <path d="M10,65 L90,65 L85,25 L65,45 L50,15 L35,45 L15,25 Z" fill="#A46738" />
+                                <circle cx="10" cy="22" r="5" fill="#A46738" />
+                                <circle cx="50" cy="12" r="6" fill="#A46738" />
+                                <circle cx="90" cy="22" r="5" fill="#A46738" />
+                                <path d="M15,65 L85,65 L82,72 L18,72 Z" fill="#824E24" />
+                                <text x="50" y="56" textAnchor="middle" fill="#FFFFFF" fontSize="28" fontWeight="900" fontFamily="sans-serif">3</text>
+                            </svg>
+                        </div>
+                    );
+                }
+                return (
+                    <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
+                        <svg viewBox="0 0 100 100" className="w-6 h-6 filter drop-shadow">
+                            <polygon points="50,5 64,36 98,39 72,62 80,95 50,77 20,95 28,62 2,39 36,36" fill="#F3B000" />
+                        </svg>
+                        <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-[#161D15] pt-0.5">{rank}</span>
+                    </div>
+                );
+            }
+
+            // 附圖二：八角指南針星圖示
+            function CompassStarIcon({ className = "w-5 h-5" }) {
+                return (
+                    <svg viewBox="0 0 500 500" className={className}>
+                        <polygon points="250,0 290,170 450,70 330,210 500,250 330,290 450,430 290,330 250,500 210,330 50,430 170,290 0,250 170,210 50,70 210,170" fill="#E6A100" />
+                        <polygon points="250,0 250,250 450,70 250,250 500,250 250,250 450,430 250,250 250,500 250,250 50,430 250,250 0,250 250,250 50,70 250,250" fill="#FFC800" />
+                        <polygon points="250,0 290,170 250,250" fill="#F3B000" />
+                        <polygon points="450,70 330,210 250,250" fill="#F3B000" />
+                        <polygon points="500,250 330,290 250,250" fill="#F3B000" />
+                        <polygon points="450,430 290,330 250,250" fill="#F3B000" />
+                        <polygon points="250,500 210,330 250,250" fill="#F3B000" />
+                        <polygon points="50,430 170,290 250,250" fill="#F3B000" />
+                        <polygon points="0,250 170,210 250,250" fill="#F3B000" />
+                        <polygon points="50,70 210,170 250,250" fill="#F3B000" />
+                        <circle cx="250" cy="250" r="45" fill="#FFEAA5" />
+                    </svg>
+                );
+            }
+
             function App() {
                 const [events, setEvents] = useState(() => {
                     try {
@@ -250,15 +330,14 @@
                 const [userProfile, setUserProfile] = useState(() => {
                     try {
                         const saved = localStorage.getItem('liveecho_user_profile_v12');
-                        return saved ? JSON.parse(saved) : { name: 'LiveU', subtitle: 'say something', avatarUrl: '', initials: 'LU' };
-                    } catch (e) { return { name: 'LiveU', subtitle: 'say something', avatarUrl: '', initials: 'LU' }; }
+                        return saved ? JSON.parse(saved) : { name: 'LiveU', subtitle: 'say something', avatarUrl: '', avatarTransform: { scale: 1, x: 0, y: 0 }, initials: 'LU' };
+                    } catch (e) { return { name: 'LiveU', subtitle: 'say something', avatarUrl: '', avatarTransform: { scale: 1, x: 0, y: 0 }, initials: 'LU' }; }
                 });
 
                 const [activeTab, setActiveTab] = useState('archive');
                 const [viewMode, setViewMode] = useState('list');
                 const [selectedCategory, setSelectedCategory] = useState('all');
                 const [searchQuery, setSearchQuery] = useState('');
-                const [selectedEventId, setSelectedEventId] = useState(null);
 
                 const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
                 const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -317,7 +396,6 @@
                     } else {
                         const created = { ...data, id: 'evt-' + Date.now() };
                         setEvents([created, ...events]);
-                        setSelectedEventId(created.id);
                         showAlert('已成功新增藝文紀錄');
                     }
                     setEditingEvent(null);
@@ -351,7 +429,9 @@
                         <header className="app-header px-4 py-2.5 flex items-center justify-between shrink-0">
                             <button onClick={() => setIsEditProfileOpen(true)} className="flex items-center gap-2.5 text-left group p-1 -ml-1 rounded-xl hover:bg-[#D2CABF]/10">
                                 {userProfile.avatarUrl ? (
-                                    <img src={userProfile.avatarUrl} alt="Avatar" className="w-8 h-8 rounded-lg object-cover border border-[#C5AB89]" />
+                                    <div className="w-8 h-8 rounded-lg overflow-hidden border border-[#C5AB89] relative bg-black">
+                                        <img src={userProfile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" style={userProfile.avatarTransform ? { transform: `translate(${userProfile.avatarTransform.x * 0.2}px, ${userProfile.avatarTransform.y * 0.2}px) scale(${userProfile.avatarTransform.scale})` } : {}} />
+                                    </div>
                                 ) : (
                                     <div className="w-8 h-8 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center font-black text-xs">{userProfile.initials || 'LU'}</div>
                                 )}
@@ -380,7 +460,7 @@
 
                         <main className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
                             {activeTab === 'archive' && <ArchiveSection events={filteredEvents} allEvents={events} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} searchQuery={searchQuery} setSearchQuery={setSearchQuery} viewMode={viewMode} onDelete={handleDeleteEvent} onEdit={(evt) => setEditingEvent(evt)} getGoogleMapsUrl={getGoogleMapsUrl} onOpenAddModal={() => setIsAddModalOpen(true)} />}
-                            {activeTab === 'schedule' && <ScheduleSection schedules={schedules} onDelete={handleDeleteSchedule} onEdit={(sch) => setEditingSchedule(sch)} getGoogleMapsUrl={getGoogleMapsUrl} onOpenAddModal={() => setIsAddScheduleModalOpen(true)} />}
+                            {activeTab === 'schedule' && <ScheduleSection schedules={schedules} onDelete={handleDeleteSchedule} onEdit={(sch) => setEditingSchedule(sch)} onSaveSchedule={handleSaveSchedule} getGoogleMapsUrl={getGoogleMapsUrl} onOpenAddModal={() => setIsAddScheduleModalOpen(true)} />}
                             {activeTab === 'map' && <LeafletMapSection events={events} stats={stats} getGoogleMapsUrl={getGoogleMapsUrl} />}
                             {activeTab === 'stats' && <StatsSection stats={stats} events={events} />}
                         </main>
@@ -399,15 +479,23 @@
                 );
             }
 
+            // 修改 6 & 9: 編輯個人檔案面板（IG風格縮放拖曳、高解析度、取消按鈕顏色改為 #C5AB89）
             function EditProfileModal({ userProfile, setUserProfile, onClose, showAlert }) {
                 const [name, setName] = useState(userProfile.name);
                 const [subtitle, setSubtitle] = useState(userProfile.subtitle);
                 const [avatarUrl, setAvatarUrl] = useState(userProfile.avatarUrl);
+                const [avatarTransform, setAvatarTransform] = useState(userProfile.avatarTransform || { scale: 1, x: 0, y: 0 });
                 const fileRef = useRef(null);
 
                 const handleSave = async (e) => {
                     e.preventDefault();
-                    setUserProfile({ name, subtitle, avatarUrl, initials: name ? name.substring(0, 2).toUpperCase() : 'LE' });
+                    setUserProfile({
+                        name,
+                        subtitle,
+                        avatarUrl,
+                        avatarTransform,
+                        initials: name ? name.substring(0, 2).toUpperCase() : 'LU'
+                    });
                     showAlert('個人檔案更新成功');
                     onClose();
                 };
@@ -421,20 +509,38 @@
                             </div>
                             <form onSubmit={handleSave} className="space-y-4">
                                 <div className="flex flex-col items-center gap-2">
-                                    <div onClick={() => fileRef.current?.click()} className="cursor-pointer">
-                                        {avatarUrl ? <img src={avatarUrl} alt="Avatar" className="w-20 h-20 rounded-2xl object-cover border-2 border-[#C5AB89]" /> : <div className="w-20 h-20 rounded-2xl bg-[#C5AB89] text-[#161D15] flex items-center justify-center font-black">{name.substring(0, 2)}</div>}
+                                    <div className="flex items-center justify-between w-full px-1">
+                                        <label className="text-[11px] font-bold text-[#737C75]">頭像圖片（可雙指縮放與拖曳）</label>
+                                        <button type="button" onClick={() => fileRef.current?.click()} className="px-2.5 py-1 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-[10px]">選擇照片</button>
+                                        <input type="file" ref={fileRef} onChange={async (e) => { if (e.target.files[0]) { setAvatarUrl(await compressImageFile(e.target.files[0], 1600, 1600, 0.92)); setAvatarTransform({ scale: 1, x: 0, y: 0 }); } }} accept="image/*" className="hidden" />
                                     </div>
-                                    <input type="file" ref={fileRef} onChange={async (e) => { if(e.target.files[0]) setAvatarUrl(await compressImageFile(e.target.files[0], 600, 600, 0.85)); }} accept="image/*" className="hidden" />
+                                    <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-[#C5AB89] relative bg-black/40 flex items-center justify-center shadow-inner">
+                                        {avatarUrl ? (
+                                            <TouchImageTransform src={avatarUrl} initialTransform={avatarTransform} onChange={setAvatarTransform} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full bg-[#C5AB89] text-[#161D15] flex items-center justify-center font-black text-2xl">{name ? name.substring(0, 2).toUpperCase() : 'LU'}</div>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">稱呼</label><input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">簡介</label><input type="text" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                <div className="flex gap-2 pt-2"><button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#EBEBE9] text-xs font-bold">取消</button><button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] text-xs font-bold">儲存變更</button></div>
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-[#737C75]">稱呼</label>
+                                    <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-[#737C75]">簡介</label>
+                                    <input type="text" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" />
+                                </div>
+                                <div className="flex gap-2 pt-2">
+                                    <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-bold">取消</button>
+                                    <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] text-xs font-bold">儲存變更</button>
+                                </div>
                             </form>
                         </div>
                     </div>
                 );
             }
 
+            // 修改 7 & 8: 藝文紀錄高解析度與取消按鈕顏色 #C5AB89
             function AddEventModal({ initialData, onSave, onClose }) {
                 const [title, setTitle] = useState(initialData?.title || '');
                 const [type, setType] = useState(initialData?.type || 'concert');
@@ -449,7 +555,7 @@
                 const [detailSeat, setDetailSeat] = useState(initialData?.detailSeat || '');
                 const [spotifyUrl, setSpotifyUrl] = useState(initialData?.spotifyUrl || '');
                 const [notes, setNotes] = useState(initialData?.notes || '');
-                const [coverImg, setCoverImg] = useState(initialData?.coverImg || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80');
+                const [coverImg, setCoverImg] = useState(initialData?.coverImg || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=90');
                 const [imageTransform, setImageTransform] = useState(initialData?.imageTransform || { scale: 1, x: 0, y: 0 });
                 const fileRef = useRef(null);
 
@@ -464,7 +570,7 @@
                 const handleSubmit = async (e) => {
                     e.preventDefault();
                     const resolved = resolveCountryInfo(countryName);
-                    const finalImg = await compressImageFile(coverImg, 1200, 1200, 0.85);
+                    const finalImg = await compressImageFile(coverImg, 1600, 1600, 0.92);
                     onSave({
                         id: initialData?.id || null, title, type, date, time,
                         venue: venue || '未指定場館', venueAddress: venueAddress || venue || '台灣',
@@ -488,7 +594,7 @@
                                     <div className="flex items-center justify-between">
                                         <label className="text-[11px] font-bold text-[#737C75]">高畫質照片調整（雙指縮放與拖曳）</label>
                                         <button type="button" onClick={() => fileRef.current?.click()} className="px-2.5 py-1 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-[10px]">選擇照片</button>
-                                        <input type="file" ref={fileRef} onChange={async (e) => { if(e.target.files[0]) { setCoverImg(await compressImageFile(e.target.files[0], 1200, 1200, 0.85)); setImageTransform({ scale: 1, x: 0, y: 0 }); }}} accept="image/*" className="hidden" />
+                                        <input type="file" ref={fileRef} onChange={async (e) => { if(e.target.files[0]) { setCoverImg(await compressImageFile(e.target.files[0], 1600, 1600, 0.92)); setImageTransform({ scale: 1, x: 0, y: 0 }); }}} accept="image/*" className="hidden" />
                                     </div>
                                     <div className="w-full h-40 rounded-xl overflow-hidden bg-[#EBEBE9] border border-[#D2CABF] relative flex items-center justify-center">
                                         <TouchImageTransform src={coverImg} initialTransform={imageTransform} onChange={setImageTransform} />
@@ -497,7 +603,7 @@
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">活動分類</label><select value={type} onChange={(e) => setType(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]">{Object.entries(CATEGORIES).map(([k, v]) => <option key={k} value={k}>{v.emoji} {v.label}</option>)}</select></div>
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">活動名稱</label><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">演出藝人</label><input type="text" value={artist} onChange={(e) => setArtist(e.target.value)} placeholder="例如：五月天" className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">場館名稱 <span className="text-[9px] text-[#AB8C83]">(輸入「台北小巨蛋」自動帶地址)</span></label><input type="text" value={venue} onChange={handleVenueChange} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
+                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">場館名稱</label><input type="text" value={venue} onChange={handleVenueChange} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">地址</label><input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                 <div className="grid grid-cols-2 gap-2">
                                     <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">國家</label><input type="text" value={countryName} onChange={(e) => setCountryName(e.target.value)} required className="w-full h-9 bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
@@ -510,38 +616,32 @@
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">座位/票區資訊</label><input type="text" value={detailSeat} onChange={(e) => setDetailSeat(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">Spotify 音樂連結</label><input type="text" value={spotifyUrl} onChange={(e) => setSpotifyUrl(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">心得筆記</label><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows="2" className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF] resize-none"></textarea></div>
-                                <div className="flex gap-2 pt-2"><button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#EBEBE9] text-xs font-bold">取消</button><button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] text-xs font-bold">{initialData ? '儲存修改' : '確認新增'}</button></div>
+                                <div className="flex gap-2 pt-2">
+                                    <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-bold">取消</button>
+                                    <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] text-xs font-bold">{initialData ? '儲存修改' : '確認新增'}</button>
+                                </div>
                             </form>
                         </div>
                     </div>
                 );
             }
 
+            // 修改 2, 4, 5: 編輯演出排程面板（取消下拉選單改為按鈕點選、刪除地址欄位、取消按鈕顏色改為 #C5AB89）
             function AddScheduleModal({ initialData, onSave, onDelete, onClose }) {
                 const [title, setTitle] = useState(initialData?.title || '');
                 const [organizer, setOrganizer] = useState(initialData?.organizer || '');
                 const [date, setDate] = useState(initialData?.date || new Date().toISOString().slice(0, 10));
                 const [venue, setVenue] = useState(initialData?.venue || '');
-                const [venueAddress, setVenueAddress] = useState(initialData?.venueAddress || '');
                 const [city, setCity] = useState(initialData?.city || '台北');
                 const [status, setStatus] = useState(initialData?.status || '即將開賣');
-                const [priceRange, setPriceRange] = useState(initialData?.priceRange || 'NT$ 1,000 - 3,500');
+                const [priceRange, setPriceRange] = useState(initialData?.priceRange || 'NT$ 1,000\n- 3,500');
                 const [ticketLink, setTicketLink] = useState(initialData?.ticketLink || 'https://tixcraft.com');
-
-                const handleVenueChange = (e) => {
-                    const val = e.target.value; setVenue(val);
-                    if (VENUE_ADDRESS_DATABASE[val.trim()]) {
-                        const m = VENUE_ADDRESS_DATABASE[val.trim()];
-                        setVenueAddress(m.address); setCity(m.city);
-                    }
-                };
 
                 const handleSubmit = (e) => {
                     e.preventDefault();
                     onSave({
                         id: initialData?.id || null, title, organizer: organizer || '主辦單位',
-                        date, venue: venue || '未定場館', venueAddress: venueAddress || venue || '台灣',
-                        city: city || '台北', status, priceRange, ticketLink: ticketLink || 'https://tixcraft.com'
+                        date, venue: venue || '未定場館', city: city || '台北', status, priceRange, ticketLink: ticketLink || 'https://tixcraft.com'
                     });
                     onClose();
                 };
@@ -559,18 +659,36 @@
                                     <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">主辦單位</label><input type="text" value={organizer} onChange={(e) => setOrganizer(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                     <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">日期</label><input type="text" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                 </div>
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">場館名稱</label><input type="text" value={venue} onChange={handleVenueChange} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">地址</label><input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">售票狀態</label><select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full h-9 bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]"><option value="即將開賣">即將開賣</option><option value="售票中">售票中</option><option value="已完售">已完售</option></select></div>
-                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">票價範圍</label><input type="text" value={priceRange} onChange={(e) => setPriceRange(e.target.value)} className="w-full h-9 bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
+                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">場館名稱</label><input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
+                                
+                                {/* 修改 2: 不使用下拉選單，改為點擊選擇 */}
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-[#737C75]">售票狀態</label>
+                                    <div className="flex gap-1.5 pt-0.5">
+                                        {['即將開賣', '售票中', '已完售'].map(st => (
+                                            <button
+                                                key={st}
+                                                type="button"
+                                                onClick={() => setStatus(st)}
+                                                className={`flex-1 py-2 rounded-xl font-bold text-[11px] transition-all border ${status === st ? 'bg-[#161D15] text-[#EFF0EA] border-[#161D15] shadow-sm' : 'bg-white text-[#737C75] border-[#D2CABF]'}`}
+                                            >
+                                                {st}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-[#737C75]">票價範圍 (可換行)</label>
+                                    <textarea value={priceRange} onChange={(e) => setPriceRange(e.target.value)} rows="2" className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF] font-mono resize-none"></textarea>
                                 </div>
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">售票連結</label><input type="url" value={ticketLink} onChange={(e) => setTicketLink(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
+                                
                                 <div className="flex gap-2 pt-2">
                                     {initialData && (
                                         <button type="button" onClick={() => { onDelete(initialData.id); onClose(); }} className="py-2.5 px-3 rounded-xl bg-red-600 text-white font-bold text-xs">刪除</button>
                                     )}
-                                    <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#EBEBE9] text-xs font-bold">取消</button>
+                                    <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-bold">取消</button>
                                     <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] text-xs font-bold">{initialData ? '儲存修改' : '確認新增'}</button>
                                 </div>
                             </form>
@@ -624,9 +742,12 @@
                 );
             }
 
+            // 修改 11 & 12: 地圖足跡，點擊國家亮起、彈出小面板、附圖二圖示與簡單多筆面板
             function LeafletMapSection({ events, stats, getGoogleMapsUrl }) {
                 const mapRef = useRef(null);
                 const mapInst = useRef(null);
+                const activeLayerRef = useRef(null);
+                const geoJsonLayerRef = useRef(null);
                 const [selectedCountry, setSelectedCountry] = useState(null);
                 const [selectedEventModal, setSelectedEventModal] = useState(null);
 
@@ -654,7 +775,7 @@
                         fetch('https://raw.githubusercontent.com/datasets/geo-boundaries-world-110m/master/countries.geojson')
                             .then(res => res.json())
                             .then(data => {
-                                L.geoJSON(data, {
+                                const layer = L.geoJSON(data, {
                                     style: (feature) => {
                                         const p = feature.properties || {};
                                         const name = COUNTRY_NAME_MAPPING[p.name || p.ADMIN] || p.name || '';
@@ -667,12 +788,18 @@
                                         layer.on({
                                             click: (e) => {
                                                 L.DomEvent.stopPropagation(e);
+                                                if (activeLayerRef.current && geoJsonLayerRef.current) {
+                                                    geoJsonLayerRef.current.resetStyle(activeLayerRef.current);
+                                                }
+                                                activeLayerRef.current = e.target;
+                                                e.target.setStyle({ fillColor: '#FFC800', fillOpacity: 0.75, color: '#FFFFFF', weight: 2.5 });
                                                 const match = visited.find(v => zh.includes(v));
                                                 setSelectedCountry(match ? countryMap[match] : { name: zh, events: [], venues: new Set() });
                                             }
                                         });
                                     }
                                 }).addTo(map);
+                                geoJsonLayerRef.current = layer;
                             }).catch(() => {});
 
                         events.forEach((evt, idx) => {
@@ -686,6 +813,14 @@
                     return () => { if (mapInst.current) { mapInst.current.remove(); mapInst.current = null; } };
                 }, [events, visited]);
 
+                const handleCloseCountryModal = () => {
+                    if (activeLayerRef.current && geoJsonLayerRef.current) {
+                        geoJsonLayerRef.current.resetStyle(activeLayerRef.current);
+                        activeLayerRef.current = null;
+                    }
+                    setSelectedCountry(null);
+                };
+
                 return (
                     <div id="map-wrapper" className="relative flex-1 w-full flex flex-col bg-[#000000] overflow-hidden">
                         <div className="absolute top-3 left-4 right-4 z-[999] flex items-center justify-between pointer-events-none top-stats-card">
@@ -695,13 +830,39 @@
                             </div>
                         </div>
                         <div ref={mapRef} id="map" className="w-full h-full flex-1"></div>
+                        
+                        {/* 修改 11 & 12: 點擊國家彈出小面板與多筆資料簡單面板 */}
                         {selectedCountry && (
                             <div className="absolute bottom-4 left-4 right-4 z-[1000]">
-                                <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-5 shadow-2xl border-2 border-[#C5AB89] space-y-3 relative">
-                                    <button onClick={() => setSelectedCountry(null)} className="absolute top-4 right-4"><i data-lucide="x" className="w-4 h-4"></i></button>
-                                    <h3 className="font-black text-base">{selectedCountry.name}</h3>
-                                    <p className="text-[11px] text-[#737C75]">共參加 {selectedCountry.events?.length || 0} 場藝文活動</p>
-                                    <button onClick={() => setSelectedCountry(null)} className="w-full py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs">關閉</button>
+                                <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-2xl border-2 border-[#C5AB89] space-y-3 relative">
+                                    <button onClick={handleCloseCountryModal} className="absolute top-4 right-4 text-[#737C75] hover:text-[#161D15]"><i data-lucide="x" className="w-5 h-5"></i></button>
+                                    <div className="flex items-center gap-2">
+                                        <CompassStarIcon className="w-6 h-6 shrink-0" />
+                                        <h3 className="font-black text-base text-[#161D15]">{selectedCountry.name}</h3>
+                                    </div>
+                                    <div className="inline-block px-3 py-1 rounded-xl bg-[#161D15] text-[#EFF0EA] text-[11px] font-bold">
+                                        已去過當地 <span className="text-[#C5AB89] font-black">{selectedCountry.venues ? selectedCountry.venues.size : 0}</span> 個場館
+                                    </div>
+
+                                    {/* 多筆資料時顯示簡單面板：演出藝人、日期、場館名稱 */}
+                                    {selectedCountry.events && selectedCountry.events.length > 0 ? (
+                                        <div className="space-y-1.5 max-h-44 overflow-y-auto no-scrollbar pt-1">
+                                            {selectedCountry.events.map(e => (
+                                                <div key={e.id} className="bg-white p-2.5 rounded-2xl border border-[#D2CABF] flex items-center justify-between text-xs shadow-sm">
+                                                    <div className="min-w-0 flex-1 pr-2">
+                                                        <div className="font-extrabold text-[#161D15] truncate">{e.artist || e.title}</div>
+                                                        <div className="text-[10px] text-[#737C75] truncate mt-0.5">📍 {e.venue || '未定場館'}</div>
+                                                    </div>
+                                                    <div className="font-mono text-[10px] font-bold text-[#161D15] bg-[#EBEBE9] px-2 py-1 rounded-lg shrink-0">
+                                                        {e.date}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-[#737C75]">尚未在當地紀錄演出活動</p>
+                                    )}
+                                    <button onClick={handleCloseCountryModal} className="w-full py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs">關閉</button>
                                 </div>
                             </div>
                         )}
@@ -710,6 +871,7 @@
                 );
             }
 
+            // 修改 8: 藝文紀錄面板高解析度圖片縮圖顯示
             function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCategory, searchQuery, setSearchQuery, viewMode, onDelete, onEdit, getGoogleMapsUrl, onOpenAddModal }) {
                 const [detailEvent, setDetailEvent] = useState(null);
                 const [calendarDate, setCalendarDate] = useState(new Date());
@@ -764,11 +926,12 @@
                                                 <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
                                                 
                                                 <div className="flex-1 p-3.5 pl-5 flex gap-3 min-w-0 pr-4 relative">
+                                                    {/* 高解析小圖片縮圖 */}
                                                     <div 
                                                         onClick={(e) => { e.stopPropagation(); setDetailEvent(evt); }}
-                                                        className="w-16 h-20 rounded-xl overflow-hidden shrink-0 border border-[#D2CABF] bg-black/80 relative shadow-sm cursor-pointer hover:opacity-95 flex items-center justify-center"
+                                                        className="w-16 h-20 rounded-xl overflow-hidden shrink-0 border border-[#D2CABF] bg-black relative shadow-sm cursor-pointer hover:opacity-95 flex items-center justify-center"
                                                     >
-                                                        <img src={evt.coverImg} alt={evt.title} className="w-full h-full object-contain" style={{ transform: `translate(${t.x * 0.3}px, ${t.y * 0.3}px) scale(${t.scale})` }} />
+                                                        <img src={evt.coverImg} alt={evt.title} className="w-full h-full object-cover" style={{ transform: `translate(${t.x * 0.25}px, ${t.y * 0.25}px) scale(${t.scale})` }} />
                                                     </div>
                                                     <div className="flex-1 flex flex-col justify-between min-w-0">
                                                         <div className="space-y-1">
@@ -800,7 +963,17 @@
                 );
             }
 
-            function ScheduleSection({ schedules, onDelete, onEdit, getGoogleMapsUrl, onOpenAddModal }) {
+            // 修改 1, 2, 3: 演出排程面板（自動換行不出框、點擊狀態切換、票價兩行齊左對齊）
+            function ScheduleSection({ schedules, onDelete, onEdit, onSaveSchedule, getGoogleMapsUrl, onOpenAddModal }) {
+                const STATUS_CYCLE = ['即將開賣', '售票中', '已完售'];
+
+                const handleCycleStatus = (sch, e) => {
+                    e.stopPropagation();
+                    const currentIdx = STATUS_CYCLE.indexOf(sch.status || '即將開賣');
+                    const nextStatus = STATUS_CYCLE[(currentIdx + 1) % STATUS_CYCLE.length];
+                    onSaveSchedule({ ...sch, status: nextStatus });
+                };
+
                 return (
                     <div className="p-4 pb-24 space-y-4">
                         <div><h2 className="text-base font-extrabold">近期演出排程</h2></div>
@@ -811,48 +984,86 @@
                                     <button onClick={onOpenAddModal} className="px-4 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-xs">新增演出排程</button>
                                 </div>
                             ) : (
-                                schedules.map(sch => (
-                                    <div key={sch.id} className="relative bg-[#EFF0EA] text-[#161D15] rounded-2xl flex shadow-lg overflow-hidden my-2">
-                                        <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
-                                        <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
-                                        
-                                        <div className="flex-1 p-3.5 pl-5 flex flex-col justify-between min-w-0 pr-3">
-                                            <div className="space-y-2">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="px-2.5 py-1 rounded-lg bg-[#CCB9AA]/40 text-[#161D15] font-mono text-[10px] font-extrabold">{sch.date}</span>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className="px-2.5 py-1 rounded-xl border border-[#AB8C83]/60 text-[#AB8C83] font-bold text-[10px] bg-transparent">{sch.status || '即將開賣'}</span>
-                                                        <button onClick={() => onEdit(sch)} className="w-7 h-7 rounded-full bg-[#CCB9AA]/30 text-[#161D15] flex items-center justify-center hover:bg-[#CCB9AA]/50 transition-colors shadow-sm" title="編輯排程">
-                                                            <i data-lucide="pencil" className="w-3.5 h-3.5"></i>
-                                                        </button>
+                                schedules.map(sch => {
+                                    const priceLines = (sch.priceRange || 'NT$ 1,000\n- 3,500').split('\n');
+                                    return (
+                                        <div key={sch.id} className="relative bg-[#EFF0EA] text-[#161D15] rounded-2xl flex shadow-lg overflow-hidden my-2">
+                                            <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
+                                            <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
+                                            
+                                            <div className="flex-1 p-3.5 pl-5 flex flex-col justify-between min-w-0 pr-3 overflow-hidden">
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="px-2.5 py-1 rounded-lg bg-[#CCB9AA]/40 text-[#161D15] font-mono text-[10px] font-extrabold">{sch.date}</span>
+                                                        <div className="flex items-center gap-1.5">
+                                                            {/* 修改 2: 點擊即可選擇 switch 狀態 */}
+                                                            <button
+                                                                onClick={(e) => handleCycleStatus(sch, e)}
+                                                                className={`px-2.5 py-1 rounded-xl font-bold text-[10px] border transition-all cursor-pointer ${
+                                                                    sch.status === '已完售'
+                                                                        ? 'bg-red-100 text-red-700 border-red-300'
+                                                                        : sch.status === '售票中'
+                                                                        ? 'bg-green-100 text-green-700 border-green-300'
+                                                                        : 'bg-transparent text-[#AB8C83] border-[#AB8C83]/60'
+                                                                }`}
+                                                                title="點擊切換狀態"
+                                                            >
+                                                                {sch.status || '即將開賣'}
+                                                            </button>
+                                                            <button onClick={() => onEdit(sch)} className="w-7 h-7 rounded-full bg-[#CCB9AA]/30 text-[#161D15] flex items-center justify-center hover:bg-[#CCB9AA]/50 transition-colors shadow-sm" title="編輯排程">
+                                                                <i data-lucide="pencil" className="w-3.5 h-3.5"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    {/* 修改 1: 活動名稱自動換行不出框且不壓到下排文字 */}
+                                                    <div className="min-w-0 overflow-hidden">
+                                                        <h3 className="font-black text-sm text-[#161D15] leading-snug break-words whitespace-normal max-w-full">
+                                                            {sch.title}
+                                                        </h3>
+                                                        <p className="text-[11px] text-[#737C75] font-medium leading-relaxed truncate mt-1">
+                                                            {sch.organizer} • {sch.venue}
+                                                        </p>
                                                     </div>
                                                 </div>
-                                                <div>
-                                                    <h3 className="font-black text-sm text-[#161D15] leading-snug line-clamp-1">{sch.title}</h3>
-                                                    <p className="text-[11px] text-[#737C75] font-medium leading-relaxed truncate mt-0.5">{sch.organizer} • {sch.venue}</p>
+                                            </div>
+
+                                            <div className="relative w-0 border-r-2 border-dashed border-[#737C75]/40 my-1 z-10"></div>
+
+                                            {/* 修改 3: 第1行與第2行數字齊左對齊 */}
+                                            <div className="w-[110px] bg-[#EBEBE9] p-3 flex flex-col justify-between items-start text-left shrink-0 border-l border-[#D2CABF]/40">
+                                                <div className="font-mono text-[11px] font-black leading-tight tracking-tight text-[#161D15] w-full text-left flex flex-col items-start justify-center">
+                                                    {priceLines.map((line, idx) => (
+                                                        <span key={idx} className="block text-left w-full truncate">{line}</span>
+                                                    ))}
                                                 </div>
+                                                <a href={sch.ticketLink || 'https://tixcraft.com'} target="_blank" rel="noopener noreferrer" className="w-full py-1.5 bg-[#161D15] text-[#EFF0EA] rounded-xl font-bold text-[11px] shadow hover:bg-black transition-colors block text-center mt-2">
+                                                    購票
+                                                </a>
                                             </div>
                                         </div>
-
-                                        <div className="relative w-0 border-r-2 border-dashed border-[#737C75]/40 my-1 z-10"></div>
-
-                                        <div className="w-[110px] bg-[#EBEBE9] p-3 flex flex-col justify-between items-center text-center shrink-0 border-l border-[#D2CABF]/40">
-                                            <div className="font-mono text-[11px] font-black leading-tight tracking-tight text-[#161D15] break-words w-full text-left line-clamp-2">
-                                                {sch.priceRange || 'NT$ 1,000 - 3,500'}
-                                            </div>
-                                            <a href={sch.ticketLink || 'https://tixcraft.com'} target="_blank" rel="noopener noreferrer" className="w-full py-1.5 bg-[#161D15] text-[#EFF0EA] rounded-xl font-bold text-[11px] shadow hover:bg-black transition-colors block text-center">
-                                                購票
-                                            </a>
-                                        </div>
-                                    </div>
-                                ))
+                                    );
+                                })
                             )}
                         </div>
                     </div>
                 );
             }
 
+            // 修改 10: 演出藝人次數排名（附圖一風格：1金 2銀 3銅皇冠、4位起五角星圖示）
             function StatsSection({ stats, events }) {
+                const artistRankings = useMemo(() => {
+                    const counts = {};
+                    events.forEach(e => {
+                        if (e.artist && e.artist.trim()) {
+                            const a = e.artist.trim();
+                            counts[a] = (counts[a] || 0) + 1;
+                        }
+                    });
+                    return Object.entries(counts)
+                        .map(([artist, count]) => ({ artist, count }))
+                        .sort((a, b) => b.count - a.count);
+                }, [events]);
+
                 return (
                     <div className="p-4 pb-24 space-y-4">
                         <div className="space-y-0.5">
@@ -875,11 +1086,32 @@
                             </div>
                         </div>
 
-                        <div className="bg-[#EFF0EA] text-[#161D15] p-4 rounded-3xl shadow-lg border border-[#D2CABF] space-y-2">
-                            <span className="text-[11px] text-[#737C75] font-bold">演出藝人次數</span>
-                            <div className="font-mono font-black text-2xl flex items-baseline gap-1">
-                                {stats.uniqueArtistsCount} <span className="text-xs font-bold text-[#737C75]">位獨立藝人</span>
+                        {/* 修改 10: 演出藝人次數排名 */}
+                        <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-lg border border-[#D2CABF] space-y-3">
+                            <div className="flex items-center justify-between border-b border-[#D2CABF] pb-2">
+                                <h3 className="font-extrabold text-sm text-[#161D15]">演出藝人次數排名</h3>
+                                <span className="text-[10px] text-[#737C75] font-bold">共 {stats.uniqueArtistsCount} 位獨立藝人</span>
                             </div>
+                            {artistRankings.length === 0 ? (
+                                <p className="text-xs text-[#737C75] text-center py-2">尚未紀錄任何演出藝人</p>
+                            ) : (
+                                <div className="space-y-2 max-h-60 overflow-y-auto no-scrollbar">
+                                    {artistRankings.map((item, idx) => {
+                                        const rank = idx + 1;
+                                        return (
+                                            <div key={item.artist} className="flex items-center justify-between p-2 rounded-2xl bg-white border border-[#D2CABF]/60 shadow-sm">
+                                                <div className="flex items-center gap-2.5 min-w-0">
+                                                    <RankIcon rank={rank} />
+                                                    <span className="font-extrabold text-xs text-[#161D15] truncate">{item.artist}</span>
+                                                </div>
+                                                <div className="font-mono font-black text-xs text-[#161D15] bg-[#EBEBE9] px-2.5 py-1 rounded-xl shrink-0">
+                                                    {item.count} <span className="text-[10px] font-bold text-[#737C75]">場</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
 
                         <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-5 shadow-lg border border-[#D2CABF] space-y-3">

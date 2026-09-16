@@ -49,6 +49,9 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     
+    <!-- 引入獨立的venues場館資料庫檔案 -->
+    <script src="venues.js"></script>
+    
     <style>
         *, *::before, *::after { box-sizing: border-box !important; }
         html, body {
@@ -106,21 +109,8 @@
                 drama: { label: '話劇/音樂劇', icon: 'theater', emoji: '🎭', badgeBg: 'bg-[#737C75] text-[#EFF0EA]' }
             };
 
-            const DEFAULT_VENUE_DATABASE = {
-                '台北小巨蛋': { address: '105台北市松山區南京東路四段2號', city: '台北', country: '台灣', lat: 25.050777, lng: 121.550125 },
-                '台北大巨蛋': { address: '110臺北市信義區忠孝東路四段515號', city: '台北', country: '台灣', lat: 25.042622, lng: 121.559447 },
-                '國家音樂廳': { address: '100台北市中正區中山南路21-1號', city: '台北', country: '台灣', lat: 25.037253, lng: 121.519225 },
-                '台北流行音樂中心': { address: '115台北市南港區市民大道八段99號', city: '台北', country: '台灣', lat: 25.052920, lng: 121.599074 },
-                '高雄巨蛋': { address: '813高雄市左營區博愛二路757號', city: '高雄', country: '台灣', lat: 22.669068, lng: 120.302688 },
-                '高雄流行音樂中心': { address: '803高雄市鹽埕區真愛路1號', city: '高雄', country: '台灣', lat: 22.617619, lng: 120.288489 },
-                'legacy taipei': { address: '100台北市中正區八德路一段1號', city: '台北', country: '台灣', lat: 25.045186, lng: 121.529411 },
-                'clapper studio': { address: '100台北市中正區市民大道三段2號5樓', city: '台北', country: '台灣', lat: 25.045704, lng: 121.531215 },
-                'zepp new taipei': { address: '242新北市新莊區新北大道四段3號8樓', city: '新北', country: '台灣', lat: 25.059882, lng: 121.449540 },
-                '東京巨蛋': { address: '日本東京都文京區後樂一丁目3番61號', city: '東京', country: '日本', lat: 35.705788, lng: 139.751913 },
-                'tokyo dome': { address: '1-3 Koraku, Bunkyo City, Tokyo 112-0004', city: '東京', country: '日本', lat: 35.705788, lng: 139.751913 },
-                '日本武道館': { address: '日本東京都千代田區北之丸公園2番3號', city: '東京', country: '日本', lat: 35.693628, lng: 139.749690 },
-                'budokan': { address: '2-3 Kitanomarukoen, Chiyoda City, Tokyo 102-0091', city: '東京', country: '日本', lat: 35.693628, lng: 139.749690 }
-            };
+            // 直接讀取外部獨立的 venues.js 資料庫（唯讀，不允許前端一般使用者修改）
+            const venueDb = window.VENUE_DATABASE || {};
 
             const COUNTRY_NAME_MAPPING = {
                 'Taiwan': '台灣', 'TW': '台灣',
@@ -176,7 +166,7 @@
                         if (width > height) {
                             if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
                         } else {
-                            if (height > maxHeight) { width = Math.round((width * maxHeight) / height); height = maxHeight; }
+                            if (height > maxHeight) { width = Math.round((height * maxHeight) / height); height = maxHeight; }
                         }
                         const canvas = document.createElement('canvas');
                         canvas.width = width; canvas.height = height;
@@ -326,12 +316,6 @@
                         return saved ? JSON.parse(saved) : [];
                     } catch (e) { return []; }
                 });
-                const [venueDb, setVenueDb] = useState(() => {
-                    try {
-                        const saved = localStorage.getItem('liveecho_venue_db_v1');
-                        return saved ? JSON.parse(saved) : DEFAULT_VENUE_DATABASE;
-                    } catch (e) { return DEFAULT_VENUE_DATABASE; }
-                });
                 const [userProfile, setUserProfile] = useState(() => {
                     try {
                         const saved = localStorage.getItem('liveecho_user_profile_v12');
@@ -345,21 +329,16 @@
                 const [searchQuery, setSearchQuery] = useState('');
 
                 const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
-                const [isVenueDbModalOpen, setIsVenueDbModalOpen] = useState(false);
                 const [isAddModalOpen, setIsAddModalOpen] = useState(false);
                 const [isAddScheduleModalOpen, setIsAddScheduleModalOpen] = useState(false);
                 const [editingEvent, setEditingEvent] = useState(null);
                 const [editingSchedule, setEditingSchedule] = useState(null);
                 const [alertMsg, setAlertMsg] = useState(null);
 
-                // 管理者模式狀態（預設隱藏，點擊頭像長按或特定次數解鎖，此處提供簡易點擊頭像旁隱藏按鈕或長按解鎖，亦可直接常駐隱藏於個人檔案選單內）
-                const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
-
                 useEffect(() => {
                     try { localStorage.setItem('liveecho_records_palette_v12', JSON.stringify(events)); } catch (e) { alert('儲存空間不足，建議清理部分圖片記錄！'); }
                 }, [events]);
                 useEffect(() => { localStorage.setItem('liveecho_schedules_v12', JSON.stringify(schedules)); }, [schedules]);
-                useEffect(() => { localStorage.setItem('liveecho_venue_db_v1', JSON.stringify(venueDb)); }, [venueDb]);
                 useEffect(() => { localStorage.setItem('liveecho_user_profile_v12', JSON.stringify(userProfile)); }, [userProfile]);
                 
                 useEffect(() => { 
@@ -451,22 +430,6 @@
                                 </div>
                             </button>
                             <div className="flex items-center gap-2">
-                                {/* 隱藏或僅限管理者操作的場館資料庫按鈕：透過長按頭像或點擊解鎖後顯示，此處放寬為點擊解鎖或提供管理者專屬開關 */}
-                                <button 
-                                    onClick={() => {
-                                        const code = prompt('請輸入管理者驗證密碼（預設請輸入 8888 或直接略過進入）：');
-                                        if (code === '8888' || code === null) {
-                                            setIsVenueDbModalOpen(true);
-                                        } else {
-                                            showAlert('密碼錯誤');
-                                        }
-                                    }} 
-                                    className="w-8 h-8 rounded-lg bg-[#737C75]/20 text-[#737C75] hover:text-[#EFF0EA] flex items-center justify-center transition-colors" 
-                                    title="管理者場館資料庫設定"
-                                >
-                                    <i data-lucide="database" className="w-4 h-4"></i>
-                                </button>
-
                                 {activeTab === 'archive' && (
                                     <>
                                         <div className="flex bg-[#161D15] p-0.5 rounded-lg border border-[#737C75]/40">
@@ -499,85 +462,8 @@
                         </nav>
 
                         {isEditProfileOpen && <EditProfileModal userProfile={userProfile} setUserProfile={setUserProfile} onClose={() => setIsEditProfileOpen(false)} showAlert={showAlert} />}
-                        {isVenueDbModalOpen && <VenueDbManagerModal venueDb={venueDb} setVenueDb={setVenueDb} onClose={() => setIsVenueDbModalOpen(false)} showAlert={showAlert} />}
-                        {(isAddModalOpen || editingEvent) && <AddEventModal initialData={editingEvent} venueDb={venueDb} onSave={handleSaveEvent} onClose={() => { setIsAddModalOpen(false); setEditingEvent(null); }} />}
+                        {(isAddModalOpen || editingEvent) && <AddEventModal initialData={editingEvent} onSave={handleSaveEvent} onClose={() => { setIsAddModalOpen(false); setEditingEvent(null); }} />}
                         {(isAddScheduleModalOpen || editingSchedule) && <AddScheduleModal initialData={editingSchedule} onSave={handleSaveSchedule} onDelete={handleDeleteSchedule} onClose={() => { setIsAddScheduleModalOpen(false); setEditingSchedule(null); }} />}
-                    </div>
-                );
-            }
-
-            function VenueDbManagerModal({ venueDb, setVenueDb, onClose, showAlert }) {
-                const [name, setName] = useState('');
-                const [address, setAddress] = useState('');
-                const [city, setCity] = useState('台北');
-                const [country, setCountry] = useState('台灣');
-                const [lat, setLat] = useState('');
-                const [lng, setLng] = useState('');
-
-                const handleAddVenue = (e) => {
-                    e.preventDefault();
-                    if (!name || !lat || !lng) return;
-                    const updated = {
-                        ...venueDb,
-                        [name.trim()]: {
-                            address: address.trim(),
-                            city: city.trim() || '未定',
-                            country: country.trim() || '台灣',
-                            lat: parseFloat(lat),
-                            lng: parseFloat(lng)
-                        }
-                    };
-                    setVenueDb(updated);
-                    showAlert(`成功新增場館：${name}`);
-                    setName(''); setAddress(''); setLat(''); setLng('');
-                };
-
-                const handleDeleteVenue = (key) => {
-                    const updated = { ...venueDb };
-                    delete updated[key];
-                    setVenueDb(updated);
-                    showAlert(`已刪除場館：${key}`);
-                };
-
-                return (
-                    <div className="modal-overlay bg-black/85">
-                        <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[90vh] flex flex-col">
-                            <div className="flex items-center justify-between border-b border-[#D2CABF] pb-2 shrink-0">
-                                <h3 className="font-extrabold text-sm"><i data-lucide="database" className="w-4 h-4 inline"></i> 管理場館資料庫 ({Object.keys(venueDb).length})</h3>
-                                <button onClick={onClose}><i data-lucide="x" className="w-5 h-5"></i></button>
-                            </div>
-
-                            <form onSubmit={handleAddVenue} className="space-y-2 bg-white p-3 rounded-2xl border border-[#D2CABF] shrink-0">
-                                <h4 className="text-[11px] font-black text-[#161D15]">新增獨立場館與經緯度</h4>
-                                <input type="text" placeholder="場館名稱 (如: 台北小巨蛋)" value={name} onChange={e=>setName(e.target.value)} required className="w-full bg-[#EFF0EA] px-2.5 py-1.5 rounded-xl text-xs border border-[#D2CABF]" />
-                                <input type="text" placeholder="完整地址" value={address} onChange={e=>setAddress(e.target.value)} className="w-full bg-[#EFF0EA] px-2.5 py-1.5 rounded-xl text-xs border border-[#D2CABF]" />
-                                <div className="grid grid-cols-2 gap-1.5">
-                                    <input type="text" placeholder="國家" value={country} onChange={e=>setCountry(e.target.value)} className="bg-[#EFF0EA] px-2.5 py-1.5 rounded-xl text-xs border border-[#D2CABF]" />
-                                    <input type="text" placeholder="城市" value={city} onChange={e=>setCity(e.target.value)} className="bg-[#EFF0EA] px-2.5 py-1.5 rounded-xl text-xs border border-[#D2CABF]" />
-                                </div>
-                                <div className="grid grid-cols-2 gap-1.5">
-                                    <input type="number" step="any" placeholder="緯度 Lat (如 25.0507)" value={lat} onChange={e=>setLat(e.target.value)} required className="bg-[#EFF0EA] px-2.5 py-1.5 rounded-xl text-xs border border-[#D2CABF]" />
-                                    <input type="number" step="any" placeholder="經度 Lng (如 121.5501)" value={lng} onChange={e=>setLng(e.target.value)} required className="bg-[#EFF0EA] px-2.5 py-1.5 rounded-xl text-xs border border-[#D2CABF]" />
-                                </div>
-                                <button type="submit" className="w-full py-2 bg-[#161D15] text-[#EFF0EA] rounded-xl font-bold text-xs mt-1">新增至場館庫</button>
-                            </form>
-
-                            <div className="flex-1 overflow-y-auto space-y-2 no-scrollbar pr-1">
-                                <h4 className="text-[11px] font-black text-[#737C75]">既存場館清單</h4>
-                                {Object.entries(venueDb).map(([vName, vData]) => (
-                                    <div key={vName} className="bg-white p-2.5 rounded-xl border border-[#D2CABF] flex items-center justify-between text-xs">
-                                        <div className="min-w-0 flex-1 pr-2">
-                                            <div className="font-bold text-[#161D15] truncate">{vName}</div>
-                                            <div className="text-[10px] text-[#737C75] truncate">{vData.address || `${vData.country} ${vData.city}`}</div>
-                                            <div className="text-[9px] font-mono text-[#C5AB89] font-bold">{vData.lat}, {vData.lng}</div>
-                                        </div>
-                                        <button type="button" onClick={() => handleDeleteVenue(vName)} className="p-1.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 shrink-0">
-                                            <i data-lucide="trash-2" className="w-3.5 h-3.5"></i>
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
                     </div>
                 );
             }
@@ -642,7 +528,7 @@
                 );
             }
 
-            function AddEventModal({ initialData, venueDb, onSave, onClose }) {
+            function AddEventModal({ initialData, onSave, onClose }) {
                 const [title, setTitle] = useState(initialData?.title || '');
                 const [type, setType] = useState(initialData?.type || 'concert');
                 const [date, setDate] = useState(initialData?.date || new Date().toISOString().slice(0, 10));
@@ -659,7 +545,6 @@
                 const [coverImg, setCoverImg] = useState(initialData?.coverImg || '');
                 const [imageTransform, setImageTransform] = useState(initialData?.imageTransform || { scale: 1, x: 0, y: 0 });
                 
-                // 內部自動對應經緯度（不顯露在新增面板中，避免干擾一般介面）
                 const [lat, setLat] = useState(initialData?.lat || null);
                 const [lng, setLng] = useState(initialData?.lng || null);
 
@@ -668,10 +553,9 @@
                 const handleVenueChange = (e) => {
                     const val = e.target.value; 
                     setVenue(val);
-                    const dbToUse = venueDb || DEFAULT_VENUE_DATABASE;
-                    const matchedKey = Object.keys(dbToUse).find(k => k.toLowerCase() === val.trim().toLowerCase());
+                    const matchedKey = Object.keys(venueDb).find(k => k.toLowerCase() === val.trim().toLowerCase());
                     if (matchedKey) {
-                        const m = dbToUse[matchedKey];
+                        const m = venueDb[matchedKey];
                         setVenueAddress(m.address); 
                         setCity(m.city); 
                         setCountryName(m.country);

@@ -77,129 +77,34 @@
         #map-wrapper { flex: 1; width: 100%; position: relative; overflow: hidden; display: flex; flex-direction: column; z-index: 1 !important; }
         #map { width: 100% !important; height: 100% !important; z-index: 1 !important; background: #000000 !important; }
         
-        /* ===== iOS Liquid Glass 流體玻璃導覽列樣式 ===== */
-        .liquid-glass-nav-wrapper {
-            position: relative;
-            flex-shrink: 0;
-            z-index: 1000 !important;
-            padding: 8px 16px calc(env(safe-area-inset-bottom, 16px) + 8px) 16px;
-            background: transparent;
+        /* === iOS Liquid Glass 底導覽列樣式 === */
+        footer, .bottom-nav-container { 
+            flex-shrink: 0; 
+            z-index: 1000 !important; 
+            padding: 8px 16px calc(env(safe-area-inset-bottom, 16px) + 10px) 16px !important;
+            background: transparent !important;
             pointer-events: none;
         }
-
-        .liquid-glass-nav {
+        
+        .liquid-glass-bar {
             pointer-events: auto;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            padding: 6px 8px;
-            border-radius: 28px;
-            background: rgba(26, 34, 25, 0.65);
-            backdrop-filter: blur(30px) saturate(200%) brightness(110%);
-            -webkit-backdrop-filter: blur(30px) saturate(200%) brightness(110%);
+            background: rgba(22, 29, 21, 0.65);
+            backdrop-filter: blur(24px) saturate(190%);
+            -webkit-backdrop-filter: blur(24px) saturate(190%);
             border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 
-                0 20px 40px -10px rgba(0, 0, 0, 0.65),
-                0 0 20px 0 rgba(197, 171, 137, 0.15),
-                inset 0 1px 1px 0 rgba(255, 255, 255, 0.35),
-                inset 0 -1px 1px 0 rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            box-shadow: 0 16px 36px 0 rgba(0, 0, 0, 0.55), 
+                        inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.25),
+                        inset 0 -1px 2px 0 rgba(0, 0, 0, 0.4);
+            border-radius: 9999px;
         }
 
-        /* 頂部液態反光邊緣 */
-        .liquid-glass-nav::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 50%;
-            background: linear-gradient(
-                180deg, 
-                rgba(255, 255, 255, 0.18) 0%, 
-                rgba(255, 255, 255, 0.02) 60%, 
-                transparent 100%
-            );
-            border-radius: 28px 28px 0 0;
-            pointer-events: none;
-        }
-
-        /* 選項按鈕基底 */
-        .liquid-tab-btn {
-            position: relative;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 3px;
-            padding: 8px 4px;
-            border-radius: 20px;
-            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-            color: rgba(239, 240, 234, 0.5);
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            outline: none;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .liquid-tab-btn:active {
-            transform: scale(0.92);
-        }
-
-        .liquid-tab-btn.active {
-            color: #C5AB89;
-            font-weight: 700;
-        }
-
-        /* 選取狀態下的發光液態玻璃膠囊 (Pill) */
-        .liquid-tab-pill {
-            position: absolute;
-            inset: 0;
-            border-radius: 20px;
-            background: linear-gradient(
-                135deg, 
-                rgba(197, 171, 137, 0.28) 0%, 
-                rgba(197, 171, 137, 0.12) 100%
-            );
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+        .liquid-tab-active {
+            background: linear-gradient(135deg, rgba(197, 171, 137, 0.28) 0%, rgba(197, 171, 137, 0.12) 100%);
             border: 1px solid rgba(197, 171, 137, 0.45);
-            box-shadow: 
-                0 4px 15px rgba(197, 171, 137, 0.25),
-                inset 0 1px 1px 0 rgba(255, 255, 255, 0.4),
-                inset 0 -1px 1px 0 rgba(0, 0, 0, 0.2);
-            animation: liquidPillBounce 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-            pointer-events: none;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+            color: #C5AB89 !important;
         }
-
-        @keyframes liquidPillBounce {
-            0% { transform: scale(0.85); opacity: 0; }
-            60% { transform: scale(1.04); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .liquid-tab-icon {
-            position: relative;
-            z-index: 2;
-            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.25s ease;
-        }
-
-        .liquid-tab-btn.active .liquid-tab-icon {
-            transform: translateY(-1px) scale(1.1);
-            filter: drop-shadow(0 2px 8px rgba(197, 171, 137, 0.6));
-        }
-
-        .liquid-tab-label {
-            position: relative;
-            z-index: 2;
-            font-size: 10px;
-            letter-spacing: -0.01em;
-            transition: color 0.2s ease, font-weight 0.2s ease;
-        }
-
+        
         .ios-glass { background: rgba(22, 29, 21, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
         .leaflet-container { background: #000000 !important; font-family: inherit; }
         .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(90%); }
@@ -548,10 +453,10 @@
 
                 const getGoogleMapsUrl = (venue, address) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${venue} ${address || ''}`)}`;
 
-                const navTabs = [
+                const NAV_ITEMS = [
                     { id: 'archive', label: '藝文紀錄', icon: 'library' },
                     { id: 'schedule', label: '演出排程', icon: 'calendar-days' },
-                    { id: 'map', label: '星跡Map', icon: 'map-pin' },
+                    { id: 'map', label: '星跡map', icon: 'map-pin' },
                     { id: 'stats', label: '成就統計', icon: 'trophy' }
                 ];
 
@@ -596,20 +501,23 @@
                             {activeTab === 'stats' && <StatsSection stats={stats} events={events} />}
                         </main>
 
-                        {/* ===== 新版 iOS Liquid Glass 液態玻璃底部導覽列 ===== */}
-                        <nav className="liquid-glass-nav-wrapper">
-                            <div className="liquid-glass-nav">
-                                {navTabs.map(tab => {
-                                    const isActive = activeTab === tab.id;
+                        {/* ===== iOS 18 Liquid Glass 新版懸浮底導覽列 ===== */}
+                        <nav className="bottom-nav-container w-full">
+                            <div className="liquid-glass-bar p-1.5 flex items-center justify-around max-w-sm mx-auto shadow-2xl">
+                                {NAV_ITEMS.map((item) => {
+                                    const isActive = activeTab === item.id;
                                     return (
                                         <button
-                                            key={tab.id}
-                                            onClick={() => setActiveTab(tab.id)}
-                                            className={`liquid-tab-btn ${isActive ? 'active' : ''}`}
+                                            key={item.id}
+                                            onClick={() => setActiveTab(item.id)}
+                                            className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-full transition-all duration-300 relative ${
+                                                isActive 
+                                                    ? 'liquid-tab-active font-bold scale-105' 
+                                                    : 'text-[#D2CABF]/70 hover:text-[#EFF0EA] active:scale-95'
+                                            }`}
                                         >
-                                            {isActive && <div className="liquid-tab-pill" />}
-                                            <i data-lucide={tab.icon} className="w-5 h-5 liquid-tab-icon"></i>
-                                            <span className="liquid-tab-label">{tab.label}</span>
+                                            <i data-lucide={item.icon} className={`w-5 h-5 transition-transform duration-300 ${isActive ? 'scale-110 stroke-[2.2]' : 'stroke-[1.8]'}`}></i>
+                                            <span className="text-[10px] mt-0.5 tracking-tight font-medium">{item.label}</span>
                                         </button>
                                     );
                                 })}

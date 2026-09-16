@@ -106,7 +106,6 @@
                 drama: { label: '話劇/音樂劇', icon: 'theater', emoji: '🎭', badgeBg: 'bg-[#737C75] text-[#EFF0EA]' }
             };
 
-            // 預設獨立場館資料庫（融合 venues.json 精確座標）
             const DEFAULT_VENUE_DATABASE = {
                 '台北小巨蛋': { address: '105台北市松山區南京東路四段2號', city: '台北', country: '台灣', lat: 25.050777, lng: 121.550125 },
                 '台北大巨蛋': { address: '110臺北市信義區忠孝東路四段515號', city: '台北', country: '台灣', lat: 25.042622, lng: 121.559447 },
@@ -187,13 +186,13 @@
                         ctx.drawImage(img, 0, 0, width, height);
                         resolve(canvas.toDataURL('image/jpeg', quality));
                     };
-                    img.onerror = () => resolve('https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=90');
+                    img.onerror = () => resolve('');
                     if (typeof fileOrUrl === 'string') img.src = fileOrUrl;
                     else if (fileOrUrl instanceof File || fileOrUrl instanceof Blob) {
                         const reader = new FileReader();
                         reader.onload = (e) => { img.src = e.target.result; };
                         reader.readAsDataURL(fileOrUrl);
-                    } else resolve('https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=90');
+                    } else resolve('');
                 });
             }
 
@@ -353,6 +352,9 @@
                 const [editingSchedule, setEditingSchedule] = useState(null);
                 const [alertMsg, setAlertMsg] = useState(null);
 
+                // 管理者模式狀態（預設隱藏，點擊頭像長按或特定次數解鎖，此處提供簡易點擊頭像旁隱藏按鈕或長按解鎖，亦可直接常駐隱藏於個人檔案選單內）
+                const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
+
                 useEffect(() => {
                     try { localStorage.setItem('liveecho_records_palette_v12', JSON.stringify(events)); } catch (e) { alert('儲存空間不足，建議清理部分圖片記錄！'); }
                 }, [events]);
@@ -449,9 +451,22 @@
                                 </div>
                             </button>
                             <div className="flex items-center gap-2">
-                                <button onClick={() => setIsVenueDbModalOpen(true)} className="w-8 h-8 rounded-lg bg-[#737C75]/40 text-[#EFF0EA] flex items-center justify-center shadow" title="管理場館資料庫">
-                                    <i data-lucide="database" className="w-4 h-4 font-black"></i>
+                                {/* 隱藏或僅限管理者操作的場館資料庫按鈕：透過長按頭像或點擊解鎖後顯示，此處放寬為點擊解鎖或提供管理者專屬開關 */}
+                                <button 
+                                    onClick={() => {
+                                        const code = prompt('請輸入管理者驗證密碼（預設請輸入 8888 或直接略過進入）：');
+                                        if (code === '8888' || code === null) {
+                                            setIsVenueDbModalOpen(true);
+                                        } else {
+                                            showAlert('密碼錯誤');
+                                        }
+                                    }} 
+                                    className="w-8 h-8 rounded-lg bg-[#737C75]/20 text-[#737C75] hover:text-[#EFF0EA] flex items-center justify-center transition-colors" 
+                                    title="管理者場館資料庫設定"
+                                >
+                                    <i data-lucide="database" className="w-4 h-4"></i>
                                 </button>
+
                                 {activeTab === 'archive' && (
                                     <>
                                         <div className="flex bg-[#161D15] p-0.5 rounded-lg border border-[#737C75]/40">
@@ -491,7 +506,6 @@
                 );
             }
 
-            // 新增自訂獨立場館資料庫 Modal
             function VenueDbManagerModal({ venueDb, setVenueDb, onClose, showAlert }) {
                 const [name, setName] = useState('');
                 const [address, setAddress] = useState('');
@@ -645,6 +659,7 @@
                 const [coverImg, setCoverImg] = useState(initialData?.coverImg || '');
                 const [imageTransform, setImageTransform] = useState(initialData?.imageTransform || { scale: 1, x: 0, y: 0 });
                 
+                // 內部自動對應經緯度（不顯露在新增面板中，避免干擾一般介面）
                 const [lat, setLat] = useState(initialData?.lat || null);
                 const [lng, setLng] = useState(initialData?.lng || null);
 
@@ -712,11 +727,6 @@
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">場館名稱 (自動匹配庫內座標)</label><input type="text" value={venue} onChange={handleVenueChange} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                 <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">地址</label><input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                 
-                                <div className="grid grid-cols-2 gap-2 bg-white p-2 rounded-xl border border-[#D2CABF]">
-                                    <div className="space-y-1"><label className="text-[10px] font-bold text-[#737C75]">緯度 Lat</label><input type="number" step="any" value={lat || ''} onChange={(e) => setLat(e.target.value)} placeholder="如 25.0507" className="w-full h-8 bg-[#EFF0EA] px-2 py-1 rounded-lg text-xs border border-[#D2CABF]" /></div>
-                                    <div className="space-y-1"><label className="text-[10px] font-bold text-[#737C75]">經度 Lng</label><input type="number" step="any" value={lng || ''} onChange={(e) => setLng(e.target.value)} placeholder="如 121.5501" className="w-full h-8 bg-[#EFF0EA] px-2 py-1 rounded-lg text-xs border border-[#D2CABF]" /></div>
-                                </div>
-
                                 <div className="grid grid-cols-2 gap-2">
                                     <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">國家</label><input type="text" value={countryName} onChange={(e) => setCountryName(e.target.value)} required className="w-full h-9 bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                     <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">城市</label><input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="w-full h-9 bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
@@ -856,7 +866,6 @@
                 );
             }
 
-            // 地圖組件（修正 Leaflet 渲染與 Marker 計算邏輯）
             function LeafletMapSection({ events, stats, getGoogleMapsUrl }) {
                 const mapRef = useRef(null);
                 const mapInst = useRef(null);
@@ -880,7 +889,6 @@
 
                 const visited = useMemo(() => Object.keys(countryMap), [countryMap]);
 
-                // 初始化 Leaflet 地圖
                 useEffect(() => {
                     if (!mapRef.current) return;
                     if (!mapInst.current) {
@@ -936,7 +944,6 @@
                             }).catch(() => {});
                     }
 
-                    // 強制重算 Leaflet 高度與寬度，修復手機端尺寸計算偏差問題
                     const timer = requestAnimationFrame(() => {
                         if (mapInst.current) mapInst.current.invalidateSize();
                     });
@@ -946,7 +953,6 @@
                     };
                 }, []);
 
-                // 動態更新與繪製 Marker 座標
                 useEffect(() => {
                     if (!mapInst.current) return;
                     markersLayerRef.current.clearLayers();

@@ -352,8 +352,10 @@
                 const filteredEvents = useMemo(() => {
                     return events.filter(evt => {
                         const matchCategory = selectedCategory === 'all' || evt.type === selectedCategory;
-                        const q = searchQuery.toLowerCase();
-                        const matchSearch = (evt.title || '').toLowerCase().includes(q) || (evt.venue || '').toLowerCase().includes(q) || (evt.artist || '').toLowerCase().includes(q);
+                        const q = (searchQuery || '').toLowerCase().trim();
+                        const matchSearch = (evt.title || '').toLowerCase().includes(q) || 
+                                            (evt.venue || '').toLowerCase().includes(q) || 
+                                            (evt.artist || '').toLowerCase().includes(q);
                         return matchCategory && matchSearch;
                     }).sort((a, b) => new Date(b.date) - new Date(a.date));
                 }, [events, selectedCategory, searchQuery]);
@@ -553,7 +555,7 @@
                 const handleVenueChange = (e) => {
                     const val = e.target.value; 
                     setVenue(val);
-                    const matchedKey = Object.keys(venueDb).find(k => k.toLowerCase() === val.trim().toLowerCase());
+                    const matchedKey = Object.keys(venueDb).find(k => k.toLowerCase().trim() === val.toLowerCase().trim());
                     if (matchedKey) {
                         const m = venueDb[matchedKey];
                         setVenueAddress(m.address); 

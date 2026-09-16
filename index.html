@@ -799,8 +799,8 @@
                 const t = event.imageTransform || { scale: 1, x: 0, y: 0 };
 
                 return (
-                    <div className="modal-overlay bg-black/85 backdrop-blur-md">
-                        <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-[#D2CABF] my-auto flex flex-col max-h-[85vh]">
+                    <div className="modal-overlay bg-black/85 backdrop-blur-md flex items-center justify-center p-4 pt-14 pb-20 z-[999999]">
+                        <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-[#D2CABF] my-auto flex flex-col max-h-[75vh]">
                             <div className="relative h-48 bg-[#1A1A1A] shrink-0 overflow-hidden flex items-center justify-center">
                                 {event.coverImg ? (
                                     <img src={event.coverImg} alt={event.title} className="w-full h-full object-contain" style={{ transform: `translate(${t.x}px, ${t.y}px) scale(${t.scale})` }} />

@@ -77,12 +77,13 @@
         #map-wrapper { flex: 1; width: 100%; position: relative; overflow: hidden; display: flex; flex-direction: column; z-index: 1 !important; }
         #map { width: 100% !important; height: 100% !important; z-index: 1 !important; background: #000000 !important; }
         
+        /* 修正：完美適應 Safari 與加入主畫面 (PWA) 的底部安全距離 */
         footer, .bottom-nav { 
             flex-shrink: 0; 
             z-index: 1000 !important; 
             background-color: #161D15;
-            padding-top: 12px !important;
-            padding-bottom: calc(env(safe-area-inset-bottom, 16px) + 12px) !important;
+            padding-top: 10px !important;
+            padding-bottom: max(env(safe-area-inset-bottom, 0px), 12px) !important;
         }
         
         .ios-glass { background: rgba(22, 29, 21, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
@@ -104,7 +105,6 @@
             box-sizing: border-box !important; touch-action: pan-y;
         }
         
-        /* 更新：改用純透明度 mask-image 漸變，讓左右兩側 20px 範圍自然淡出且無黑色陰影 */
         .categories-fade-container {
             mask-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 20px, rgba(0,0,0,1) calc(100% - 20px), rgba(0,0,0,0) 100%);
             -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 20px, rgba(0,0,0,1) calc(100% - 20px), rgba(0,0,0,0) 100%);
@@ -439,9 +439,7 @@
                         <header className="app-header px-4 py-2 flex items-center justify-between shrink-0">
                             <button onClick={() => setIsEditProfileOpen(true)} className="flex items-center gap-2.5 text-left group p-1 -ml-1 rounded-xl hover:bg-[#D2CABF]/10">
                                 {userProfile.avatarUrl ? (
-                                    /* 修改5：方形比例圖片框 (w-8 h-8 rounded-lg) */
                                     <div className="w-8 h-8 rounded-lg overflow-hidden border border-[#C5AB89] relative bg-[#EBEBE9] flex items-center justify-center">
-                                        {/* 修改7：原始比例顯示，不變形不裁切 */}
                                         <img src={userProfile.avatarUrl} alt="Avatar" className="w-full h-full object-contain" style={userProfile.avatarTransform ? { transform: `translate(${userProfile.avatarTransform.x * 0.2}px, ${userProfile.avatarTransform.y * 0.2}px) scale(${userProfile.avatarTransform.scale})` } : {}} />
                                     </div>
                                 ) : (
@@ -686,7 +684,6 @@
 
                 return (
                     <div className="modal-overlay bg-black/85">
-                        {}
                         <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[85vh] flex flex-col">
                             <div className="flex items-center justify-between pb-1 shrink-0">
                                 <h3 className="font-extrabold text-sm"><i data-lucide="calendar-plus" className="w-4 h-4 inline"></i> {initialData ? '編輯演出排程' : '新增演出排程'}</h3>
@@ -1003,7 +1000,6 @@
                                                 <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
                                                 
                                                 <div className="flex-1 p-3.5 pl-5 flex gap-3 min-w-0 pr-3 relative">
-                                                    {/* 修改8：列表小圖片使用 object-contain 與背景色，保持原始 aspect ratio 且不裁切 */}
                                                     <div 
                                                         onClick={(e) => { e.stopPropagation(); setDetailEvent(evt); }}
                                                         className="w-16 h-20 rounded-xl overflow-hidden shrink-0 border border-[#D2CABF] bg-[#EBEBE9] relative shadow-sm cursor-pointer hover:opacity-95 flex items-center justify-center"
@@ -1170,7 +1166,6 @@
                             </div>
                         </div>
 
-                        {}
                         <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-lg border border-[#D2CABF] space-y-3">
                             <div className="flex items-center justify-between pb-1">
                                 <h3 className="font-extrabold text-sm text-[#161D15]">演出藝人次數排名</h3>
@@ -1198,19 +1193,20 @@
                         </div>
 
                         <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-5 shadow-lg border border-[#D2CABF] space-y-3">
-                            <h3 className="font-extrabold text-sm text-[#161D15] pb-1">活動類別統計</h3>
+                            <h3 className="font-extrabold text-sm">藝文類別分佈</h3>
                             <div className="space-y-2">
-                                {Object.entries(CATEGORIES).map(([key, cat]) => {
-                                    const count = stats.categoryCounts[key] || 0;
-                                    const percentage = stats.totalEvents > 0 ? Math.round((count / stats.totalEvents) * 100) : 0;
+                                {Object.entries(stats.categoryCounts).map(([key, count]) => {
+                                    const cat = CATEGORIES[key];
+                                    if (!cat) return null;
+                                    const pct = stats.totalEvents > 0 ? Math.round((count / stats.totalEvents) * 100) : 0;
                                     return (
                                         <div key={key} className="space-y-1">
                                             <div className="flex justify-between text-xs font-bold">
                                                 <span>{cat.emoji} {cat.label}</span>
-                                                <span className="font-mono">{count} 場 ({percentage}%)</span>
+                                                <span className="font-mono">{count} 筆 ({pct}%)</span>
                                             </div>
-                                            <div className="w-full bg-[#EBEBE9] h-2 rounded-full overflow-hidden">
-                                                <div className="bg-[#C5AB89] h-full transition-all duration-300" style={{ width: `${percentage}%` }}></div>
+                                            <div className="w-full bg-[#EBEBE9] h-2 rounded-full overflow-hidden border border-[#D2CABF]">
+                                                <div className="bg-[#161D15] h-full rounded-full transition-all duration-500" style={{ width: `${pct}%` }}></div>
                                             </div>
                                         </div>
                                     );
@@ -1221,11 +1217,9 @@
                 );
             }
 
-            const root = ReactDOM.createRoot(document.getElementById('root'));
-            root.render(<App />);
-
-        } catch (e) {
-            console.error('App Render Error:', e);
+            ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+        } catch (err) {
+            console.error('App Render Error:', err);
         }
     </script>
 </body>

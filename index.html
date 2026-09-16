@@ -81,8 +81,16 @@
             flex-shrink: 0; 
             z-index: 1000 !important; 
             background-color: #161D15;
-            padding-top: 8px !important;
-            padding-bottom: max(10px, env(safe-area-inset-bottom, 10px)) !important;
+            padding-top: 10px !important;
+            padding-bottom: 10px !important;
+            padding-bottom: env(safe-area-inset-bottom, 10px) !important;
+        }
+
+        @media (display-mode: standalone) {
+            footer, .bottom-nav {
+                padding-bottom: 8px !important;
+                padding-bottom: env(safe-area-inset-bottom, 8px) !important;
+            }
         }
         
         .ios-glass { background: rgba(22, 29, 21, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
@@ -104,6 +112,7 @@
             box-sizing: border-box !important; touch-action: pan-y;
         }
         
+        /* 更新：改用純透明度 mask-image 漸變，讓左右兩側 20px 範圍自然淡出且無黑色陰影 */
         .categories-fade-container {
             mask-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 20px, rgba(0,0,0,1) calc(100% - 20px), rgba(0,0,0,0) 100%);
             -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 20px, rgba(0,0,0,1) calc(100% - 20px), rgba(0,0,0,0) 100%);
@@ -184,7 +193,7 @@
                         if (width > height) {
                             if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
                         } else {
-                            if (height > maxHeight) { width = Math.round((height * maxHeight) / height); height = maxHeight; }
+                            if (height > maxHeight) { width = Math.round((width * maxHeight) / height); height = maxHeight; }
                         }
                         const canvas = document.createElement('canvas');
                         canvas.width = width; canvas.height = height;

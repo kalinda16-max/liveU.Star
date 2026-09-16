@@ -53,7 +53,14 @@
     <script src="venues.js"></script>
     
     <style>
-        *, *::before, *::after { box-sizing: border-box !important; }
+        *, *::before, *::after { 
+            box-sizing: border-box !important; 
+            -webkit-tap-highlight-color: transparent !important;
+        }
+        button, button:focus, button:focus-visible, button:active {
+            outline: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+        }
         html, body {
             margin: 0; padding: 0; width: 100vw; height: 100%; max-width: 100vw;
             overflow-x: hidden !important; overflow-y: hidden !important;
@@ -100,7 +107,7 @@
 
         .liquid-tab-active {
             background: linear-gradient(135deg, rgba(197, 171, 137, 0.28) 0%, rgba(197, 171, 137, 0.12) 100%);
-            border: 1px solid rgba(197, 171, 137, 0.45);
+            border: 1px solid rgba(197, 171, 137, 0.45) !important;
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.35);
             color: #C5AB89 !important;
         }
@@ -204,7 +211,7 @@
                         if (width > height) {
                             if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
                         } else {
-                            if (height > maxHeight) { width = Math.round((height * maxHeight) / height); height = maxHeight; }
+                            if (height > maxHeight) { width = Math.round((width * maxHeight) / height); height = maxHeight; }
                         }
                         const canvas = document.createElement('canvas');
                         canvas.width = width; canvas.height = height;
@@ -510,7 +517,7 @@
                                         <button
                                             key={item.id}
                                             onClick={() => setActiveTab(item.id)}
-                                            className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-full transition-all duration-300 relative ${
+                                            className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-full transition-all duration-300 relative outline-none focus:outline-none focus-visible:outline-none border border-transparent ${
                                                 isActive 
                                                     ? 'liquid-tab-active font-bold scale-105' 
                                                     : 'text-[#D2CABF]/70 hover:text-[#EFF0EA] active:scale-95'

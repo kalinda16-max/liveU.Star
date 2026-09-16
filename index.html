@@ -62,7 +62,6 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* 修復 App 容器：精準貼合視埠，鎖定整體滾動並移除左右邊框 */
         .app-container {
             display: flex; flex-direction: column; 
             height: 100vh; height: 100dvh;
@@ -78,12 +77,13 @@
         #map-wrapper { flex: 1; width: 100%; position: relative; overflow: hidden; display: flex; flex-direction: column; z-index: 1 !important; }
         #map { width: 100% !important; height: 100% !important; z-index: 1 !important; background: #000000 !important; }
         
-        /* 固定底部導覽列與自動安全區域處理 */
+        /* 修改1：調整底部導覽列位置，垂直置中並正確計算 safe-area-inset-bottom */
         footer, .bottom-nav { 
             flex-shrink: 0; 
             z-index: 1000 !important; 
             background-color: #161D15;
-            padding-bottom: env(safe-area-inset-bottom, 10px) !important;
+            padding-top: 12px !important;
+            padding-bottom: calc(env(safe-area-inset-bottom, 16px) + 12px) !important;
         }
         
         .ios-glass { background: rgba(22, 29, 21, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
@@ -95,13 +95,23 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.7); font-size: 11px; transition: transform 0.2s;
         }
         .custom-numeric-marker:hover { transform: scale(1.2); }
+        
+        /* 修改3：新增藝文紀錄面板安全間距與置中 */
         .modal-overlay {
             position: fixed !important; inset: 0 !important; z-index: 99999 !important;
             backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
             width: 100vw !important; max-width: 100vw !important; height: 100vh !important; height: 100dvh !important;
             overflow-x: hidden !important; overflow-y: auto !important; display: flex; align-items: center; justify-content: center;
-            padding: 12px; box-sizing: border-box !important; touch-action: pan-y;
+            padding: max(20px, env(safe-area-inset-top, 20px)) 16px max(20px, env(safe-area-inset-bottom, 20px)) 16px !important; 
+            box-sizing: border-box !important; touch-action: pan-y;
         }
+        
+        /* 修改2：CATEGORIES 左右淡出漸變遮罩 */
+        .categories-fade-container {
+            mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
+        }
+
         input::-webkit-contacts-auto-fill-button { display: none !important; visibility: hidden; pointer-events: none; }
         img { image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
     </style>
@@ -174,7 +184,6 @@
                     const img = new Image();
                     img.onload = () => {
                         let width = img.width, height = img.height;
-                        // 若圖片尺寸大於上限才進行等比例縮放以防止記憶體崩潰，保留高解析度與原始比例
                         if (width > height) {
                             if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
                         } else {
@@ -432,8 +441,10 @@
                         <header className="app-header px-4 py-2 flex items-center justify-between shrink-0">
                             <button onClick={() => setIsEditProfileOpen(true)} className="flex items-center gap-2.5 text-left group p-1 -ml-1 rounded-xl hover:bg-[#D2CABF]/10">
                                 {userProfile.avatarUrl ? (
-                                    <div className="w-8 h-8 rounded-lg overflow-hidden border border-[#C5AB89] relative bg-black">
-                                        <img src={userProfile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" style={userProfile.avatarTransform ? { transform: `translate(${userProfile.avatarTransform.x * 0.2}px, ${userProfile.avatarTransform.y * 0.2}px) scale(${userProfile.avatarTransform.scale})` } : {}} />
+                                    /* 修改5：方形比例圖片框 (w-8 h-8 rounded-lg) */
+                                    <div className="w-8 h-8 rounded-lg overflow-hidden border border-[#C5AB89] relative bg-[#EBEBE9] flex items-center justify-center">
+                                        {/* 修改7：原始比例顯示，不變形不裁切 */}
+                                        <img src={userProfile.avatarUrl} alt="Avatar" className="w-full h-full object-contain" style={userProfile.avatarTransform ? { transform: `translate(${userProfile.avatarTransform.x * 0.2}px, ${userProfile.avatarTransform.y * 0.2}px) scale(${userProfile.avatarTransform.scale})` } : {}} />
                                     </div>
                                 ) : (
                                     <div className="w-8 h-8 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center font-black text-xs">{userProfile.initials || 'LU'}</div>
@@ -468,7 +479,7 @@
                             {activeTab === 'stats' && <StatsSection stats={stats} events={events} />}
                         </main>
 
-                        <nav className="bottom-nav ios-glass pt-2.5 px-4 flex items-center justify-around border-t border-[#737C75]/30 shrink-0">
+                        <nav className="bottom-nav ios-glass px-4 flex items-center justify-around border-t border-[#737C75]/30 shrink-0">
                             <button onClick={() => setActiveTab('archive')} className={`flex flex-col items-center gap-1 ${activeTab === 'archive' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}><i data-lucide="library" className="w-5 h-5"></i><span className="text-[10px]">藝文紀錄</span></button>
                             <button onClick={() => setActiveTab('schedule')} className={`flex flex-col items-center gap-1 ${activeTab === 'schedule' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}><i data-lucide="calendar-days" className="w-5 h-5"></i><span className="text-[10px]">演出排程</span></button>
                             <button onClick={() => setActiveTab('map')} className={`flex flex-col items-center gap-1 ${activeTab === 'map' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}><i data-lucide="map-pin" className="w-5 h-5"></i><span className="text-[10px]">星跡Map</span></button>
@@ -504,7 +515,7 @@
 
                 return (
                     <div className="modal-overlay bg-black/85">
-                        <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-[#D2CABF] space-y-4">
+                        <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-[#D2CABF] space-y-4 my-auto max-h-[90vh] overflow-y-auto no-scrollbar">
                             <div className="flex items-center justify-between border-b border-[#D2CABF] pb-3">
                                 <h3 className="font-extrabold text-sm"><i data-lucide="user-pen" className="w-4 h-4 inline"></i> 編輯個人檔案</h3>
                                 <button onClick={onClose}><i data-lucide="x" className="w-5 h-5"></i></button>
@@ -512,16 +523,22 @@
                             <form onSubmit={handleSave} className="space-y-4">
                                 <div className="flex flex-col items-center gap-2">
                                     <div className="flex items-center justify-between w-full px-1">
-                                        <label className="text-[11px] font-bold text-[#737C75]">頭像圖片（雙指縮放與拖曳移動圖片）</label>
-                                        <button type="button" onClick={() => fileRef.current?.click()} className="px-2.5 py-1 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-[10px]">選擇照片</button>
-                                        <input type="file" ref={fileRef} onChange={async (e) => { if (e.target.files[0]) { setAvatarUrl(await compressImageFile(e.target.files[0], 1600, 1600, 0.92)); setAvatarTransform({ scale: 1, x: 0, y: 0 }); } }} accept="image/*" className="hidden" />
+                                        <label className="text-[11px] font-bold text-[#737C75]">頭像照片（直接點擊下方方框選擇照片）</label>
                                     </div>
-                                    <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-[#C5AB89] relative bg-[#EBEBE9] flex items-center justify-center shadow-inner">
+                                    {/* 修改5 & 6：改為與藝文紀錄列表一致的正方形比例圖片框，且點擊本身直接開啟檔案選擇器 */}
+                                    <div 
+                                        onClick={() => fileRef.current?.click()}
+                                        className="w-32 h-32 rounded-2xl overflow-hidden border-2 border-dashed border-[#C5AB89] relative bg-[#EBEBE9] flex items-center justify-center shadow-inner cursor-pointer hover:opacity-95 transition-opacity"
+                                    >
                                         {avatarUrl ? (
                                             <TouchImageTransform src={avatarUrl} initialTransform={avatarTransform} onChange={setAvatarTransform} className="w-full h-full object-contain" />
                                         ) : (
-                                            <div className="w-full h-full bg-[#C5AB89] text-[#161D15] flex items-center justify-center font-black text-2xl">{name ? name.substring(0, 2).toUpperCase() : 'LU'}</div>
+                                            <div className="text-center p-2">
+                                                <i data-lucide="image-plus" className="w-8 h-8 mx-auto text-[#737C75] mb-1"></i>
+                                                <span className="text-[10px] font-bold text-[#737C75]">點擊選擇照片</span>
+                                            </div>
                                         )}
+                                        <input type="file" ref={fileRef} onChange={async (e) => { if (e.target.files[0]) { setAvatarUrl(await compressImageFile(e.target.files[0], 2400, 2400, 0.95)); setAvatarTransform({ scale: 1, x: 0, y: 0 }); } }} accept="image/*" className="hidden" />
                                     </div>
                                 </div>
                                 <div className="space-y-1">
@@ -599,10 +616,11 @@
 
                 return (
                     <div className="modal-overlay bg-black/85">
-                        <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[90vh] flex flex-col">
+                        {/* 修改3：「新增藝文紀錄」面板完整置中於可視畫面中央，具備安全間距與內部滾動 */}
+                        <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[85vh] flex flex-col">
+                            {/* 修改4：移除右上角的 X 關閉按鈕，保留底部取消按鈕 */}
                             <div className="flex items-center justify-between border-b border-[#D2CABF] pb-2 shrink-0">
                                 <h3 className="font-extrabold text-sm"><i data-lucide="ticket-plus" className="w-4 h-4 inline"></i> {initialData ? '編輯藝文紀錄' : '新增藝文紀錄'}</h3>
-                                <button onClick={onClose}><i data-lucide="x" className="w-5 h-5"></i></button>
                             </div>
                             <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar">
                                 <div className="bg-white p-3 rounded-2xl border border-[#D2CABF] space-y-2">
@@ -667,7 +685,7 @@
 
                 return (
                     <div className="modal-overlay bg-black/85">
-                        <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[90vh] flex flex-col">
+                        <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[85vh] flex flex-col">
                             <div className="flex items-center justify-between border-b border-[#D2CABF] pb-2 shrink-0">
                                 <h3 className="font-extrabold text-sm"><i data-lucide="calendar-plus" className="w-4 h-4 inline"></i> {initialData ? '編輯演出排程' : '新增演出排程'}</h3>
                                 <button onClick={onClose}><i data-lucide="x" className="w-5 h-5"></i></button>
@@ -951,11 +969,14 @@
                                 <i data-lucide="search" className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#737C75]"></i>
                                 <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="搜尋名稱、場館、藝人..." className="w-full bg-[#EFF0EA] text-[#161D15] pl-9 pr-8 py-2 rounded-xl text-xs border border-[#D2CABF]" />
                             </div>
-                            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
-                                <button onClick={() => setSelectedCategory('all')} className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap ${selectedCategory === 'all' ? 'bg-[#C5AB89] text-[#161D15]' : 'bg-[#EFF0EA] text-[#161D15]'}`}>✨ 全部 ({allEvents.length})</button>
-                                {Object.entries(CATEGORIES).map(([k, cat]) => (
-                                    <button key={k} onClick={() => setSelectedCategory(k)} className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap ${selectedCategory === k ? `${cat.badgeBg}` : 'bg-[#EFF0EA] text-[#161D15]'}`}>{cat.emoji} {cat.label}</button>
-                                ))}
+                            {/* 修改2：加上 categories-fade-container 漸變遮罩，使左右邊緣呈現自然溶解效果 */}
+                            <div className="categories-fade-container overflow-x-hidden w-full">
+                                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 px-4 -mx-4">
+                                    <button onClick={() => setSelectedCategory('all')} className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 ${selectedCategory === 'all' ? 'bg-[#C5AB89] text-[#161D15]' : 'bg-[#EFF0EA] text-[#161D15]'}`}>✨ 全部 ({allEvents.length})</button>
+                                    {Object.entries(CATEGORIES).map(([k, cat]) => (
+                                        <button key={k} onClick={() => setSelectedCategory(k)} className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 ${selectedCategory === k ? `${cat.badgeBg}` : 'bg-[#EFF0EA] text-[#161D15]'}`}>{cat.emoji} {cat.label}</button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
 
@@ -975,16 +996,16 @@
                                 ) : (
                                     events.map((evt) => {
                                         const cat = CATEGORIES[evt.type] || CATEGORIES.concert;
-                                        const t = evt.imageTransform || { scale: 1, x: 0, y: 0 };
                                         return (
                                             <div key={evt.id} onClick={() => setDetailEvent(evt)} className="relative bg-[#EFF0EA] text-[#161D15] rounded-2xl flex shadow-lg overflow-hidden cursor-pointer hover:scale-[1.01] transition-all my-2">
                                                 <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
                                                 <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
                                                 
                                                 <div className="flex-1 p-3.5 pl-5 flex gap-3 min-w-0 pr-3 relative">
+                                                    {/* 修改8：列表小圖片使用 object-contain 與背景色，保持原始 aspect ratio 且不裁切 */}
                                                     <div 
                                                         onClick={(e) => { e.stopPropagation(); setDetailEvent(evt); }}
-                                                        className="w-16 h-20 rounded-xl overflow-hidden shrink-0 border border-[#D2CABF] bg-[#1A1A1A] relative shadow-sm cursor-pointer hover:opacity-95 flex items-center justify-center"
+                                                        className="w-16 h-20 rounded-xl overflow-hidden shrink-0 border border-[#D2CABF] bg-[#EBEBE9] relative shadow-sm cursor-pointer hover:opacity-95 flex items-center justify-center"
                                                     >
                                                         {evt.coverImg ? (
                                                             <img src={evt.coverImg} alt={evt.title} className="w-full h-full object-contain" />

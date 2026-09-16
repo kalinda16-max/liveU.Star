@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>LiveU iOS App</title>
+    <title>LiveU - 藝文紀錄 & 演出追蹤 iOS App</title>
+    <!-- iOS 全螢幕 App 必備關鍵標籤 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="LiveU">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#161D15">
 
+    <!-- Web App Manifest -->
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="icon-180.png">
     
@@ -41,1236 +43,1253 @@
         }
     </script>
     
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel -->
     <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+    <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     
-    <!-- 引入獨立的venues場館資料庫檔案 -->
-    <script src="venues.js"></script>
-    
     <style>
-        *, *::before, *::after { 
-            box-sizing: border-box !important; 
-            -webkit-tap-highlight-color: transparent !important;
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
         }
-        button, button:focus, button:focus-visible, button:active {
-            outline: none !important;
-            -webkit-tap-highlight-color: transparent !important;
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
-        html, body {
-            margin: 0; padding: 0; width: 100vw; height: 100%; max-width: 100vw;
-            overflow-x: hidden !important; overflow-y: hidden !important;
-            background-color: #161D15; color: #EFF0EA; touch-action: manipulation;
-        }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        .app-container {
-            display: flex; flex-direction: column; 
-            height: 100vh; height: 100dvh;
-            overflow: hidden !important; 
-            background-color: #161D15; max-width: 100vw; width: 100%; position: relative;
+        body, .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            background-color: #161D15;
         }
+
         header, .app-header {
-            position: relative; z-index: 1000 !important;
-            padding-top: calc(env(safe-area-inset-top, 20px) + 8px) !important;
-            background-color: #121212 !important; border-bottom: 1px solid rgba(115, 124, 117, 0.3); flex-shrink: 0;
-        }
-        .top-stats-card { z-index: 999 !important; }
-        #map-wrapper { flex: 1; width: 100%; position: relative; overflow: hidden; display: flex; flex-direction: column; z-index: 1 !important; }
-        #map { width: 100% !important; height: 100% !important; z-index: 1 !important; background: #000000 !important; }
-        
-        /* === iOS Liquid Glass 底導覽列樣式 === */
-        footer, .bottom-nav-container { 
-            flex-shrink: 0; 
-            z-index: 1000 !important; 
-            padding: 8px 16px calc(env(safe-area-inset-bottom, 16px) + 10px) 16px !important;
-            background: transparent !important;
-            pointer-events: none;
-        }
-        
-        .liquid-glass-bar {
-            pointer-events: auto;
-            background: rgba(22, 29, 21, 0.65);
-            backdrop-filter: blur(24px) saturate(190%);
-            -webkit-backdrop-filter: blur(24px) saturate(190%);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 16px 36px 0 rgba(0, 0, 0, 0.55), 
-                        inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.25),
-                        inset 0 -1px 2px 0 rgba(0, 0, 0, 0.4);
-            border-radius: 9999px;
+            position: relative;
+            z-index: 1000 !important;
+            padding-top: calc(env(safe-area-inset-top, 20px) + 12px) !important;
+            background-color: #121212 !important;
+            border-bottom: 1px solid rgba(115, 124, 117, 0.3);
+            flex-shrink: 0;
         }
 
-        .liquid-tab-active {
-            background: linear-gradient(135deg, rgba(197, 171, 137, 0.28) 0%, rgba(197, 171, 137, 0.12) 100%);
-            border: 1px solid rgba(197, 171, 137, 0.45) !important;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.35);
-            color: #C5AB89 !important;
+        .top-stats-card {
+            z-index: 999 !important;
         }
-        
-        .ios-glass { background: rgba(22, 29, 21, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-        .leaflet-container { background: #000000 !important; font-family: inherit; }
-        .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(90%); }
+
+        #map-wrapper {
+            flex: 1;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            z-index: 1 !important;
+        }
+
+        #map {
+            width: 100% !important;
+            height: 100% !important;
+            z-index: 1 !important;
+            background: #000000 !important;
+        }
+
+        footer, .bottom-nav {
+            flex-shrink: 0;
+            z-index: 1000 !important;
+        }
+
+        .app-safe-bottom {
+            padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+        }
+
+        .ios-glass {
+            background: rgba(22, 29, 21, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* Leaflet Dark Mode & OpenStreetMap Invert Filter Overrides */
+        .leaflet-container {
+            background: #000000 !important;
+            font-family: inherit;
+        }
+        .leaflet-tile-pane { 
+            filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(90%); 
+        }
+
+        /* Simplified Numeric Leaflet Marker */
         .custom-numeric-marker {
-            background: #C5AB89; border: 2px solid #EFF0EA; color: #161D15; font-weight: 900;
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.7); font-size: 11px; transition: transform 0.2s;
+            background: #C5AB89;
+            border: 2px solid #EFF0EA;
+            color: #161D15;
+            font-weight: 900;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.7);
+            font-size: 11px;
+            transition: transform 0.2s;
         }
-        .custom-numeric-marker:hover { transform: scale(1.2); }
-        
-        .modal-overlay {
-            position: fixed !important; inset: 0 !important; z-index: 99999 !important;
-            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
-            width: 100vw !important; max-width: 100vw !important; height: 100vh !important; height: 100dvh !important;
-            overflow-x: hidden !important; overflow-y: auto !important; display: flex; align-items: center; justify-content: center;
-            padding: max(20px, env(safe-area-inset-top, 20px)) 16px max(20px, env(safe-area-inset-bottom, 20px)) 16px !important; 
-            box-sizing: border-box !important; touch-action: pan-y;
-        }
-        
-        .categories-fade-container {
-            mask-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 20px, rgba(0,0,0,1) calc(100% - 20px), rgba(0,0,0,0) 100%);
-            -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 20px, rgba(0,0,0,1) calc(100% - 20px), rgba(0,0,0,0) 100%);
+        .custom-numeric-marker:hover {
+            transform: scale(1.2);
         }
 
-        input::-webkit-contacts-auto-fill-button { display: none !important; visibility: hidden; pointer-events: none; }
-        img { image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
+        /* 彈窗與表單版型修復樣式 */
+        .modal-overlay {
+            z-index: 9999 !important;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .form-row, .grid-2-columns {
+            display: flex !important;
+            width: 100% !important;
+            gap: 12px !important;
+            align-items: center;
+        }
+
+        .form-group, .grid-item {
+            flex: 1 1 calc(50% - 6px) !important;
+            width: auto !important;
+            overflow: hidden;
+        }
+
+        .form-group label {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     </style>
 </head>
-<body class="bg-[#161D15] text-[#EFF0EA] font-sans antialiased h-full select-none overflow-hidden max-w-[100vw]">
-    <div id="root" class="h-full"></div>
+<body class="bg-[#161D15] text-[#EFF0EA] font-sans antialiased min-h-screen select-none overflow-x-hidden">
+    <div id="root"></div>
 
     <script type="text/babel">
-        try {
-            const { useState, useEffect, useMemo, useRef, useCallback } = React;
+        const { useState, useEffect, useMemo, useRef } = React;
 
-            const CATEGORIES = {
-                concert: { label: '演唱會', icon: 'music', emoji: '🎵', badgeBg: 'bg-[#C5AB89] text-[#161D15]' },
-                exhibition: { label: '展覽', icon: 'palette', emoji: '🎨', badgeBg: 'bg-[#CCB9AA] text-[#161D15]' },
-                movie: { label: '電影', icon: 'film', emoji: '🎬', badgeBg: 'bg-[#AB8C83] text-[#EFF0EA]' },
-                book: { label: '書籍', icon: 'book-open', emoji: '📚', badgeBg: 'bg-[#D2CABF] text-[#161D15]' },
-                drama: { label: '話劇/音樂劇', icon: 'theater', emoji: '🎭', badgeBg: 'bg-[#737C75] text-[#EFF0EA]' }
+        const CATEGORIES = {
+            concert: { label: '演唱會', icon: 'music', emoji: '🎵', badgeBg: 'bg-[#C5AB89] text-[#161D15]' },
+            exhibition: { label: '展覽', icon: 'palette', emoji: '🎨', badgeBg: 'bg-[#CCB9AA] text-[#161D15]' },
+            movie: { label: '電影', icon: 'film', emoji: '🎬', badgeBg: 'bg-[#AB8C83] text-[#EFF0EA]' },
+            book: { label: '書籍', icon: 'book-open', emoji: '📚', badgeBg: 'bg-[#D2CABF] text-[#161D15]' },
+            drama: { label: '話劇/音樂劇', icon: 'theater', emoji: '🎭', badgeBg: 'bg-[#737C75] text-[#EFF0EA]' }
+        };
+
+        function App() {
+            const [events, setEvents] = useState(() => {
+                const saved = localStorage.getItem('liveecho_records_palette_v7');
+                return saved ? JSON.parse(saved) : [];
+            });
+            const [schedules, setSchedules] = useState(() => {
+                const saved = localStorage.getItem('liveecho_schedules_v7');
+                return saved ? JSON.parse(saved) : [];
+            });
+
+            const [userProfile, setUserProfile] = useState(() => {
+                const saved = localStorage.getItem('liveecho_user_profile_v7');
+                return saved ? JSON.parse(saved) : { name: 'LiveEcho', subtitle: 'ARCHIVE & FOOTPRINTS', avatarUrl: '', initials: 'LE' };
+            });
+
+            const [activeTab, setActiveTab] = useState('archive'); // archive | schedule | map | stats
+            const [viewMode, setViewMode] = useState('list');
+            const [selectedCategory, setSelectedCategory] = useState('all');
+            const [searchQuery, setSearchQuery] = useState('');
+            const [selectedEventId, setSelectedEventId] = useState(null);
+
+            const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+            const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+            const [isAddScheduleModalOpen, setIsAddScheduleModalOpen] = useState(false);
+            const [alertMsg, setAlertMsg] = useState(null);
+
+            useEffect(() => { localStorage.setItem('liveecho_records_palette_v7', JSON.stringify(events)); }, [events]);
+            useEffect(() => { localStorage.setItem('liveecho_schedules_v7', JSON.stringify(schedules)); }, [schedules]);
+            useEffect(() => { localStorage.setItem('liveecho_user_profile_v7', JSON.stringify(userProfile)); }, [userProfile]);
+            
+            useEffect(() => {
+                if (window.lucide) window.lucide.createIcons();
+            });
+
+            const showAlert = (msg) => {
+                setAlertMsg(msg);
+                setTimeout(() => setAlertMsg(null), 3000);
             };
 
-            const venueDb = window.VENUE_DATABASE || {};
+            const filteredEvents = useMemo(() => {
+                return events.filter(evt => {
+                    const matchCategory = selectedCategory === 'all' || evt.type === selectedCategory;
+                    const q = searchQuery.toLowerCase();
+                    const matchSearch = (evt.title || '').toLowerCase().includes(q) ||
+                                        (evt.creator || '').toLowerCase().includes(q) ||
+                                        (evt.venue || '').toLowerCase().includes(q) ||
+                                        (evt.venueAddress || '').toLowerCase().includes(q);
+                    return matchCategory && matchSearch;
+                }).sort((a, b) => new Date(b.date) - new Date(a.date));
+            }, [events, selectedCategory, searchQuery]);
 
-            const COUNTRY_NAME_MAPPING = {
-                'Taiwan': '台灣', 'TW': '台灣',
-                'Japan': '日本', 'JP': '日本',
-                'South Korea': '南韓', 'Korea': '南韓', 'KR': '南韓',
-                'United States': '美國', 'US': '美國', 'USA': '美國',
-                'Australia': '澳大利亞', 'AU': '澳大利亞',
-                'United Kingdom': '英國', 'GB': '英國', 'UK': '英國',
-                'Thailand': '泰國', 'TH': '泰國',
-                'China': '中國', 'CN': '中國',
-                'Hong Kong': '香港', 'HK': '香港'
-            };
+            const selectedEvent = useMemo(() => {
+                return events.find(e => e.id === selectedEventId) || filteredEvents[0] || null;
+            }, [events, selectedEventId, filteredEvents]);
 
-            function resolveCountryInfo(countryInput) {
-                const clean = (countryInput || '').trim().toLowerCase();
-                if (clean.includes('台') || clean.includes('tw') || clean.includes('taiwan')) return { code: 'TW', name: '台灣', lat: 25.033, lng: 121.565 };
-                if (clean.includes('日') || clean.includes('jp') || clean.includes('japan')) return { code: 'JP', name: '日本', lat: 35.676, lng: 139.650 };
-                if (clean.includes('韓') || clean.includes('kr') || clean.includes('korea')) return { code: 'KR', name: '南韓', lat: 37.566, lng: 126.978 };
-                if (clean.includes('美') || clean.includes('us') || clean.includes('america')) return { code: 'US', name: '美國', lat: 40.712, lng: -74.006 };
-                return { code: 'OTHER', name: countryInput || '台灣', lat: 25.033, lng: 121.565 };
-            }
-
-            function parseSpotifyEmbedUrl(urlOrUri) {
-                if (!urlOrUri) return null;
-                let raw = urlOrUri.trim();
-                if (raw.startsWith('spotify:')) {
-                    const parts = raw.split(':');
-                    if (parts.length >= 3) return `https://open.spotify.com/embed/${parts[1]}/${parts[2]}?utm_source=generator&theme=0`;
-                }
-                if (raw.includes('open.spotify.com')) {
-                    try {
-                        const urlObj = new URL(raw);
-                        const pathSegments = urlObj.pathname.split('/').filter(Boolean);
-                        if (pathSegments.length >= 2) return `https://open.spotify.com/embed/${pathSegments[0]}/${pathSegments[1]}?utm_source=generator&theme=0`;
-                    } catch (e) {}
-                }
-                return null;
-            }
-
-            function compressImageFile(fileOrUrl, maxWidth = 2400, maxHeight = 2400, quality = 0.95) {
-                return new Promise((resolve) => {
-                    if (!fileOrUrl) {
-                        resolve('https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=90');
-                        return;
-                    }
-                    if (typeof fileOrUrl === 'string' && (fileOrUrl.startsWith('http') || fileOrUrl.length < 400)) {
-                        resolve(fileOrUrl);
-                        return;
-                    }
-                    const img = new Image();
-                    img.onload = () => {
-                        let width = img.width, height = img.height;
-                        if (width > height) {
-                            if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
-                        } else {
-                            if (height > maxHeight) { width = Math.round((width * maxHeight) / height); height = maxHeight; }
-                        }
-                        const canvas = document.createElement('canvas');
-                        canvas.width = width; canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.imageSmoothingEnabled = true;
-                        ctx.imageSmoothingQuality = 'high';
-                        ctx.drawImage(img, 0, 0, width, height);
-                        resolve(canvas.toDataURL('image/jpeg', quality));
-                    };
-                    img.onerror = () => resolve('');
-                    if (typeof fileOrUrl === 'string') img.src = fileOrUrl;
-                    else if (fileOrUrl instanceof File || fileOrUrl instanceof Blob) {
-                        const reader = new FileReader();
-                        reader.onload = (e) => { img.src = e.target.result; };
-                        reader.readAsDataURL(fileOrUrl);
-                    } else resolve('');
-                });
-            }
-
-            function TouchImageTransform({ src, initialTransform, onChange, className = "w-full h-full object-contain" }) {
-                const [transform, setTransform] = useState(() => initialTransform || { scale: 1, x: 0, y: 0 });
-                const isDragging = useRef(false);
-                const dragStart = useRef({ x: 0, y: 0 });
-                const pinchStartDist = useRef(null);
-                const pinchStartScale = useRef(1);
-
-                const handleTouchStart = (e) => {
-                    if (e.touches.length === 1) {
-                        isDragging.current = true;
-                        dragStart.current = { x: e.touches[0].clientX - transform.x, y: e.touches[0].clientY - transform.y };
-                    } else if (e.touches.length === 2) {
-                        isDragging.current = false;
-                        pinchStartDist.current = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-                        pinchStartScale.current = transform.scale;
-                    }
-                };
-
-                const handleTouchMove = (e) => {
-                    if (e.touches.length === 1 && isDragging.current) {
-                        const updated = { ...transform, x: e.touches[0].clientX - dragStart.current.x, y: e.touches[0].clientY - dragStart.current.y };
-                        setTransform(updated);
-                        if (onChange) onChange(updated);
-                    } else if (e.touches.length === 2 && pinchStartDist.current) {
-                        const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-                        const updated = { ...transform, scale: Math.min(Math.max(0.2, pinchStartScale.current * (dist / pinchStartDist.current)), 4) };
-                        setTransform(updated);
-                        if (onChange) onChange(updated);
-                    }
-                };
-
-                const handleTouchEnd = () => { isDragging.current = false; pinchStartDist.current = null; };
-
-                return (
-                    <div className="overflow-hidden relative select-none w-full h-full cursor-grab active:cursor-grabbing flex items-center justify-center bg-[#EBEBE9]"
-                        onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
-                        onMouseDown={(e) => { isDragging.current = true; dragStart.current = { x: e.clientX - transform.x, y: e.clientY - transform.y }; }}
-                        onMouseMove={(e) => { if (!isDragging.current) return; const updated = { ...transform, x: e.clientX - dragStart.current.x, y: e.clientY - dragStart.current.y }; setTransform(updated); if (onChange) onChange(updated); }}
-                        onMouseUp={() => { isDragging.current = false; }} onMouseLeave={() => { isDragging.current = false; }}>
-                        <img src={src} alt="Preview" className={className}
-                            style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`, transition: isDragging.current ? 'none' : 'transform 0.1s ease-out', maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                            draggable={false} />
-                    </div>
-                );
-            }
-
-            function RankIcon({ rank }) {
-                if (rank === 1) {
-                    return (
-                        <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
-                            <svg viewBox="0 0 100 80" className="w-7 h-7 filter drop-shadow">
-                                <path d="M10,65 L90,65 L85,25 L65,45 L50,15 L35,45 L15,25 Z" fill="#E5A912" />
-                                <circle cx="10" cy="22" r="5" fill="#E5A912" />
-                                <circle cx="50" cy="12" r="6" fill="#E5A912" />
-                                <circle cx="90" cy="22" r="5" fill="#E5A912" />
-                                <path d="M15,65 L85,65 L82,72 L18,72 Z" fill="#C58D00" />
-                                <text x="50" y="56" textAnchor="middle" fill="#FFFFFF" fontSize="28" fontWeight="900" fontFamily="sans-serif">1</text>
-                            </svg>
-                        </div>
-                    );
-                }
-                if (rank === 2) {
-                    return (
-                        <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
-                            <svg viewBox="0 0 100 80" className="w-7 h-7 filter drop-shadow">
-                                <path d="M10,65 L90,65 L85,25 L65,45 L50,15 L35,45 L15,25 Z" fill="#B5B8BC" />
-                                <circle cx="10" cy="22" r="5" fill="#B5B8BC" />
-                                <circle cx="50" cy="12" r="6" fill="#B5B8BC" />
-                                <circle cx="90" cy="22" r="5" fill="#B5B8BC" />
-                                <path d="M15,65 L85,65 L82,72 L18,72 Z" fill="#8F9296" />
-                                <text x="50" y="56" textAnchor="middle" fill="#FFFFFF" fontSize="28" fontWeight="900" fontFamily="sans-serif">2</text>
-                            </svg>
-                        </div>
-                    );
-                }
-                if (rank === 3) {
-                    return (
-                        <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
-                            <svg viewBox="0 0 100 80" className="w-7 h-7 filter drop-shadow">
-                                <path d="M10,65 L90,65 L85,25 L65,45 L50,15 L35,45 L15,25 Z" fill="#A46738" />
-                                <circle cx="10" cy="22" r="5" fill="#A46738" />
-                                <circle cx="50" cy="12" r="6" fill="#A46738" />
-                                <circle cx="90" cy="22" r="5" fill="#A46738" />
-                                <path d="M15,65 L85,65 L82,72 L18,72 Z" fill="#824E24" />
-                                <text x="50" y="56" textAnchor="middle" fill="#FFFFFF" fontSize="28" fontWeight="900" fontFamily="sans-serif">3</text>
-                            </svg>
-                        </div>
-                    );
-                }
-                return (
-                    <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
-                        <svg viewBox="0 0 100 100" className="w-6 h-6 filter drop-shadow">
-                            <polygon points="50,5 64,36 98,39 72,62 80,95 50,77 20,95 28,62 2,39 36,36" fill="#F3B000" />
-                        </svg>
-                        <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-[#161D15] pt-0.5">{rank}</span>
-                    </div>
-                );
-            }
-
-            function CompassStarIcon({ className = "w-5 h-5" }) {
-                return (
-                    <svg viewBox="0 0 500 500" className={className}>
-                        <polygon points="250,0 290,170 450,70 330,210 500,250 330,290 450,430 290,330 250,500 210,330 50,430 170,290 0,250 170,210 50,70 210,170" fill="#E6A100" />
-                        <polygon points="250,0 250,250 450,70 250,250 500,250 250,250 450,430 250,250 250,500 250,250 50,430 250,250 0,250 250,250 50,70 250,250" fill="#FFC800" />
-                        <polygon points="250,0 290,170 250,250" fill="#F3B000" />
-                        <polygon points="450,70 330,210 250,250" fill="#F3B000" />
-                        <polygon points="500,250 330,290 250,250" fill="#F3B000" />
-                        <polygon points="450,430 290,330 250,250" fill="#F3B000" />
-                        <polygon points="250,500 210,330 250,250" fill="#F3B000" />
-                        <polygon points="50,430 170,290 250,250" fill="#F3B000" />
-                        <polygon points="0,250 170,210 250,250" fill="#F3B000" />
-                        <polygon points="50,70 210,170 250,250" fill="#F3B000" />
-                        <circle cx="250" cy="250" r="45" fill="#FFEAA5" />
-                    </svg>
-                );
-            }
-
-            function App() {
-                const [events, setEvents] = useState(() => {
-                    try {
-                        const saved = localStorage.getItem('liveecho_records_palette_v12');
-                        return saved ? JSON.parse(saved) : [];
-                    } catch (e) { return []; }
-                });
-                const [schedules, setSchedules] = useState(() => {
-                    try {
-                        const saved = localStorage.getItem('liveecho_schedules_v12');
-                        return saved ? JSON.parse(saved) : [];
-                    } catch (e) { return []; }
-                });
-                const [userProfile, setUserProfile] = useState(() => {
-                    try {
-                        const saved = localStorage.getItem('liveecho_user_profile_v12');
-                        return saved ? JSON.parse(saved) : { name: 'LiveU', subtitle: 'say something', avatarUrl: '', avatarTransform: { scale: 1, x: 0, y: 0 }, initials: 'LU' };
-                    } catch (e) { return { name: 'LiveU', subtitle: 'say something', avatarUrl: '', avatarTransform: { scale: 1, x: 0, y: 0 }, initials: 'LU' }; }
-                });
-
-                const [activeTab, setActiveTab] = useState('archive');
-                const [viewMode, setViewMode] = useState('list');
-                const [selectedCategory, setSelectedCategory] = useState('all');
-                const [searchQuery, setSearchQuery] = useState('');
-
-                const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
-                const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-                const [isAddScheduleModalOpen, setIsAddScheduleModalOpen] = useState(false);
-                const [editingEvent, setEditingEvent] = useState(null);
-                const [editingSchedule, setEditingSchedule] = useState(null);
-                const [alertMsg, setAlertMsg] = useState(null);
-
-                useEffect(() => {
-                    try { localStorage.setItem('liveecho_records_palette_v12', JSON.stringify(events)); } catch (e) { alert('儲存空間不足，建議清理部分圖片記錄！'); }
-                }, [events]);
-                useEffect(() => { localStorage.setItem('liveecho_schedules_v12', JSON.stringify(schedules)); }, [schedules]);
-                useEffect(() => { localStorage.setItem('liveecho_user_profile_v12', JSON.stringify(userProfile)); }, [userProfile]);
+            const stats = useMemo(() => {
+                const attendedEvents = events.filter(e => e.status === 'attended' || !e.status);
+                const totalCost = events.reduce((sum, e) => sum + (Number(e.cost) || 0), 0);
                 
-                useEffect(() => { 
-                    if (window.lucide) {
-                        try { window.lucide.createIcons(); } catch (e) {}
-                    }
-                });
+                const uniqueVenues = new Set(attendedEvents.map(e => e.venue).filter(Boolean));
+                const uniqueCountries = new Set(attendedEvents.map(e => e.countryCode || 'TW').filter(Boolean));
 
-                const showAlert = (msg) => { setAlertMsg(msg); setTimeout(() => setAlertMsg(null), 3000); };
-
-                const filteredEvents = useMemo(() => {
-                    return events.filter(evt => {
-                        const matchCategory = selectedCategory === 'all' || evt.type === selectedCategory;
-                        const q = (searchQuery || '').toLowerCase().trim();
-                        const matchSearch = (evt.title || '').toLowerCase().includes(q) || 
-                                            (evt.venue || '').toLowerCase().includes(q) || 
-                                            (evt.artist || '').toLowerCase().includes(q);
-                        return matchCategory && matchSearch;
-                    }).sort((a, b) => new Date(b.date) - new Date(a.date));
-                }, [events, selectedCategory, searchQuery]);
-
-                const stats = useMemo(() => {
-                    const attended = events.filter(e => e.status === 'attended' || !e.status);
-                    const totalCost = events.reduce((sum, e) => sum + (Number(e.cost) || 0), 0);
-                    const categoryCounts = {
+                return { 
+                    totalEvents: events.length, 
+                    attendedCount: attendedEvents.length,
+                    totalCost, 
+                    uniqueVenuesCount: uniqueVenues.size,
+                    uniqueCountriesCount: uniqueCountries.size,
+                    categoryCounts: {
                         concert: events.filter(e => e.type === 'concert').length,
                         exhibition: events.filter(e => e.type === 'exhibition').length,
                         movie: events.filter(e => e.type === 'movie').length,
                         book: events.filter(e => e.type === 'book').length,
                         drama: events.filter(e => e.type === 'drama').length,
-                    };
-                    const uniqueArtistsCount = new Set(events.map(e => e.artist).filter(Boolean)).size;
-                    return {
-                        totalEvents: events.length, attendedCount: attended.length, totalCost,
-                        uniqueVenuesCount: new Set(attended.map(e => e.venue).filter(Boolean)).size,
-                        uniqueCountriesCount: new Set(attended.map(e => e.countryName || '台灣').filter(Boolean)).size,
-                        uniqueArtistsCount,
-                        categoryCounts
-                    };
-                }, [events]);
-
-                const handleSaveEvent = (data) => {
-                    if (data.id) {
-                        setEvents(events.map(e => e.id === data.id ? data : e));
-                        showAlert('已成功更新藝文紀錄');
-                    } else {
-                        const created = { ...data, id: 'evt-' + Date.now() };
-                        setEvents([created, ...events]);
-                        showAlert('已成功新增藝文紀錄');
                     }
-                    setEditingEvent(null);
                 };
+            }, [events]);
 
-                const handleDeleteEvent = (id) => {
-                    setEvents(events.filter(e => e.id !== id));
-                    showAlert('已刪除該筆藝文紀錄');
-                };
+            const handleAddEvent = (newEvent) => {
+                const created = { ...newEvent, id: 'evt-' + Date.now() };
+                const updated = [created, ...events];
+                setEvents(updated);
+                setSelectedEventId(created.id);
+                showAlert('已成功新增藝文紀錄並建立地圖足跡');
+            };
 
-                const handleSaveSchedule = (data) => {
-                    if (data.id) {
-                        setSchedules(schedules.map(s => s.id === data.id ? data : s));
-                        showAlert('已成功更新演出排程');
-                    } else {
-                        setSchedules([{ ...data, id: 'sch-' + Date.now() }, ...schedules]);
-                        showAlert('已成功新增演出排程');
-                    }
-                    setEditingSchedule(null);
-                };
+            const handleDeleteEvent = (id) => {
+                const updated = events.filter(e => e.id !== id);
+                setEvents(updated);
+                if (selectedEventId === id && updated.length > 0) {
+                    setSelectedEventId(updated[0].id);
+                }
+                showAlert('已刪除該筆藝文紀錄');
+            };
 
-                const handleDeleteSchedule = (id) => {
-                    setSchedules(schedules.filter(s => s.id !== id));
-                    showAlert('已刪除該筆演出排程');
-                };
+            const handleAddSchedule = (newSch) => {
+                const created = { ...newSch, id: 'sch-' + Date.now() };
+                const updated = [created, ...schedules];
+                setSchedules(updated);
+                showAlert('已成功新增演出排程');
+            };
 
-                const getGoogleMapsUrl = (venue, address) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${venue} ${address || ''}`)}`;
+            const handleDeleteSchedule = (id) => {
+                const updated = schedules.filter(s => s.id !== id);
+                setSchedules(updated);
+                showAlert('已刪除該筆演出排程');
+            };
 
-                const NAV_ITEMS = [
-                    { id: 'archive', label: '藝文紀錄', icon: 'library' },
-                    { id: 'schedule', label: '演出排程', icon: 'calendar-days' },
-                    { id: 'map', label: '星跡map', icon: 'map-pin' },
-                    { id: 'stats', label: '成就統計', icon: 'trophy' }
-                ];
+            const getGoogleMapsUrl = (venue, address) => {
+                const query = encodeURIComponent(`${venue} ${address || ''}`);
+                return `https://www.google.com/maps/search/?api=1&query=${query}`;
+            };
 
-                return (
-                    <div className="app-container max-w-md mx-auto relative text-[#EFF0EA] shadow-2xl">
-                        <header className="app-header px-4 py-2 flex items-center justify-between shrink-0">
-                            <button onClick={() => setIsEditProfileOpen(true)} className="flex items-center gap-2.5 text-left group p-1 -ml-1 rounded-xl hover:bg-[#D2CABF]/10">
+            return (
+                <div className="app-container max-w-md mx-auto border-x border-[#737C75]/30 relative text-[#EFF0EA] shadow-2xl">
+                    
+                    {}
+                    <header className="app-header px-4 py-2.5 flex items-center justify-between shrink-0">
+                        <button 
+                            onClick={() => setIsEditProfileOpen(true)}
+                            className="flex items-center gap-2.5 text-left group transition-all p-1 -ml-1 rounded-xl hover:bg-[#D2CABF]/10 active:scale-95"
+                        >
+                            <div className="relative">
                                 {userProfile.avatarUrl ? (
-                                    <div className="w-8 h-8 rounded-lg overflow-hidden border border-[#C5AB89] relative bg-[#EBEBE9] flex items-center justify-center">
-                                        <img src={userProfile.avatarUrl} alt="Avatar" className="w-full h-full object-contain" style={userProfile.avatarTransform ? { transform: `translate(${userProfile.avatarTransform.x * 0.2}px, ${userProfile.avatarTransform.y * 0.2}px) scale(${userProfile.avatarTransform.scale})` } : {}} />
-                                    </div>
+                                    <img src={userProfile.avatarUrl} alt={userProfile.name} className="w-8 h-8 rounded-lg object-cover border border-[#C5AB89]" />
                                 ) : (
-                                    <div className="w-8 h-8 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center font-black text-xs">{userProfile.initials || 'LU'}</div>
-                                )}
-                                <div>
-                                    <h1 className="font-extrabold text-sm text-[#EFF0EA]">{userProfile.name}</h1>
-                                    <p className="text-[9px] text-[#D2CABF] font-mono">{userProfile.subtitle}</p>
-                                </div>
-                            </button>
-                            <div className="flex items-center gap-2">
-                                {activeTab === 'archive' && (
-                                    <>
-                                        <div className="flex bg-[#161D15] p-0.5 rounded-lg border border-[#737C75]/40">
-                                            <button onClick={() => setViewMode('list')} className={`px-2.5 py-1 rounded-md text-[11px] ${viewMode === 'list' ? 'bg-[#C5AB89] text-[#161D15] font-bold' : 'text-[#D2CABF]'}`}>條列</button>
-                                            <button onClick={() => setViewMode('calendar')} className={`px-2.5 py-1 rounded-md text-[11px] ${viewMode === 'calendar' ? 'bg-[#C5AB89] text-[#161D15] font-bold' : 'text-[#D2CABF]'}`}>月曆</button>
-                                        </div>
-                                        <button onClick={() => setIsAddModalOpen(true)} className="w-8 h-8 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow"><i data-lucide="plus" className="w-4 h-4 font-black"></i></button>
-                                    </>
-                                )}
-                                {activeTab === 'schedule' && (
-                                    <button onClick={() => setIsAddScheduleModalOpen(true)} className="w-8 h-8 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow"><i data-lucide="plus" className="w-4 h-4 font-black"></i></button>
+                                    <div className="w-8 h-8 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center font-black text-xs shadow-md border border-[#CCB9AA]">
+                                        {userProfile.initials || 'LE'}
+                                    </div>
                                 )}
                             </div>
-                        </header>
+                            <div>
+                                <h1 className="font-extrabold text-sm tracking-tight text-[#EFF0EA] group-hover:text-[#C5AB89] transition-colors flex items-center gap-1">
+                                    <span>{userProfile.name}</span>
+                                </h1>
+                                <p className="text-[9px] text-[#D2CABF] uppercase tracking-widest font-mono line-clamp-1">{userProfile.subtitle}</p>
+                            </div>
+                        </button>
 
-                        {alertMsg && <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 bg-[#C5AB89] text-[#161D15] px-4 py-2 rounded-full text-xs font-bold shadow-2xl animate-bounce">{alertMsg}</div>}
+                        <div className="flex items-center gap-2">
+                            {activeTab === 'archive' && (
+                                <>
+                                    <div className="flex bg-[#161D15] p-0.5 rounded-lg border border-[#737C75]/40">
+                                        <button onClick={() => setViewMode('list')} className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${viewMode === 'list' ? 'bg-[#C5AB89] text-[#161D15] font-bold shadow' : 'text-[#D2CABF]'}`}>條列</button>
+                                        <button onClick={() => setViewMode('calendar')} className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${viewMode === 'calendar' ? 'bg-[#C5AB89] text-[#161D15] font-bold shadow' : 'text-[#D2CABF]'}`}>月曆</button>
+                                    </div>
+                                    <button 
+                                        onClick={() => setIsAddModalOpen(true)}
+                                        className="w-8 h-8 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow hover:bg-[#CCB9AA] active:scale-95 transition-all"
+                                        title="新增紀錄"
+                                    >
+                                        <i data-lucide="plus" className="w-4 h-4 font-black"></i>
+                                    </button>
+                                </>
+                            )}
+                            {activeTab === 'schedule' && (
+                                <button 
+                                    onClick={() => setIsAddScheduleModalOpen(true)}
+                                    className="w-8 h-8 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow hover:bg-[#CCB9AA] active:scale-95 transition-all"
+                                    title="新增演出排程"
+                                >
+                                    <i data-lucide="plus" className="w-4 h-4 font-black"></i>
+                                </button>
+                            )}
+                        </div>
+                    </header>
 
-                        <main className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
-                            {activeTab === 'archive' && <ArchiveSection events={filteredEvents} allEvents={events} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} searchQuery={searchQuery} setSearchQuery={setSearchQuery} viewMode={viewMode} onDelete={handleDeleteEvent} onEdit={(evt) => setEditingEvent(evt)} getGoogleMapsUrl={getGoogleMapsUrl} onOpenAddModal={() => setIsAddModalOpen(true)} />}
-                            {activeTab === 'schedule' && <ScheduleSection schedules={schedules} onDelete={handleDeleteSchedule} onEdit={(sch) => setEditingSchedule(sch)} onSaveSchedule={handleSaveSchedule} getGoogleMapsUrl={getGoogleMapsUrl} onOpenAddModal={() => setIsAddScheduleModalOpen(true)} />}
-                            {activeTab === 'map' && <LeafletMapSection events={events} stats={stats} getGoogleMapsUrl={getGoogleMapsUrl} onDelete={handleDeleteEvent} onEdit={(evt) => setEditingEvent(evt)} />}
-                            {activeTab === 'stats' && <StatsSection stats={stats} events={events} />}
-                        </main>
+                    {alertMsg && (
+                        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 bg-[#C5AB89] text-[#161D15] px-4 py-2 rounded-full text-xs font-bold shadow-2xl animate-bounce border border-[#CCB9AA]">
+                            {alertMsg}
+                        </div>
+                    )}
 
-                        {/* ===== iOS 18 Liquid Glass 新版懸浮底導覽列 ===== */}
-                        <nav className="bottom-nav-container w-full">
-                            <div className="liquid-glass-bar p-1.5 flex items-center justify-around max-w-sm mx-auto shadow-2xl">
-                                {NAV_ITEMS.map((item) => {
-                                    const isActive = activeTab === item.id;
+                    {}
+                    <main className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
+                        {activeTab === 'archive' && (
+                            <ArchiveSection 
+                                events={filteredEvents} allEvents={events}
+                                selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory}
+                                searchQuery={searchQuery} setSearchQuery={setSearchQuery}
+                                selectedEvent={selectedEvent} setSelectedEventId={setSelectedEventId}
+                                viewMode={viewMode} onDelete={handleDeleteEvent}
+                                getGoogleMapsUrl={getGoogleMapsUrl}
+                                onOpenAddModal={() => setIsAddModalOpen(true)}
+                            />
+                        )}
+
+                        {activeTab === 'schedule' && (
+                            <ScheduleSection 
+                                schedules={schedules} 
+                                onDelete={handleDeleteSchedule}
+                                getGoogleMapsUrl={getGoogleMapsUrl} 
+                                onOpenAddModal={() => setIsAddScheduleModalOpen(true)}
+                            />
+                        )}
+                        
+                        {activeTab === 'map' && <LeafletMapSection events={events} stats={stats} getGoogleMapsUrl={getGoogleMapsUrl} />}
+                        
+                        {activeTab === 'stats' && <StatsSection stats={stats} events={events} />}
+                    </main>
+
+                    {}
+                    <nav className="bottom-nav ios-glass pt-3 px-4 flex items-center justify-around app-safe-bottom border-t border-[#737C75]/30">
+                        <button onClick={() => setActiveTab('archive')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'archive' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}>
+                            <i data-lucide="library" className="w-5 h-5"></i>
+                            <span className="text-[10px] font-medium">藝文紀錄</span>
+                        </button>
+                        <button onClick={() => setActiveTab('schedule')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'schedule' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}>
+                            <i data-lucide="calendar-days" className="w-5 h-5"></i>
+                            <span className="text-[10px] font-medium">演出排程</span>
+                        </button>
+                        <button onClick={() => setActiveTab('map')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'map' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}>
+                            <i data-lucide="map-pin" className="w-5 h-5"></i>
+                            <span className="text-[10px] font-medium">地圖足跡</span>
+                        </button>
+                        <button onClick={() => setActiveTab('stats')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'stats' ? 'text-[#C5AB89]' : 'text-[#737C75]'}`}>
+                            <i data-lucide="trophy" className="w-5 h-5"></i>
+                            <span className="text-[10px] font-medium">成就統計</span>
+                        </button>
+                    </nav>
+
+                    {/* Modals */}
+                    {isEditProfileOpen && (
+                        <EditProfileModal 
+                            userProfile={userProfile} 
+                            setUserProfile={setUserProfile} 
+                            onClose={() => setIsEditProfileOpen(false)}
+                            showAlert={showAlert}
+                        />
+                    )}
+
+                    {isAddModalOpen && (
+                        <AddEventModal 
+                            onAdd={handleAddEvent}
+                            onClose={() => setIsAddModalOpen(false)}
+                        />
+                    )}
+
+                    {isAddScheduleModalOpen && (
+                        <AddScheduleModal 
+                            onAdd={handleAddSchedule}
+                            onClose={() => setIsAddScheduleModalOpen(false)}
+                        />
+                    )}
+
+                </div>
+            );
+        }
+
+        function EditProfileModal({ userProfile, setUserProfile, onClose, showAlert }) {
+            const [name, setName] = useState(userProfile.name);
+            const [subtitle, setSubtitle] = useState(userProfile.subtitle);
+            const [avatarUrl, setAvatarUrl] = useState(userProfile.avatarUrl);
+            const fileInputRef = useRef(null);
+
+            const handleFileChange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        setAvatarUrl(reader.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            const handleSave = (e) => {
+                e.preventDefault();
+                const initials = name ? name.substring(0, 2).toUpperCase() : 'LE';
+                setUserProfile({ name, subtitle, avatarUrl, initials });
+                showAlert('個人檔案更新成功');
+                onClose();
+            };
+
+            return (
+                <div className="absolute inset-0 modal-overlay bg-black/85 flex items-center justify-center p-4">
+                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-[#D2CABF] space-y-4">
+                        <div className="flex items-center justify-between border-b border-[#D2CABF] pb-3">
+                            <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-2">
+                                <i data-lucide="user-pen" className="w-4 h-4 text-[#737C75]"></i> 編輯個人檔案
+                            </h3>
+                            <button onClick={onClose} className="p-1 text-[#737C75] hover:text-[#161D15]">
+                                <i data-lucide="x" className="w-5 h-5"></i>
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSave} className="space-y-4">
+                            <div className="flex flex-col items-center gap-2">
+                                <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                                    {avatarUrl ? (
+                                        <img src={avatarUrl} alt="Avatar" className="w-20 h-20 rounded-2xl object-cover border-2 border-[#C5AB89] shadow-md" />
+                                    ) : (
+                                        <div className="w-20 h-20 rounded-2xl bg-[#C5AB89] text-[#161D15] flex items-center justify-center font-black text-xl shadow-md border-2 border-[#CCB9AA]">
+                                            {name ? name.substring(0, 2).toUpperCase() : 'LE'}
+                                        </div>
+                                    )}
+                                    <div className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white">
+                                        <i data-lucide="camera" className="w-6 h-6"></i>
+                                    </div>
+                                </div>
+                                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+                                <button type="button" onClick={() => fileInputRef.current?.click()} className="text-xs font-bold text-[#AB8C83] hover:underline">
+                                    從手機相簿選擇大頭貼
+                                </button>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">使用者名稱</label>
+                                <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:border-[#C5AB89]" />
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">副標題 / 狀態</label>
+                                <input type="text" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:border-[#C5AB89]" />
+                            </div>
+
+                            <div className="flex gap-2 pt-2">
+                                <button type="button" onClick={onClose} className="flex-1 py-2 rounded-xl bg-[#EBEBE9] text-[#161D15] font-bold text-xs hover:bg-[#D2CABF]">取消</button>
+                                <button type="submit" className="flex-1 py-2 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">儲存變更</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+
+        function AddEventModal({ onAdd, onClose }) {
+            const [title, setTitle] = useState('');
+            const [type, setType] = useState('concert');
+            const [creator, setCreator] = useState('');
+            const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+            const [time, setTime] = useState('19:30');
+            const [venue, setVenue] = useState('');
+            const [venueAddress, setVenueAddress] = useState('');
+            const [city, setCity] = useState('台北');
+            const [countryCode, setCountryCode] = useState('TW');
+            const [countryName, setCountryName] = useState('台灣');
+            const [cost, setCost] = useState('');
+            const [detailSeat, setDetailSeat] = useState('');
+            const [coverImg, setCoverImg] = useState('');
+            const [notes, setNotes] = useState('');
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                let lat = 25.0330, lng = 121.5654;
+                if(countryCode === 'JP') { lat = 35.68; lng = 139.76; }
+                else if(countryCode === 'KR') { lat = 37.56; lng = 126.97; }
+                else if(countryCode === 'US') { lat = 40.71; lng = -74.00; }
+                else if(countryCode === 'AU') { lat = -37.81; lng = 144.96; }
+                else if(countryCode === 'GB') { lat = 51.50; lng = -0.12; }
+                else if(countryCode === 'TW') { lat = 25.03; lng = 121.56; }
+
+                onAdd({
+                    title,
+                    type,
+                    creator,
+                    date,
+                    time,
+                    venue: venue || '未指定場館',
+                    venueAddress: venueAddress || venue || '台灣',
+                    city: city || '台北',
+                    countryCode,
+                    countryName,
+                    lat,
+                    lng,
+                    status: 'attended',
+                    cost: Number(cost) || 0,
+                    detailSeat,
+                    coverImg: coverImg || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
+                    notes
+                });
+                onClose();
+            };
+
+            return (
+                <div className="absolute inset-0 modal-overlay bg-black/85 flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-[#D2CABF] space-y-4 my-auto">
+                        <div className="flex items-center justify-between border-b border-[#D2CABF] pb-3">
+                            <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-2">
+                                <i data-lucide="ticket-plus" className="w-4 h-4 text-[#737C75]"></i> 新增藝文紀錄 & 地圖足跡
+                            </h3>
+                            <button onClick={onClose} className="p-1 text-[#737C75] hover:text-[#161D15]">
+                                <i data-lucide="x" className="w-5 h-5"></i>
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-3">
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">活動分類</label>
+                                <select value={type} onChange={(e) => setType(e.target.value)} className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]">
+                                    {Object.entries(CATEGORIES).map(([k, v]) => (
+                                        <option key={k} value={k}>{v.emoji} {v.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">活動名稱</label>
+                                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例如：Coldplay 演唱會" required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group space-y-1">
+                                    <label className="text-[11px] font-bold text-[#737C75] block">國家</label>
+                                    <select value={countryCode} onChange={(e) => {
+                                        const val = e.target.value;
+                                        setCountryCode(val);
+                                        if(val === 'TW') setCountryName('台灣');
+                                        else if(val === 'JP') setCountryName('日本');
+                                        else if(val === 'KR') setCountryName('南韓');
+                                        else if(val === 'US') setCountryName('美國');
+                                        else if(val === 'AU') setCountryName('澳大利亞');
+                                        else if(val === 'GB') setCountryName('英國');
+                                    }} className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]">
+                                        <option value="TW">台灣 (TW)</option>
+                                        <option value="JP">日本 (JP)</option>
+                                        <option value="KR">南韓 (KR)</option>
+                                        <option value="US">美國 (US)</option>
+                                        <option value="AU">澳大利亞 (AU)</option>
+                                        <option value="GB">英國 (GB)</option>
+                                    </select>
+                                </div>
+                                <div className="form-group space-y-1">
+                                    <label className="text-[11px] font-bold text-[#737C75] block">城市</label>
+                                    <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="例如：台北" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">場館名稱</label>
+                                <input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="例如：台北小巨蛋" required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">地址</label>
+                                <input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} placeholder="例如：台北市松山區南京東路四段2號" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="form-group space-y-1">
+                                    <label className="text-[11px] font-bold text-[#737C75] block">日期</label>
+                                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                                </div>
+                                <div className="form-group space-y-1">
+                                    <label className="text-[11px] font-bold text-[#737C75] block">票價 (NT$)</label>
+                                    <input type="number" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="5800" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">心得筆記</label>
+                                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows="2" placeholder="寫下您的觀後感..." className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]"></textarea>
+                            </div>
+
+                            <div className="flex gap-2 pt-2">
+                                <button type="button" onClick={onClose} className="flex-1 py-2 rounded-xl bg-[#EBEBE9] text-[#161D15] font-bold text-xs hover:bg-[#D2CABF]">取消</button>
+                                <button type="submit" className="flex-1 py-2 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">確認新增</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+
+        function AddScheduleModal({ onAdd, onClose }) {
+            const [title, setTitle] = useState('');
+            const [organizer, setOrganizer] = useState('');
+            const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+            const [venue, setVenue] = useState('');
+            const [venueAddress, setVenueAddress] = useState('');
+            const [city, setCity] = useState('台北');
+            const [status, setStatus] = useState('即將開賣');
+            const [priceRange, setPriceRange] = useState('NT$ 1,000 - 3,500');
+            const [ticketLink, setTicketLink] = useState('https://tixcraft.com');
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onAdd({
+                    title,
+                    organizer: organizer || '主辦單位',
+                    date,
+                    venue: venue || '未定場館',
+                    venueAddress: venueAddress || venue || '台灣',
+                    city: city || '台北',
+                    status,
+                    priceRange,
+                    ticketLink: ticketLink || 'https://tixcraft.com'
+                });
+                onClose();
+            };
+
+            return (
+                <div className="absolute inset-0 modal-overlay bg-black/85 flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-[#D2CABF] space-y-4 my-auto">
+                        <div className="flex items-center justify-between border-b border-[#D2CABF] pb-3">
+                            <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-2">
+                                <i data-lucide="calendar-plus" className="w-4 h-4 text-[#737C75]"></i> 新增演出排程
+                            </h3>
+                            <button onClick={onClose} className="p-1 text-[#737C75] hover:text-[#161D15]">
+                                <i data-lucide="x" className="w-5 h-5"></i>
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-3">
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">活動名稱</label>
+                                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例如：五月天演唱會" required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group space-y-1">
+                                    <label className="text-[11px] font-bold text-[#737C75] block">主辦單位</label>
+                                    <input type="text" value={organizer} onChange={(e) => setOrganizer(e.target.value)} placeholder="例如：相信音樂" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                                </div>
+                                <div className="form-group space-y-1">
+                                    <label className="text-[11px] font-bold text-[#737C75] block">日期</label>
+                                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">場館名稱</label>
+                                <input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="例如：台北小巨蛋" required className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">地址</label>
+                                <input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} placeholder="例如：台北市松山區..." className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group space-y-1">
+                                    <label className="text-[11px] font-bold text-[#737C75] block">售票狀態</label>
+                                    <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]">
+                                        <option value="即將開賣">即將開賣</option>
+                                        <option value="售票中">售票中</option>
+                                        <option value="已完售">已完售</option>
+                                    </select>
+                                </div>
+                                <div className="form-group space-y-1">
+                                    <label className="text-[11px] font-bold text-[#737C75] block">票價範圍</label>
+                                    <input type="text" value={priceRange} onChange={(e) => setPriceRange(e.target.value)} placeholder="NT$ 800 - 3,800" className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#737C75]">售票連結網址</label>
+                                <input type="url" value={ticketLink} onChange={(e) => setTicketLink(e.target.value)} placeholder="https://..." className="w-full bg-white text-[#161D15] px-3 py-2 rounded-xl text-xs font-medium border border-[#D2CABF]" />
+                            </div>
+
+                            <div className="flex gap-2 pt-2">
+                                <button type="button" onClick={onClose} className="flex-1 py-2 rounded-xl bg-[#EBEBE9] text-[#161D15] font-bold text-xs hover:bg-[#D2CABF]">取消</button>
+                                <button type="submit" className="flex-1 py-2 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">確認新增</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+
+        function EventDetailModal({ event, onClose, onDelete, getGoogleMapsUrl }) {
+            if (!event) return null;
+            const cat = CATEGORIES[event.type] || CATEGORIES.concert;
+            const mapsUrl = getGoogleMapsUrl(event.venue, event.venueAddress);
+
+            return (
+                <div className="absolute inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-[#D2CABF] my-auto flex flex-col max-h-[85vh]">
+                        <div className="relative h-48 bg-[#D2CABF] shrink-0">
+                            <img src={event.coverImg} alt={event.title} className="w-full h-full object-cover" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80'; }} />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-4">
+                                <div>
+                                    <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${cat.badgeBg} inline-block mb-1`}>{cat.emoji} {cat.label}</span>
+                                    <h2 className="text-white font-black text-base leading-snug">{event.title}</h2>
+                                </div>
+                            </div>
+                            <button onClick={onClose} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center backdrop-blur-md hover:bg-black/70">
+                                <i data-lucide="x" className="w-4 h-4"></i>
+                            </button>
+                        </div>
+
+                        <div className="p-4 space-y-3 overflow-y-auto flex-1 text-xs">
+                            <div className="grid grid-cols-2 gap-2 bg-[#EBEBE9] p-3 rounded-2xl">
+                                <div>
+                                    <span className="text-[10px] text-[#737C75] font-bold block">演出日期</span>
+                                    <span className="font-mono font-bold text-[#161D15]">{event.date} {event.time}</span>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] text-[#737C75] font-bold block">票價花費</span>
+                                    <span className="font-mono font-bold text-[#161D15]">NT$ {Number(event.cost || 0).toLocaleString()}</span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-1 bg-white p-3 rounded-2xl border border-[#D2CABF]">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <span className="text-[10px] text-[#737C75] font-bold block">舉辦場館</span>
+                                        <p className="font-bold text-[#161D15] text-sm">{event.venue || '無'}</p>
+                                        <p className="text-[11px] text-[#737C75]">{event.venueAddress || '無地址資訊'}</p>
+                                    </div>
+                                    <a href={mapsUrl} target="_blank" rel="noreferrer" className="px-3 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-black text-xs hover:bg-[#CCB9AA] flex items-center gap-1.5 shadow">
+                                        <i data-lucide="map-pin" className="w-3.5 h-3.5"></i> Google Maps
+                                    </a>
+                                </div>
+                            </div>
+
+                            {event.notes && (
+                                <div className="space-y-1 bg-white p-3 rounded-2xl border border-[#D2CABF]">
+                                    <span className="text-[10px] text-[#737C75] font-bold block">心得筆記</span>
+                                    <p className="text-[#161D15] leading-relaxed">{event.notes}</p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="p-3 bg-[#EBEBE9] border-t border-[#D2CABF] flex gap-2">
+                            <button onClick={() => { onDelete(event.id); onClose(); }} className="flex-1 py-2.5 rounded-xl bg-red-600/90 text-white font-bold text-xs hover:bg-red-700 flex items-center justify-center gap-1.5 shadow">
+                                <i data-lucide="trash-2" className="w-4 h-4"></i> 刪除紀錄
+                            </button>
+                            <button onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">關閉</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function LeafletMapSection({ events, stats, getGoogleMapsUrl }) {
+            const mapContainerRef = useRef(null);
+            const mapInstanceRef = useRef(null);
+            const [selectedCountryInfo, setSelectedCountryInfo] = useState(null);
+            const [selectedEventModal, setSelectedEventModal] = useState(null);
+
+            const countryEventsMap = useMemo(() => {
+                const map = {};
+                events.forEach(evt => {
+                    if (evt.status === 'wishlist') return;
+                    const code = evt.countryCode || 'TW';
+                    if (!map[code]) {
+                        map[code] = {
+                            code,
+                            name: evt.countryName || (code === 'JP' ? '日本' : code === 'AU' ? '澳大利亞' : '台灣'),
+                            events: [],
+                            venues: new Set()
+                        };
+                    }
+                    map[code].events.push(evt);
+                    if (evt.venue) map[code].venues.add(evt.venue);
+                });
+                return map;
+            }, [events]);
+
+            const visitedCountryCodes = useMemo(() => Object.keys(countryEventsMap), [countryEventsMap]);
+
+            useEffect(() => {
+                if (!mapContainerRef.current) return;
+
+                if (!mapInstanceRef.current) {
+                    const map = L.map(mapContainerRef.current, {
+                        zoomControl: false,
+                        attributionControl: false,
+                        minZoom: 2,
+                        maxBounds: [[-90, -180], [90, 180]],
+                        maxBoundsViscosity: 1.0
+                    }).setView([25.033, 121.565], 3);
+
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        noWrap: true
+                    }).addTo(map);
+
+                    mapInstanceRef.current = map;
+
+                    fetch('https://raw.githubusercontent.com/datasets/geo-boundaries-world-110m/master/countries.geojson')
+                        .then(res => res.json())
+                        .then(data => {
+                            L.geoJSON(data, {
+                                style: (feature) => {
+                                    const props = feature.properties || {};
+                                    const name = props.name || props.ADMIN || '';
+                                    const iso = props.ISO_A2 || props.iso_a2 || '';
+
+                                    let isVisited = false;
+                                    if (visitedCountryCodes.includes('TW') && (name.includes('Taiwan') || iso === 'TW')) isVisited = true;
+                                    if (visitedCountryCodes.includes('JP') && (name.includes('Japan') || iso === 'JP')) isVisited = true;
+                                    if (visitedCountryCodes.includes('AU') && (name.includes('Australia') || iso === 'AU')) isVisited = true;
+                                    if (visitedCountryCodes.includes('US') && (name.includes('United States') || iso === 'US')) isVisited = true;
+                                    if (visitedCountryCodes.includes('KR') && (name.includes('Korea') || iso === 'KR')) isVisited = true;
+                                    if (visitedCountryCodes.includes('GB') && (name.includes('United Kingdom') || iso === 'GB')) isVisited = true;
+
+                                    return {
+                                        fillColor: isVisited ? '#C2A175' : '#1A2218',
+                                        fillOpacity: isVisited ? 0.45 : 0.2,
+                                        color: isVisited ? '#C5AB89' : '#2A3626',
+                                        weight: isVisited ? 1.5 : 0.8
+                                    };
+                                },
+                                onEachFeature: (feature, layer) => {
+                                    const props = feature.properties || {};
+                                    const name = props.name || props.ADMIN || '未知區域';
+                                    const iso = props.ISO_A2 || props.iso_a2 || '';
+
+                                    layer.on({
+                                        click: (e) => {
+                                            L.DomEvent.stopPropagation(e);
+                                            let matchedCode = null;
+                                            if (name.includes('Taiwan') || iso === 'TW') matchedCode = 'TW';
+                                            else if (name.includes('Japan') || iso === 'JP') matchedCode = 'JP';
+                                            else if (name.includes('Australia') || iso === 'AU') matchedCode = 'AU';
+                                            else if (name.includes('United States') || iso === 'US') matchedCode = 'US';
+                                            else if (name.includes('Korea') || iso === 'KR') matchedCode = 'KR';
+                                            else if (name.includes('United Kingdom') || iso === 'GB') matchedCode = 'GB';
+
+                                            if (matchedCode && countryEventsMap[matchedCode]) {
+                                                setSelectedCountryInfo(countryEventsMap[matchedCode]);
+                                            } else {
+                                                setSelectedCountryInfo({ code: iso, name: name, events: [], venues: new Set() });
+                                            }
+                                        },
+                                        mouseover: (e) => {
+                                            const l = e.target;
+                                            l.setStyle({ fillOpacity: 0.65, weight: 2 });
+                                        },
+                                        mouseout: (e) => {
+                                            const l = e.target;
+                                            l.setStyle({ fillOpacity: 0.45, weight: 1.5 });
+                                        }
+                                    });
+                                }
+                            }).addTo(map);
+                        }).catch(err => {
+                            console.log('GeoJSON load note:', err);
+                        });
+
+                    events.forEach((evt, index) => {
+                        if (!evt.lat || !evt.lng || evt.status === 'wishlist') return;
+                        const markerNumber = index + 1;
+                        const iconHtml = `<div class="custom-numeric-marker w-7 h-7 flex items-center justify-center">${markerNumber}</div>`;
+                        
+                        const customIcon = L.divIcon({
+                            className: 'custom-div-icon',
+                            html: iconHtml,
+                            iconSize: [28, 28],
+                            iconAnchor: [14, 14]
+                        });
+
+                        const marker = L.marker([evt.lat, evt.lng], { icon: customIcon }).addTo(map);
+                        marker.on('click', () => {
+                            setSelectedEventModal(evt);
+                        });
+                    });
+
+                    setTimeout(() => {
+                        map.invalidateSize();
+                    }, 100);
+                }
+
+                return () => {
+                    if (mapInstanceRef.current) {
+                        mapInstanceRef.current.remove();
+                        mapInstanceRef.current = null;
+                    }
+                };
+            }, [events, visitedCountryCodes]);
+
+            const handleZoomIn = () => { if (mapInstanceRef.current) mapInstanceRef.current.zoomIn(); };
+            const handleZoomOut = () => { if (mapInstanceRef.current) mapInstanceRef.current.zoomOut(); };
+            const handleLocateMe = () => {
+                if (mapInstanceRef.current) {
+                    mapInstanceRef.current.setView([25.033, 121.565], 5);
+                    mapInstanceRef.current.invalidateSize();
+                }
+            };
+
+            return (
+                <div id="map-wrapper" className="relative flex-1 w-full flex flex-col bg-[#000000] overflow-hidden">
+                    {/* Top Stats Card and Controls Overlay inside flex map with z-index 999 */}
+                    <div className="absolute top-3 left-4 right-4 z-[999] flex items-center justify-between pointer-events-none top-stats-card">
+                        <div className="ios-glass px-3 py-1.5 rounded-full shadow-xl border border-[#737C75]/30 pointer-events-auto backdrop-blur-md flex items-center gap-2">
+                            <span className="text-[10px] font-bold text-[#C5AB89] tracking-wider whitespace-nowrap">🌍 藝文足跡</span>
+                            <span className="text-[10px] text-[#EFF0EA]/80 font-mono truncate">
+                                <strong className="text-[#C5AB89]">{stats.uniqueCountriesCount}</strong> 國 · <strong className="text-[#C5AB89]">{stats.uniqueVenuesCount}</strong> 場館 · <strong className="text-[#C5AB89]">{stats.attendedCount}</strong> 場
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="absolute top-3 right-4 z-[999] flex flex-col">
+                        <button 
+                            onClick={handleZoomIn} 
+                            style={{ marginBottom: '8px' }}
+                            className="ios-glass w-9 h-9 rounded-xl flex items-center justify-center shadow-xl text-[#C5AB89] hover:text-white border border-[#737C75]/30 active:scale-95 transition-all font-bold text-base" 
+                            title="放大"
+                        >
+                            +
+                        </button>
+                        <button 
+                            onClick={handleZoomOut} 
+                            style={{ marginBottom: '8px' }}
+                            className="ios-glass w-9 h-9 rounded-xl flex items-center justify-center shadow-xl text-[#C5AB89] hover:text-white border border-[#737C75]/30 active:scale-95 transition-all font-bold text-base" 
+                            title="縮小"
+                        >
+                            -
+                        </button>
+                        <button 
+                            onClick={handleLocateMe} 
+                            className="ios-glass w-9 h-9 rounded-xl flex items-center justify-center shadow-xl text-[#C5AB89] hover:text-white border border-[#737C75]/30 active:scale-95 transition-all" 
+                            title="回到定位點"
+                        >
+                            <i data-lucide="locate-fixed" className="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <div ref={mapContainerRef} id="map" className="w-full h-full flex-1 bg-[#000000]"></div>
+
+                    {selectedCountryInfo && (
+                        <div className="absolute bottom-4 left-4 right-4 z-[1000] animate-in fade-in slide-in-from-bottom-5 duration-300">
+                            <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-5 shadow-2xl border-2 border-[#C5AB89] space-y-3 relative">
+                                <button onClick={() => setSelectedCountryInfo(null)} className="absolute top-4 right-4 w-7 h-7 rounded-full bg-[#EBEBE9] text-[#161D15] flex items-center justify-center hover:bg-[#D2CABF]">
+                                    <i data-lucide="x" className="w-4 h-4"></i>
+                                </button>
+
+                                <div className="space-y-1 pr-6">
+                                    <div className="flex items-center gap-2">
+                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#C5AB89] text-[#161D15]">
+                                            國家足跡概覽
+                                        </span>
+                                        <span className="text-[10px] font-mono text-[#737C75]">✈️ {selectedCountryInfo.venues.size} 個場館</span>
+                                    </div>
+                                    <h3 className="font-black text-base text-[#161D15] leading-snug">{selectedCountryInfo.name}</h3>
+                                    <p className="text-[11px] text-[#737C75]">共參加 {selectedCountryInfo.events.length} 場藝文活動</p>
+                                </div>
+
+                                {selectedCountryInfo.events.length > 0 ? (
+                                    <div className="bg-white p-3 rounded-2xl border border-[#D2CABF] flex items-center gap-3">
+                                        <img src={selectedCountryInfo.events[0].coverImg} alt="Cover" className="w-14 h-14 rounded-xl object-cover shrink-0 border border-[#D2CABF]" />
+                                        <div className="flex-1 min-w-0 space-y-1">
+                                            <div className="flex items-center justify-between text-[10px] font-bold text-[#737C75]">
+                                                <span>最近活動</span>
+                                                <span className="font-mono">{selectedCountryInfo.events[0].date}</span>
+                                            </div>
+                                            <p className="font-extrabold text-xs text-[#161D15] truncate">{selectedCountryInfo.events[0].title}</p>
+                                            <button onClick={() => setSelectedEventModal(selectedCountryInfo.events[0])} className="text-[11px] font-black text-[#AB8C83] hover:underline">
+                                                [查看完整活動紀錄]
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="p-3 bg-white rounded-2xl border border-[#D2CABF] text-center text-xs text-[#737C75]">
+                                        尚無在此國家的藝文活動紀錄
+                                    </div>
+                                )}
+
+                                <button onClick={() => setSelectedCountryInfo(null)} className="w-full py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs hover:bg-[#737C75]">
+                                    關閉面板
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {selectedEventModal && (
+                        <EventDetailModal event={selectedEventModal} onClose={() => setSelectedEventModal(null)} onDelete={() => {}} getGoogleMapsUrl={getGoogleMapsUrl} />
+                    )}
+                </div>
+            );
+        }
+
+        function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCategory, searchQuery, setSearchQuery, viewMode, onDelete, getGoogleMapsUrl, onOpenAddModal }) {
+            const [detailEvent, setDetailEvent] = useState(null);
+            const [calendarDate, setCalendarDate] = useState(new Date());
+
+            const year = calendarDate.getFullYear();
+            const month = calendarDate.getMonth();
+
+            const calendarDays = useMemo(() => {
+                const firstDayIndex = new Date(year, month, 1).getDay();
+                const totalDays = new Date(year, month + 1, 0).getDate();
+                const days = [];
+                for (let i = 0; i < firstDayIndex; i++) days.push(null);
+                for (let i = 1; i <= totalDays; i++) {
+                    const mStr = String(month + 1).padStart(2, '0');
+                    const dStr = String(i).padStart(2, '0');
+                    const dateStr = `${year}-${mStr}-${dStr}`;
+                    const dayEvents = allEvents.filter(e => e.date === dateStr);
+                    days.push({ day: i, dateStr, events: dayEvents });
+                }
+                return days;
+            }, [year, month, allEvents]);
+
+            return (
+                <div className="space-y-4 p-4 pb-24">
+                    <div className="space-y-2.5">
+                        <div className="relative">
+                            <i data-lucide="search" className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#737C75]"></i>
+                            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="搜尋名稱、演出者、場館..." className="w-full bg-[#EFF0EA] text-[#161D15] placeholder-[#737C75] pl-9 pr-8 py-2 rounded-xl text-xs font-medium border border-[#D2CABF] focus:outline-none focus:border-[#C5AB89] shadow-inner" />
+                        </div>
+                        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
+                            <button onClick={() => setSelectedCategory('all')} className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm flex items-center gap-1 ${selectedCategory === 'all' ? 'bg-[#C5AB89] text-[#161D15]' : 'bg-[#EFF0EA] text-[#161D15]/80 hover:bg-[#D2CABF]'}`}>
+                                <span>✨ 全部</span><span className="text-[10px] opacity-75 font-mono">({allEvents.length})</span>
+                            </button>
+                            {Object.entries(CATEGORIES).map(([catKey, cat]) => {
+                                const count = allEvents.filter(e => e.type === catKey).length;
+                                const isSelected = selectedCategory === catKey;
+                                return (
+                                    <button key={catKey} onClick={() => setSelectedCategory(catKey)} className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm flex items-center gap-1 ${isSelected ? `${cat.badgeBg} ring-1 ring-[#161D15]/20` : 'bg-[#EFF0EA] text-[#161D15]/80 hover:bg-[#D2CABF]'}`}>
+                                        <span>{cat.emoji} {cat.label}</span><span className="text-[10px] opacity-75 font-mono">({count})</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {viewMode === 'calendar' ? (
+                        <div className="bg-[#EFF0EA] text-[#161D15] p-4 rounded-3xl shadow-lg border border-[#D2CABF] space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="font-extrabold text-sm font-mono">{year} 年 {month + 1} 月</h3>
+                                <div className="flex gap-1">
+                                    <button onClick={() => setCalendarDate(new Date(year, month - 1, 1))} className="p-1.5 rounded-lg bg-[#EBEBE9] hover:bg-[#D2CABF]"><i data-lucide="chevron-left" className="w-4 h-4"></i></button>
+                                    <button onClick={() => setCalendarDate(new Date(year, month + 1, 1))} className="p-1.5 rounded-lg bg-[#EBEBE9] hover:bg-[#D2CABF]"><i data-lucide="chevron-right" className="w-4 h-4"></i></button>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-7 gap-1 text-center font-bold text-[10px] text-[#737C75]">
+                                <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+                            </div>
+                            <div className="grid grid-cols-7 gap-1">
+                                {calendarDays.map((item, idx) => {
+                                    if (!item) return <div key={idx} className="h-10"></div>;
+                                    const hasEvent = item.events.length > 0;
                                     return (
-                                        <button
-                                            key={item.id}
-                                            onClick={() => setActiveTab(item.id)}
-                                            className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-full transition-all duration-300 relative outline-none focus:outline-none focus-visible:outline-none border border-transparent ${
-                                                isActive 
-                                                    ? 'liquid-tab-active font-bold scale-105' 
-                                                    : 'text-[#D2CABF]/70 hover:text-[#EFF0EA] active:scale-95'
-                                            }`}
-                                        >
-                                            <i data-lucide={item.icon} className={`w-5 h-5 transition-transform duration-300 ${isActive ? 'scale-110 stroke-[2.2]' : 'stroke-[1.8]'}`}></i>
-                                            <span className="text-[10px] mt-0.5 tracking-tight font-medium">{item.label}</span>
-                                        </button>
+                                        <div key={idx} onClick={() => { if (hasEvent) setDetailEvent(item.events[0]); }} className={`h-10 rounded-xl flex flex-col items-center justify-center relative transition-all ${hasEvent ? 'bg-[#C5AB89] text-[#161D15] font-black cursor-pointer shadow hover:scale-105' : 'bg-[#EBEBE9] text-[#161D15]/60'}`}>
+                                            <span className="text-xs">{item.day}</span>
+                                            {hasEvent && <span className="w-1.5 h-1.5 rounded-full bg-[#161D15] mt-0.5"></span>}
+                                        </div>
                                     );
                                 })}
                             </div>
-                        </nav>
-
-                        {isEditProfileOpen && <EditProfileModal userProfile={userProfile} setUserProfile={setUserProfile} onClose={() => setIsEditProfileOpen(false)} showAlert={showAlert} />}
-                        {(isAddModalOpen || editingEvent) && <AddEventModal initialData={editingEvent} onSave={handleSaveEvent} onClose={() => { setIsAddModalOpen(false); setEditingEvent(null); }} />}
-                        {(isAddScheduleModalOpen || editingSchedule) && <AddScheduleModal initialData={editingSchedule} onSave={handleSaveSchedule} onDelete={handleDeleteSchedule} onClose={() => { setIsAddScheduleModalOpen(false); setEditingSchedule(null); }} />}
-                    </div>
-                );
-            }
-
-            function EditProfileModal({ userProfile, setUserProfile, onClose, showAlert }) {
-                const [name, setName] = useState(userProfile.name);
-                const [subtitle, setSubtitle] = useState(userProfile.subtitle);
-                const [avatarUrl, setAvatarUrl] = useState(userProfile.avatarUrl);
-                const [avatarTransform, setAvatarTransform] = useState(userProfile.avatarTransform || { scale: 1, x: 0, y: 0 });
-                const fileRef = useRef(null);
-
-                const handleSave = async (e) => {
-                    e.preventDefault();
-                    setUserProfile({
-                        name,
-                        subtitle,
-                        avatarUrl,
-                        avatarTransform,
-                        initials: name ? name.substring(0, 2).toUpperCase() : 'LU'
-                    });
-                    showAlert('個人檔案更新成功');
-                    onClose();
-                };
-
-                return (
-                    <div className="modal-overlay bg-black/85">
-                        <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-[#D2CABF] space-y-4 my-auto max-h-[90vh] overflow-y-auto no-scrollbar">
-                            <div className="flex items-center justify-between pb-1">
-                                <h3 className="font-extrabold text-sm"><i data-lucide="user-pen" className="w-4 h-4 inline"></i> 編輯個人檔案</h3>
-                            </div>
-                            <form onSubmit={handleSave} className="space-y-4">
-                                <div className="flex flex-col items-center gap-2 pt-4 pb-2">
-                                    <div 
-                                        onClick={() => fileRef.current?.click()}
-                                        className="w-40 h-40 rounded-2xl overflow-hidden border-2 border-solid border-[#C5AB89] relative bg-[#EBEBE9] flex items-center justify-center shadow-inner cursor-pointer hover:opacity-95 transition-opacity"
-                                    >
-                                        {avatarUrl ? (
-                                            <TouchImageTransform src={avatarUrl} initialTransform={avatarTransform} onChange={setAvatarTransform} className="w-full h-full object-contain" />
-                                        ) : (
-                                            <div className="text-center p-2">
-                                                <i data-lucide="image-plus" className="w-10 h-10 mx-auto text-[#737C75] mb-1"></i>
-                                                <span className="text-[11px] font-bold text-[#737C75]">點擊選擇照片</span>
-                                            </div>
-                                        )}
-                                        <input type="file" ref={fileRef} onChange={async (e) => { if (e.target.files[0]) { setAvatarUrl(await compressImageFile(e.target.files[0], 2400, 2400, 0.95)); setAvatarTransform({ scale: 1, x: 0, y: 0 }); } }} accept="image/*" className="hidden" />
-                                    </div>
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#737C75]">稱呼</label>
-                                    <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#737C75]">簡介</label>
-                                    <input type="text" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" />
-                                </div>
-                                <div className="flex gap-2 pt-2">
-                                    <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-bold">取消</button>
-                                    <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] text-xs font-bold">儲存變更</button>
-                                </div>
-                            </form>
                         </div>
-                    </div>
-                );
-            }
-
-            function AddEventModal({ initialData, onSave, onClose }) {
-                const [title, setTitle] = useState(initialData?.title || '');
-                const [type, setType] = useState(initialData?.type || 'concert');
-                const [date, setDate] = useState(initialData?.date || new Date().toISOString().slice(0, 10));
-                const [time, setTime] = useState(initialData?.time || '19:30');
-                const [venue, setVenue] = useState(initialData?.venue || '');
-                const [venueAddress, setVenueAddress] = useState(initialData?.venueAddress || '');
-                const [artist, setArtist] = useState(initialData?.artist || '');
-                const [city, setCity] = useState(initialData?.city || '台北');
-                const [countryName, setCountryName] = useState(initialData?.countryName || '台灣');
-                const [cost, setCost] = useState(initialData?.cost || '');
-                const [detailSeat, setDetailSeat] = useState(initialData?.detailSeat || '');
-                const [spotifyUrl, setSpotifyUrl] = useState(initialData?.spotifyUrl || '');
-                const [notes, setNotes] = useState(initialData?.notes || '');
-                const [coverImg, setCoverImg] = useState(initialData?.coverImg || '');
-                const [imageTransform, setImageTransform] = useState(initialData?.imageTransform || { scale: 1, x: 0, y: 0 });
-                
-                const [lat, setLat] = useState(initialData?.lat || null);
-                const [lng, setLng] = useState(initialData?.lng || null);
-
-                const fileRef = useRef(null);
-
-                const handleVenueChange = (e) => {
-                    const val = e.target.value; 
-                    setVenue(val);
-                    const matchedKey = Object.keys(venueDb).find(k => k.toLowerCase().trim() === val.toLowerCase().trim());
-                    if (matchedKey) {
-                        const m = venueDb[matchedKey];
-                        setVenueAddress(m.address); 
-                        setCity(m.city); 
-                        setCountryName(m.country);
-                        setLat(m.lat);
-                        setLng(m.lng);
-                    }
-                };
-
-                const handleSubmit = async (e) => {
-                    e.preventDefault();
-                    const resolved = resolveCountryInfo(countryName);
-                    const finalImg = await compressImageFile(coverImg, 2400, 2400, 0.95);
-
-                    const finalLat = lat !== null ? Number(lat) : resolved.lat;
-                    const finalLng = lng !== null ? Number(lng) : resolved.lng;
-
-                    onSave({
-                        id: initialData?.id || null, title, type, date, time,
-                        venue: venue || '未指定場館', venueAddress: venueAddress || venue || '台灣',
-                        artist: artist || '',
-                        city: city || '台北', countryCode: resolved.code, countryName: resolved.name,
-                        lat: finalLat, lng: finalLng, status: 'attended',
-                        cost: Number(cost) || 0, detailSeat, coverImg: finalImg, imageTransform, spotifyUrl, notes
-                    });
-                    onClose();
-                };
-
-                return (
-                    <div className="modal-overlay bg-black/85">
-                        <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[85vh] flex flex-col">
-                            <div className="flex items-center justify-between pb-1 shrink-0">
-                                <h3 className="font-extrabold text-sm"><i data-lucide="ticket-plus" className="w-4 h-4 inline"></i> {initialData ? '編輯藝文紀錄' : '新增藝文紀錄'}</h3>
-                            </div>
-                            <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar">
-                                <div className="bg-white p-3 rounded-2xl border border-[#D2CABF] space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <label className="text-[11px] font-bold text-[#737C75]">圖片調整</label>
+                    ) : (
+                        <div className="space-y-3">
+                            {events.length === 0 ? (
+                                <div className="text-center py-16 bg-[#EFF0EA]/5 border border-dashed border-[#737C75]/40 rounded-3xl p-6 space-y-3">
+                                    <div className="w-12 h-12 rounded-2xl bg-[#C5AB89]/10 text-[#C5AB89] flex items-center justify-center mx-auto">
+                                        <i data-lucide="ticket" className="w-6 h-6"></i>
                                     </div>
-                                    <div 
-                                        onClick={() => fileRef.current?.click()}
-                                        className="w-full h-40 rounded-xl overflow-hidden bg-[#EBEBE9] border border-[#D2CABF] relative flex items-center justify-center cursor-pointer hover:opacity-95 transition-opacity shadow-inner"
-                                    >
-                                        {coverImg ? (
-                                            <TouchImageTransform src={coverImg} initialTransform={imageTransform} onChange={setImageTransform} className="w-full h-full object-contain" />
-                                        ) : (
-                                            <div className="text-center p-2">
-                                                <i data-lucide="image-plus" className="w-8 h-8 mx-auto text-[#737C75] mb-1"></i>
-                                                <span className="text-[11px] font-bold text-[#737C75]">點擊新增照片</span>
-                                            </div>
-                                        )}
-                                        <input type="file" ref={fileRef} onChange={async (e) => { if(e.target.files[0]) { setCoverImg(await compressImageFile(e.target.files[0], 2400, 2400, 0.95)); setImageTransform({ scale: 1, x: 0, y: 0 }); }}} accept="image/*" className="hidden" />
-                                    </div>
-                                </div>
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">活動分類</label><select value={type} onChange={(e) => setType(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]">{Object.entries(CATEGORIES).map(([k, v]) => <option key={k} value={k}>{v.emoji} {v.label}</option>)}</select></div>
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">活動名稱</label><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">演出藝人</label><input type="text" value={artist} onChange={(e) => setArtist(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">場館名稱</label><input type="text" value={venue} onChange={handleVenueChange} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">國家</label><input type="text" value={countryName} onChange={(e) => setCountryName(e.target.value)} required className="w-full h-9 bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">城市</label><input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="w-full h-9 bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                </div>
-                                
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">日期</label><input type="text" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">票價 (NT)</label><input type="text" value={cost} onChange={(e) => setCost(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                </div>
-                                
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">座位＆票區資訊</label><input type="text" value={detailSeat} onChange={(e) => setDetailSeat(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">開演時間</label><input type="text" value={time} onChange={(e) => setTime(e.target.value)} placeholder="19:30" className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                </div>
-
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">Spotify 歌單</label><input type="text" value={spotifyUrl} onChange={(e) => setSpotifyUrl(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">心得筆記</label><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows="2" className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF] resize-none"></textarea></div>
-                                <div className="flex gap-2 pt-2">
-                                    <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-bold">取消</button>
-                                    <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] text-xs font-bold">{initialData ? '儲存修改' : '確認新增'}</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                );
-            }
-
-            function AddScheduleModal({ initialData, onSave, onDelete, onClose }) {
-                const [title, setTitle] = useState(initialData?.title || '');
-                const [organizer, setOrganizer] = useState(initialData?.organizer || '');
-                const [date, setDate] = useState(initialData?.date || new Date().toISOString().slice(0, 10));
-                const [venue, setVenue] = useState(initialData?.venue || '');
-                const [city, setCity] = useState(initialData?.city || '台北');
-                const [status, setStatus] = useState(initialData?.status || '即將開賣');
-                const [priceRange, setPriceRange] = useState(initialData?.priceRange || '');
-                const [ticketLink, setTicketLink] = useState(initialData?.ticketLink || 'https://tixcraft.com');
-
-                const handleSubmit = (e) => {
-                    e.preventDefault();
-                    onSave({
-                        id: initialData?.id || null, title, organizer: organizer || '主辦單位',
-                        date, venue: venue || '未定場館', city: city || '台北', status, priceRange, ticketLink: ticketLink || 'https://tixcraft.com'
-                    });
-                    onClose();
-                };
-
-                return (
-                    <div className="modal-overlay bg-black/85">
-                        <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 my-auto max-h-[85vh] flex flex-col">
-                            <div className="flex items-center justify-between pb-1 shrink-0">
-                                <h3 className="font-extrabold text-sm"><i data-lucide="calendar-plus" className="w-4 h-4 inline"></i> {initialData ? '編輯演出排程' : '新增演出排程'}</h3>
-                                <button onClick={onClose}><i data-lucide="x" className="w-5 h-5"></i></button>
-                            </div>
-                            <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar">
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">活動名稱</label><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">主辦單位</label><input type="text" value={organizer} onChange={(e) => setOrganizer(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">日期</label><input type="text" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                </div>
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">場館名稱</label><input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                
-                                <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#737C75]">售票狀態</label>
-                                    <div className="flex gap-1.5 pt-0.5">
-                                        {['即將開賣', '售票中', '已完售'].map(st => (
-                                            <button
-                                                key={st}
-                                                type="button"
-                                                onClick={() => setStatus(st)}
-                                                className={`flex-1 py-2 rounded-xl font-bold text-[11px] transition-all border ${status === st ? 'bg-[#161D15] text-[#EFF0EA] border-[#161D15] shadow-sm' : 'bg-white text-[#737C75] border-[#D2CABF]'}`}
-                                            >
-                                                {st}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#737C75]">票價範圍</label>
-                                    <textarea value={priceRange} onChange={(e) => setPriceRange(e.target.value)} rows="2" className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF] font-mono resize-none"></textarea>
-                                </div>
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">售票連結</label><input type="url" value={ticketLink} onChange={(e) => setTicketLink(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                
-                                <div className="flex gap-2 pt-2">
-                                    {initialData && (
-                                        <button type="button" onClick={() => { onDelete(initialData.id); onClose(); }} className="py-2.5 px-3 rounded-xl bg-red-600 text-white font-bold text-xs">刪除</button>
-                                    )}
-                                    <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-bold">取消</button>
-                                    <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] text-xs font-bold">{initialData ? '儲存修改' : '確認新增'}</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                );
-            }
-
-            function EventDetailModal({ event, onClose, onDelete, onEdit }) {
-                useEffect(() => {
-                    if (window.lucide) {
-                        try { window.lucide.createIcons(); } catch (e) {}
-                    }
-                }, [event]);
-
-                if (!event) return null;
-                const cat = CATEGORIES[event.type] || CATEGORIES.concert;
-                const spotifyEmbed = parseSpotifyEmbedUrl(event.spotifyUrl);
-                const t = event.imageTransform || { scale: 1, x: 0, y: 0 };
-
-                return (
-                    <div className="modal-overlay bg-black/85 backdrop-blur-md">
-                        <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-[#D2CABF] my-auto flex flex-col max-h-[85vh]">
-                            <div className="relative h-48 bg-[#1A1A1A] shrink-0 overflow-hidden flex items-center justify-center">
-                                {event.coverImg ? (
-                                    <img src={event.coverImg} alt={event.title} className="w-full h-full object-contain" style={{ transform: `translate(${t.x}px, ${t.y}px) scale(${t.scale})` }} />
-                                ) : (
-                                    <div className="w-full h-full bg-[#EBEBE9]" />
-                                )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-4 pointer-events-none">
-                                    <div>
-                                        <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${cat.badgeBg} inline-block mb-1`}>{cat.emoji} {cat.label}</span>
-                                        <h2 className="text-white font-black text-base leading-snug">{event.title}</h2>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="p-4 space-y-3 overflow-y-auto flex-1 text-xs">
-                                {event.artist && <div className="bg-white p-3 rounded-2xl border border-[#D2CABF]"><span className="text-[10px] text-[#737C75] font-bold block">演出藝人</span><p className="font-bold">{event.artist}</p></div>}
-                                <div className="grid grid-cols-2 gap-2 bg-white p-3 rounded-2xl border border-[#D2CABF]">
-                                    <div><span className="text-[10px] text-[#737C75] font-bold block">演出日期</span><span className="font-mono font-bold">{event.date}</span></div>
-                                    <div><span className="text-[10px] text-[#737C75] font-bold block">票價花費</span><span className="font-mono font-bold">NT$ {Number(event.cost || 0).toLocaleString()}</span></div>
-                                </div>
-                                {event.detailSeat && <div className="bg-white p-3 rounded-2xl border border-[#D2CABF]"><span className="text-[10px] text-[#737C75] font-bold block">座位＆票區資訊</span><p className="font-bold">{event.detailSeat}</p></div>}
-                                <div className="bg-white p-3 rounded-2xl border border-[#D2CABF]"><span className="text-[10px] text-[#737C75] font-bold block">舉辦場館與國家 ({event.countryName || '台灣'})</span><p className="font-bold text-sm">{event.venue}</p><p className="text-[11px] text-[#737C75]">{event.venueAddress}</p></div>
-                                {spotifyEmbed && <div className="bg-white p-2 rounded-2xl border border-[#D2CABF]"><span className="text-[10px] text-[#737C75] font-bold block px-1">🎵 Spotify 音樂預覽</span><iframe src={spotifyEmbed} width="100%" height="80" frameBorder="0" allowtransparency="true" allow="encrypted-media" className="rounded-xl"></iframe></div>}
-                                {event.notes && <div className="bg-white p-3 rounded-2xl border border-[#D2CABF]"><span className="text-[10px] text-[#737C75] font-bold block">心得筆記</span><p className="leading-relaxed">{event.notes}</p></div>}
-                            </div>
-                            <div className="p-3 bg-[#EBEBE9] border-t border-[#D2CABF] flex gap-2">
-                                <button onClick={() => { onEdit(event); onClose(); }} className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] font-bold text-xs flex items-center justify-center gap-1.5 shadow"><i data-lucide="pencil" className="w-4 h-4"></i> 編輯紀錄</button>
-                                <button onClick={() => { onDelete(event.id); onClose(); }} className="py-2.5 px-3 rounded-xl bg-red-600 text-white font-bold text-xs flex items-center justify-center shadow" title="刪除紀錄"><i data-lucide="trash-2" className="w-4 h-4 text-white"></i></button>
-                                <button onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs">關閉</button>
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-
-            function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }) {
-                const mapRef = useRef(null);
-                const mapInst = useRef(null);
-                const markersLayerRef = useRef(L.layerGroup());
-                const activeLayerRef = useRef(null);
-                const geoJsonLayerRef = useRef(null);
-                const [selectedCountry, setSelectedCountry] = useState(null);
-
-                const countryMap = useMemo(() => {
-                    const m = {};
-                    events.forEach(e => {
-                        if (e.status === 'wishlist') return;
-                        const c = e.countryName || '台灣';
-                        if (!m[c]) m[c] = { name: c, events: [], venues: new Set() };
-                        m[c].events.push(e);
-                        if (e.venue) m[c].venues.add(e.venue);
-                    });
-                    return m;
-                }, [events]);
-
-                const visited = useMemo(() => Object.keys(countryMap), [countryMap]);
-
-                useEffect(() => {
-                    if (!mapRef.current) return;
-                    if (!mapInst.current) {
-                        const southWest = L.latLng(-85, -180);
-                        const northEast = L.latLng(85, 180);
-                        const bounds = L.latLngBounds(southWest, northEast);
-
-                        const map = L.map(mapRef.current, { 
-                            zoomControl: false, 
-                            attributionControl: false, 
-                            minZoom: 2,
-                            maxBounds: bounds,
-                            maxBoundsViscosity: 1.0
-                        }).setView([25.033, 121.565], 3);
-
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
-                            maxZoom: 19, 
-                            noWrap: true,
-                            bounds: bounds
-                        }).addTo(map);
-
-                        markersLayerRef.current.addTo(map);
-                        mapInst.current = map;
-
-                        fetch('https://raw.githubusercontent.com/datasets/geo-boundaries-world-110m/master/countries.geojson')
-                            .then(res => res.json())
-                            .then(data => {
-                                const layer = L.geoJSON(data, {
-                                    style: (feature) => {
-                                        const p = feature.properties || {};
-                                        const name = COUNTRY_NAME_MAPPING[p.name || p.ADMIN] || p.name || '';
-                                        const isV = visited.some(v => name.includes(v));
-                                        return { fillColor: isV ? '#C2A175' : '#1A2218', fillOpacity: isV ? 0.45 : 0.2, color: isV ? '#C5AB89' : '#2A3626', weight: isV ? 1.5 : 0.8 };
-                                    },
-                                    onEachFeature: (feature, layer) => {
-                                        const p = feature.properties || {};
-                                        const zh = COUNTRY_NAME_MAPPING[p.name || p.ADMIN] || p.name || '區域';
-                                        layer.on({
-                                            click: (e) => {
-                                                L.DomEvent.stopPropagation(e);
-                                                if (activeLayerRef.current && geoJsonLayerRef.current) {
-                                                    geoJsonLayerRef.current.resetStyle(activeLayerRef.current);
-                                                }
-                                                activeLayerRef.current = e.target;
-                                                e.target.setStyle({ fillColor: '#FFC800', fillOpacity: 0.75, color: '#FFFFFF', weight: 2.5 });
-                                                const match = visited.find(v => zh.includes(v));
-                                                setSelectedCountry(match ? countryMap[match] : { name: zh, events: [], venues: new Set() });
-                                            }
-                                        });
-                                    }
-                                }).addTo(map);
-                                geoJsonLayerRef.current = layer;
-                            }).catch(() => {});
-                    }
-
-                    const timer = requestAnimationFrame(() => {
-                        if (mapInst.current) mapInst.current.invalidateSize();
-                    });
-
-                    return () => { 
-                        cancelAnimationFrame(timer);
-                    };
-                }, []);
-
-                useEffect(() => {
-                    if (!mapInst.current) return;
-                    markersLayerRef.current.clearLayers();
-
-                    events.forEach((evt, idx) => {
-                        const latVal = parseFloat(evt.lat);
-                        const lngVal = parseFloat(evt.lng);
-
-                        if (isNaN(latVal) || isNaN(lngVal)) return;
-
-                        const marker = L.marker([latVal, lngVal], {
-                            icon: L.divIcon({ 
-                                className: 'custom-div-icon', 
-                                html: `<div class="custom-numeric-marker w-7 h-7 flex items-center justify-center">${idx + 1}</div>`, 
-                                iconSize: [28, 28], 
-                                iconAnchor: [14, 14] 
-                            })
-                        });
-                        
-                        markersLayerRef.current.addLayer(marker);
-                    });
-                }, [events]);
-
-                const handleCloseCountryModal = () => {
-                    if (activeLayerRef.current && geoJsonLayerRef.current) {
-                        geoJsonLayerRef.current.resetStyle(activeLayerRef.current);
-                        activeLayerRef.current = null;
-                    }
-                    setSelectedCountry(null);
-                };
-
-                return (
-                    <div id="map-wrapper" className="relative flex-1 w-full flex flex-col bg-[#000000] overflow-hidden">
-                        <div className="absolute top-3 left-4 right-4 z-[999] flex items-center justify-between pointer-events-none top-stats-card">
-                            <div className="ios-glass px-3 py-1.5 rounded-full shadow-xl border border-[#737C75]/30 pointer-events-auto flex items-center gap-2">
-                                <span className="text-[10px] font-bold text-[#C5AB89]">🌍 星跡Map</span>
-                                <span className="text-[10px] font-mono"><strong className="text-[#C5AB89]">{stats.uniqueCountriesCount}</strong> 國 · <strong className="text-[#C5AB89]">{stats.attendedCount}</strong> 場</span>
-                            </div>
-                        </div>
-                        <div ref={mapRef} id="map" className="w-full h-full flex-1"></div>
-                        
-                        {selectedCountry && (
-                            <div className="absolute bottom-4 left-4 right-4 z-[1000]">
-                                <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-2xl border-2 border-[#C5AB89] space-y-3 relative">
-                                    <button onClick={handleCloseCountryModal} className="absolute top-4 right-4 text-[#737C75] hover:text-[#161D15]"><i data-lucide="x" className="w-5 h-5"></i></button>
-                                    <div className="flex items-center gap-2">
-                                        <CompassStarIcon className="w-6 h-6 shrink-0" />
-                                        <h3 className="font-black text-base text-[#161D15]">{selectedCountry.name}</h3>
-                                    </div>
-                                    <div className="inline-block px-3 py-1 rounded-xl bg-[#161D15] text-[#EFF0EA] text-[11px] font-bold">
-                                        已去過當地 <span className="text-[#C5AB89] font-black">{selectedCountry.venues ? selectedCountry.venues.size : 0}</span> 個場館
-                                    </div>
-
-                                    {selectedCountry.events && selectedCountry.events.length > 0 ? (
-                                        <div className="space-y-1.5 max-h-44 overflow-y-auto no-scrollbar pt-1">
-                                            {selectedCountry.events.map(e => (
-                                                <div key={e.id} className="bg-white p-2.5 rounded-2xl border border-[#D2CABF] flex items-center justify-between text-xs shadow-sm">
-                                                    <div className="min-w-0 flex-1 pr-2">
-                                                        <div className="font-extrabold text-[#161D15] truncate">{e.artist || e.title}</div>
-                                                        <div className="text-[10px] text-[#737C75] truncate mt-0.5">📍 {e.venue || '未定場館'}</div>
-                                                    </div>
-                                                    <div className="font-mono text-[10px] font-bold text-[#161D15] bg-[#EBEBE9] px-2 py-1 rounded-lg shrink-0">
-                                                        {e.date}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <p className="text-xs text-[#737C75]">尚未在當地紀錄演出活動</p>
-                                    )}
-                                    <button onClick={handleCloseCountryModal} className="w-full py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs">關閉</button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                );
-            }
-
-            function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCategory, searchQuery, setSearchQuery, viewMode, onDelete, onEdit, getGoogleMapsUrl, onOpenAddModal }) {
-                const [detailEvent, setDetailEvent] = useState(null);
-                const [calendarDate, setCalendarDate] = useState(new Date());
-                const year = calendarDate.getFullYear(), month = calendarDate.getMonth();
-
-                const calendarDays = useMemo(() => {
-                    const firstDay = new Date(year, month, 1).getDay();
-                    const totalDays = new Date(year, month + 1, 0).getDate();
-                    const days = Array(firstDay).fill(null);
-                    for (let i = 1; i <= totalDays; i++) {
-                        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                        days.push({ day: i, events: allEvents.filter(e => e.date === dateStr) });
-                    }
-                    return days;
-                }, [year, month, allEvents]);
-
-                return (
-                    <div className="space-y-4 p-4 pb-12">
-                        <div className="space-y-2.5">
-                            <div className="relative">
-                                <i data-lucide="search" className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#737C75]"></i>
-                                <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="搜尋名稱、場館、藝人..." className="w-full bg-[#EFF0EA] text-[#161D15] pl-9 pr-8 py-2 rounded-xl text-xs border border-[#D2CABF]" />
-                            </div>
-                            <div className="categories-fade-container overflow-x-hidden w-full">
-                                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 px-4 -mx-4">
-                                    <button onClick={() => setSelectedCategory('all')} className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 ${selectedCategory === 'all' ? 'bg-[#C5AB89] text-[#161D15]' : 'bg-[#EFF0EA] text-[#161D15]'}`}>✨ 全部 ({allEvents.length})</button>
-                                    {Object.entries(CATEGORIES).map(([k, cat]) => (
-                                        <button key={k} onClick={() => setSelectedCategory(k)} className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 ${selectedCategory === k ? `${cat.badgeBg}` : 'bg-[#EFF0EA] text-[#161D15]'}`}>{cat.emoji} {cat.label}</button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        {viewMode === 'calendar' ? (
-                            <div className="bg-[#EFF0EA] text-[#161D15] p-4 rounded-3xl shadow-lg border border-[#D2CABF] space-y-4">
-                                <div className="flex items-center justify-between"><h3 className="font-extrabold text-sm">{year} 年 {month + 1} 月</h3><div className="flex gap-1"><button onClick={() => setCalendarDate(new Date(year, month - 1, 1))} className="p-1 rounded bg-[#EBEBE9]"><i data-lucide="chevron-left" className="w-4 h-4"></i></button><button onClick={() => setCalendarDate(new Date(year, month + 1, 1))} className="p-1 rounded bg-[#EBEBE9]"><i data-lucide="chevron-right" className="w-4 h-4"></i></button></div></div>
-                                <div className="grid grid-cols-7 gap-1 text-center font-bold text-[10px] text-[#737C75]"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
-                                <div className="grid grid-cols-7 gap-1">{calendarDays.map((item, idx) => !item ? <div key={idx} className="h-10"></div> : <div key={idx} onClick={() => { if(item.events.length) setDetailEvent(item.events[0]); }} className={`h-10 rounded-xl flex flex-col items-center justify-center ${item.events.length ? 'bg-[#C5AB89] font-black cursor-pointer' : 'bg-[#EBEBE9]'}`}><span>{item.day}</span></div>)}</div>
-                            </div>
-                        ) : (
-                            <div className="space-y-3">
-                                {events.length === 0 ? (
-                                    <div className="text-center py-16 bg-[#EFF0EA]/5 border border-dashed border-[#737C75]/40 rounded-3xl p-6 space-y-3">
+                                    <div className="space-y-1">
                                         <p className="text-xs text-[#EFF0EA] font-extrabold">暫無藝文紀錄</p>
-                                        <button onClick={onOpenAddModal} className="px-4 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-xs">新增藝文紀錄</button>
+                                        <p className="text-[11px] text-[#D2CABF]">點擊右上角「+」或下方按鈕新增您的第一筆觀演紀錄</p>
                                     </div>
-                                ) : (
-                                    events.map((evt) => {
-                                        const cat = CATEGORIES[evt.type] || CATEGORIES.concert;
-                                        return (
-                                            <div key={evt.id} onClick={() => setDetailEvent(evt)} className="relative bg-[#EFF0EA] text-[#161D15] rounded-2xl flex shadow-lg overflow-hidden cursor-pointer hover:scale-[1.01] transition-all my-2">
-                                                <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
-                                                <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
-                                                
-                                                <div className="flex-1 p-3.5 pl-5 flex gap-3 min-w-0 pr-3 relative">
-                                                    <div 
-                                                        onClick={(e) => { e.stopPropagation(); setDetailEvent(evt); }}
-                                                        className="w-16 h-20 rounded-xl overflow-hidden shrink-0 border border-[#D2CABF] bg-[#EBEBE9] relative shadow-sm cursor-pointer hover:opacity-95 flex items-center justify-center"
-                                                    >
-                                                        {evt.coverImg ? (
-                                                            <img src={evt.coverImg} alt={evt.title} className="w-full h-full object-contain" />
-                                                        ) : (
-                                                            <div className="w-full h-full bg-[#EBEBE9]" />
-                                                        )}
-                                                    </div>
-                                                    
-                                                    <div className="flex-1 flex flex-col justify-between min-w-0">
-                                                        <div className="space-y-1">
-                                                            <div className="flex items-center gap-2 text-[10px] font-mono font-bold text-[#737C75]">
-                                                                <span className="whitespace-nowrap">{evt.date}</span>
-                                                                <span className="text-xs leading-none" title={cat.label}>{cat.emoji}</span>
-                                                            </div>
-                                                            <h3 className="font-extrabold text-xs text-[#161D15] leading-snug line-clamp-2">{evt.title}</h3>
-                                                        </div>
-                                                        
-                                                        <div className="text-[10px] text-[#737C75] font-bold flex items-center justify-end gap-1 mt-1 pr-1 overflow-hidden">
-                                                            <span className="truncate max-w-[140px] text-right" title={evt.venue}>📍 {evt.venue}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div className="relative w-0 border-r-2 border-dashed border-[#737C75]/40 my-1 z-10"></div>
-                                                
-                                                <div className="w-[88px] bg-[#EBEBE9] p-2.5 flex flex-col justify-between items-center text-center shrink-0 border-l border-[#D2CABF]/40">
-                                                    <span className="text-[8px] font-mono font-black text-[#737C75]">ADMIT ONE</span>
-                                                    <div className="font-mono text-[10px] font-black">{evt.cost ? `$${Number(evt.cost).toLocaleString()}` : 'FREE'}</div>
-                                                    {evt.detailSeat ? <span className="text-[8px] font-bold bg-[#CCB9AA] px-1.5 py-0.5 rounded w-full truncate">{evt.detailSeat.slice(0, 6)}</span> : <span></span>}
-                                                </div>
-                                            </div>
-                                        );
-                                    })
-                                )}
-                            </div>
-                        )}
-                        {detailEvent && <EventDetailModal event={detailEvent} onClose={() => setDetailEvent(null)} onDelete={onDelete} onEdit={onEdit} />}
-                    </div>
-                );
-            }
-
-            function ScheduleSection({ schedules, onDelete, onEdit, onSaveSchedule, getGoogleMapsUrl, onOpenAddModal }) {
-                const STATUS_CYCLE = ['即將開賣', '售票中', '已完售'];
-
-                const handleCycleStatus = (sch, e) => {
-                    e.stopPropagation();
-                    const currentIdx = STATUS_CYCLE.indexOf(sch.status || '即將開賣');
-                    const nextStatus = STATUS_CYCLE[(currentIdx + 1) % STATUS_CYCLE.length];
-                    onSaveSchedule({ ...sch, status: nextStatus });
-                };
-
-                return (
-                    <div className="p-4 pb-12 space-y-4">
-                        <div><h2 className="text-base font-extrabold">近期演出排程</h2></div>
-                        <div className="space-y-3.5">
-                            {schedules.length === 0 ? (
-                                <div className="text-center py-16 bg-[#EFF0EA]/5 border border-dashed border-[#737C75]/40 rounded-3xl p-6">
-                                    <p className="text-xs text-[#EFF0EA] font-extrabold mb-2">暫無演出排程</p>
-                                    <button onClick={onOpenAddModal} className="px-4 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-xs">新增演出排程</button>
+                                    <button onClick={onOpenAddModal} className="px-4 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-xs shadow hover:bg-[#CCB9AA] transition-all inline-flex items-center gap-1.5">
+                                        <i data-lucide="plus" className="w-4 h-4"></i> 新增藝文紀錄
+                                    </button>
                                 </div>
                             ) : (
-                                schedules.map(sch => {
-                                    const priceLines = (sch.priceRange || '').split('\n');
+                                events.map((evt) => {
+                                    const cat = CATEGORIES[evt.type] || CATEGORIES.concert;
                                     return (
-                                        <div key={sch.id} className="relative bg-[#EFF0EA] text-[#161D15] rounded-2xl flex shadow-lg overflow-hidden my-2">
+                                        <div key={evt.id} onClick={() => setDetailEvent(evt)} className="relative bg-[#EFF0EA] text-[#161D15] rounded-2xl flex shadow-lg overflow-hidden cursor-pointer hover:scale-[1.01] transition-all active:scale-[0.98] group my-2">
                                             <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
                                             <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
-                                            
-                                            <div className="flex-1 p-3.5 pl-5 flex flex-col justify-between min-w-0 pr-3 overflow-hidden">
-                                                <div className="space-y-2">
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="px-2.5 py-1 rounded-lg bg-[#CCB9AA]/40 text-[#161D15] font-mono text-[10px] font-extrabold">{sch.date}</span>
-                                                        <div className="flex items-center gap-1.5">
-                                                            <button
-                                                                onClick={(e) => handleCycleStatus(sch, e)}
-                                                                className={`px-2.5 py-1 rounded-xl font-bold text-[10px] border transition-all cursor-pointer ${
-                                                                    sch.status === '已完售'
-                                                                        ? 'bg-red-100 text-red-700 border-red-300'
-                                                                        : sch.status === '售票中'
-                                                                        ? 'bg-green-100 text-green-700 border-green-300'
-                                                                        : 'bg-transparent text-[#AB8C83] border-[#AB8C83]/60'
-                                                                }`}
-                                                                title="點擊切換狀態"
-                                                            >
-                                                                {sch.status || '即將開賣'}
-                                                            </button>
-                                                            <button onClick={() => onEdit(sch)} className="w-7 h-7 rounded-full bg-[#CCB9AA]/30 text-[#161D15] flex items-center justify-center hover:bg-[#CCB9AA]/50 transition-colors shadow-sm" title="編輯排程">
-                                                                <i data-lucide="pencil" className="w-3.5 h-3.5"></i>
-                                                            </button>
+                                            <div className="flex-1 p-3.5 pl-5 flex gap-3 min-w-0 pr-4 relative">
+                                                <div className="w-16 h-20 rounded-xl overflow-hidden shrink-0 border border-[#D2CABF] bg-[#D2CABF] relative shadow-sm">
+                                                    <img src={evt.coverImg} alt={evt.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80'; }} />
+                                                    <span className="absolute top-1 left-1 px-1 py-0.2 rounded text-[8px] font-bold bg-[#161D15]/85 text-[#EFF0EA] backdrop-blur-sm">{cat.emoji}</span>
+                                                </div>
+                                                <div className="flex-1 flex flex-col justify-between min-w-0">
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center justify-between text-[10px] font-mono font-bold text-[#737C75]">
+                                                            <span>{evt.date}</span>
+                                                            <span className="px-1.5 py-0.2 rounded text-[8px] font-black bg-[#737C75] text-white">已參加</span>
                                                         </div>
-                                                    </div>
-                                                    <div className="min-w-0 overflow-hidden">
-                                                        <h3 className="font-black text-sm text-[#161D15] leading-snug break-words whitespace-normal max-w-full">
-                                                            {sch.title}
-                                                        </h3>
-                                                        <p className="text-[11px] text-[#737C75] font-medium leading-relaxed truncate mt-1">
-                                                            {sch.organizer} • {sch.venue}
-                                                        </p>
+                                                        <h3 className="font-extrabold text-xs text-[#161D15] leading-snug line-clamp-1 group-hover:text-[#AB8C83] transition-colors">{evt.title}</h3>
+                                                        <p className="text-[11px] text-[#737C75] font-medium truncate">📍 {evt.venue}</p>
                                                     </div>
                                                 </div>
                                             </div>
-
                                             <div className="relative w-0 border-r-2 border-dashed border-[#737C75]/40 my-1 z-10"></div>
-
-                                            <div className="w-[110px] bg-[#EBEBE9] p-3 flex flex-col justify-between items-start text-left shrink-0 border-l border-[#D2CABF]/40">
-                                                <div className="font-mono text-[11px] font-black leading-tight tracking-tight text-[#161D15] w-full text-left flex flex-col items-start justify-center">
-                                                    {priceLines.length > 0 && priceLines[0] !== '' ? (
-                                                        priceLines.map((line, idx) => (
-                                                            <span key={idx} className="block text-left w-full truncate">{line}</span>
-                                                        ))
-                                                    ) : (
-                                                        <span className="text-[#737C75] font-normal text-[10px]">票價未定</span>
-                                                    )}
-                                                </div>
-                                                <a href={sch.ticketLink || 'https://tixcraft.com'} target="_blank" rel="noopener noreferrer" className="w-full py-1.5 bg-[#161D15] text-[#EFF0EA] rounded-xl font-bold text-[11px] shadow hover:bg-black transition-colors block text-center mt-2">
-                                                    購票
-                                                </a>
+                                            <div className="w-[88px] bg-[#EBEBE9] p-2.5 flex flex-col justify-between items-center text-center shrink-0 relative overflow-hidden border-l border-[#D2CABF]/40">
+                                                <span className="text-[8px] font-mono font-black text-[#737C75] uppercase tracking-tighter block">ADMIT ONE</span>
+                                                <div className="font-mono text-[10px] font-black text-[#161D15] truncate">{evt.cost ? `$${Number(evt.cost).toLocaleString()}` : 'FREE'}</div>
+                                                <span className="text-[8px] font-bold text-[#161D15] bg-[#CCB9AA] px-1.5 py-0.5 rounded w-full truncate">{evt.detailSeat ? evt.detailSeat.slice(0, 6) : '紀錄存檔'}</span>
                                             </div>
                                         </div>
                                     );
                                 })
                             )}
                         </div>
+                    )}
+
+                    {detailEvent && (
+                        <EventDetailModal event={detailEvent} onClose={() => setDetailEvent(null)} onDelete={onDelete} getGoogleMapsUrl={getGoogleMapsUrl} />
+                    )}
+                </div>
+            );
+        }
+
+        function ScheduleSection({ schedules, onDelete, getGoogleMapsUrl, onOpenAddModal }) {
+            return (
+                <div className="p-4 pb-24 space-y-4">
+                    <div>
+                        <h2 className="text-base font-extrabold text-[#EFF0EA] tracking-tight">近期演出排程</h2>
+                        <p className="text-xs text-[#D2CABF]">官方預告之演唱會、音樂劇、話劇巡迴</p>
                     </div>
-                );
-            }
-
-            function StatsSection({ stats, events }) {
-                const artistRankings = useMemo(() => {
-                    const counts = {};
-                    events.forEach(e => {
-                        if (e.artist && e.artist.trim()) {
-                            const a = e.artist.trim();
-                            counts[a] = (counts[a] || 0) + 1;
-                        }
-                    });
-                    return Object.entries(counts)
-                        .map(([artist, count]) => ({ artist, count }))
-                        .sort((a, b) => b.count - a.count);
-                }, [events]);
-
-                return (
-                    <div className="p-4 pb-12 space-y-4">
-                        <div className="space-y-0.5">
-                            <h2 className="text-base font-extrabold text-[#EFF0EA]">成就統計與花費總覽</h2>
-                            <p className="text-[11px] text-[#737C75]">全方位檢視您的藝文足跡與收藏成就</p>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-[#EFF0EA] text-[#161D15] px-3 py-2.5 rounded-2xl shadow-lg border border-[#D2CABF] space-y-0.5">
-                                <span className="text-[10px] text-[#737C75] font-bold block">總藝文紀錄</span>
-                                <div className="font-mono font-black text-xl flex items-baseline gap-1">
-                                    {stats.totalEvents} <span className="text-xs font-bold text-[#737C75]">筆</span>
+                    <div className="space-y-3.5">
+                        {schedules.length === 0 ? (
+                            <div className="text-center py-16 bg-[#EFF0EA]/5 border border-dashed border-[#737C75]/40 rounded-3xl p-6 space-y-3">
+                                <div className="w-12 h-12 rounded-2xl bg-[#C5AB89]/10 text-[#C5AB89] flex items-center justify-center mx-auto">
+                                    <i data-lucide="calendar-days" className="w-6 h-6"></i>
                                 </div>
-                            </div>
-                            <div className="bg-[#EFF0EA] text-[#161D15] px-3 py-2.5 rounded-2xl shadow-lg border border-[#D2CABF] space-y-0.5">
-                                <span className="text-[10px] text-[#737C75] font-bold block">總花費金額</span>
-                                <div className="font-mono font-black text-base tracking-tight pt-0.5">
-                                    NT$ {stats.totalCost.toLocaleString()}
+                                <div className="space-y-1">
+                                    <p className="text-xs text-[#EFF0EA] font-extrabold">暫無演出排程</p>
+                                    <p className="text-[11px] text-[#D2CABF]">點擊右上角「+」或下方按鈕新增您關注的演出排程</p>
                                 </div>
+                                <button onClick={onOpenAddModal} className="px-4 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-xs shadow hover:bg-[#CCB9AA] transition-all inline-flex items-center gap-1.5">
+                                    <i data-lucide="plus" className="w-4 h-4"></i> 新增演出排程
+                                </button>
                             </div>
-                        </div>
-
-                        <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-lg border border-[#D2CABF] space-y-3">
-                            <div className="flex items-center justify-between pb-1">
-                                <h3 className="font-extrabold text-sm text-[#161D15]">演出藝人次數排名</h3>
-                            </div>
-                            {artistRankings.length === 0 ? (
-                                <p className="text-xs text-[#737C75] text-center py-2">尚未紀錄任何演出藝人</p>
-                            ) : (
-                                <div className="space-y-2 max-h-60 overflow-y-auto no-scrollbar">
-                                    {artistRankings.map((item, idx) => {
-                                        const rank = idx + 1;
-                                        return (
-                                            <div key={item.artist} className="flex items-center justify-between p-2 rounded-2xl bg-white border border-[#D2CABF]/60 shadow-sm">
-                                                <div className="flex items-center gap-2.5 min-w-0">
-                                                    <RankIcon rank={rank} />
-                                                    <span className="font-extrabold text-xs text-[#161D15] truncate">{item.artist}</span>
-                                                </div>
-                                                <div className="font-mono font-black text-xs text-[#161D15] bg-[#EBEBE9] px-2.5 py-1 rounded-xl shrink-0">
-                                                    {item.count} <span className="text-[10px] font-bold text-[#737C75]">場</span>
+                        ) : (
+                            schedules.map(sch => {
+                                const mapsUrl = getGoogleMapsUrl(sch.venue, sch.venueAddress);
+                                return (
+                                    <div key={sch.id} className="relative bg-[#EFF0EA] text-[#161D15] rounded-2xl flex overflow-hidden shadow-lg group">
+                                        <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
+                                        <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
+                                        
+                                        <div className="flex-1 p-3.5 pl-5 pr-3 space-y-2 min-w-0 relative">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[10px] font-mono text-[#161D15] font-extrabold px-2 py-0.5 rounded bg-[#C5AB89]">{sch.date}</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[9px] font-mono font-black uppercase tracking-wider text-[#AB8C83] border border-[#AB8C83] px-1.5 py-0.5 rounded -rotate-3">{sch.status}</span>
+                                                    <button 
+                                                        onClick={() => onDelete(sch.id)}
+                                                        className="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors shadow-sm"
+                                                        title="刪除排程"
+                                                    >
+                                                        <i data-lucide="trash-2" className="w-3.5 h-3.5"></i>
+                                                    </button>
                                                 </div>
                                             </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-5 shadow-lg border border-[#D2CABF] space-y-3">
-                            <h3 className="font-extrabold text-sm text-[#161D15] pb-1">活動類別統計</h3>
-                            <div className="space-y-2">
-                                {Object.entries(CATEGORIES).map(([key, cat]) => {
-                                    const count = stats.categoryCounts[key] || 0;
-                                    const percentage = stats.totalEvents > 0 ? Math.round((count / stats.totalEvents) * 100) : 0;
-                                    return (
-                                        <div key={key} className="space-y-1">
-                                            <div className="flex justify-between text-xs font-bold">
-                                                <span>{cat.emoji} {cat.label}</span>
-                                                <span className="font-mono">{count} 場 ({percentage}%)</span>
-                                            </div>
-                                            <div className="w-full bg-[#EBEBE9] h-2 rounded-full overflow-hidden">
-                                                <div className="bg-[#C5AB89] h-full transition-all duration-300" style={{ width: `${percentage}%` }}></div>
+                                            <h3 className="font-extrabold text-sm text-[#161D15] leading-snug">{sch.title}</h3>
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-xs text-[#737C75] truncate">{sch.organizer} • {sch.venue}</p>
+                                                <a href={mapsUrl} target="_blank" rel="noreferrer" className="text-[10px] font-bold text-[#C5AB89] hover:underline flex items-center gap-1 shrink-0">
+                                                    <i data-lucide="map-pin" className="w-3 h-3"></i> Google Maps
+                                                </a>
                                             </div>
                                         </div>
-                                    );
-                                })}
-                            </div>
+                                        <div className="relative w-0 border-r-2 border-dashed border-[#737C75]/40 my-1 z-10"></div>
+                                        <div className="w-24 bg-[#EBEBE9] p-3 flex flex-col justify-between items-center text-center shrink-0 border-l border-[#D2CABF]/40">
+                                            <span className="font-mono text-[10px] font-black text-[#161D15]">{sch.priceRange}</span>
+                                            <a href={sch.ticketLink} target="_blank" rel="noreferrer" className="w-full py-1.5 rounded-lg bg-[#161D15] text-[#EFF0EA] font-extrabold text-[10px] hover:bg-[#737C75] flex items-center justify-center gap-1 shadow">
+                                                <span>購票</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        function StatsSection({ stats, events }) {
+            return (
+                <div className="p-4 pb-24 space-y-4">
+                    <div>
+                        <h2 className="text-base font-extrabold text-[#EFF0EA] tracking-tight">成就統計與花費總覽</h2>
+                        <p className="text-xs text-[#D2CABF]">全方位檢視您的藝文足跡與收藏成就</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-[#EFF0EA] text-[#161D15] p-4 rounded-3xl shadow-lg border border-[#D2CABF] space-y-1">
+                            <span className="text-[10px] text-[#737C75] font-bold uppercase tracking-wider block">總藝文紀錄</span>
+                            <div className="font-mono font-black text-2xl text-[#161D15]">{stats.totalEvents} <span className="text-xs font-normal text-[#737C75]">筆</span></div>
+                        </div>
+                        <div className="bg-[#EFF0EA] text-[#161D15] p-4 rounded-3xl shadow-lg border border-[#D2CABF] space-y-1">
+                            <span className="text-[10px] text-[#737C75] font-bold uppercase tracking-wider block">總投資金額</span>
+                            <div className="font-mono font-black text-xl text-[#161D15]">NT$ {stats.totalCost.toLocaleString()}</div>
                         </div>
                     </div>
-                );
-            }
 
-            const root = ReactDOM.createRoot(document.getElementById('root'));
-            root.render(<App />);
-
-        } catch (e) {
-            console.error('App Render Error:', e);
+                    <div className="bg-[#EFF0EA] text-[#161D15] p-4 rounded-3xl shadow-lg border border-[#D2CABF] space-y-3">
+                        <h3 className="font-extrabold text-xs text-[#737C75] uppercase tracking-wider border-b border-[#D2CABF] pb-2">分類佔比</h3>
+                        <div className="space-y-2">
+                            {Object.entries(CATEGORIES).map(([key, cat]) => {
+                                const count = stats.categoryCounts[key] || 0;
+                                const percentage = stats.totalEvents > 0 ? Math.round((count / stats.totalEvents) * 100) : 0;
+                                return (
+                                    <div key={key} className="space-y-1">
+                                        <div className="flex items-center justify-between text-xs font-bold">
+                                            <span className="flex items-center gap-1.5"><span>{cat.emoji}</span><span>{cat.label}</span></span>
+                                            <span className="font-mono">{count} 筆 ({percentage}%)</span>
+                                        </div>
+                                        <div className="w-2 h-2 bg-[#EBEBE9] rounded-full overflow-hidden w-full">
+                                            <div className="h-full bg-[#C5AB89] rounded-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            );
         }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>

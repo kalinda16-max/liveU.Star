@@ -81,20 +81,8 @@
             flex-shrink: 0; 
             z-index: 1000 !important; 
             background-color: #161D15;
-            padding-top: 10px !important;
-            /* 修改處：針對獨立 PWA 模式與一般 Safari 進行底部安全距離微調，解決加入主畫面下方空一塊的問題 */
-            padding-bottom: calc(env(safe-area-inset-bottom, 12px) + 6px) !important;
-        }
-
-        @media all and (display-mode: standalone) {
-            .app-container {
-                height: 100vh;
-                height: 100ousse; /* 確保 fallback */
-                height: 100svh;
-            }
-            .bottom-nav {
-                padding-bottom: calc(env(safe-area-inset-bottom, 16px) + 4px) !important;
-            }
+            padding-top: 8px !important;
+            padding-bottom: max(10px, env(safe-area-inset-bottom, 10px)) !important;
         }
         
         .ios-glass { background: rgba(22, 29, 21, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }

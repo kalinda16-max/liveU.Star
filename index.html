@@ -183,7 +183,7 @@
                 exhibition: { label: '展覽', icon: 'abstract.png', emoji: '🎨', badgeBg: 'bg-[#CCB9AA] text-[#161D15]' },
                 movie: { label: '電影', icon: 'clapperboard.png', emoji: '🎬', badgeBg: 'bg-[#AB8C83] text-[#EFF0EA]' },
                 book: { label: '見面會', icon: 'chant.png', emoji: '📚', badgeBg: 'bg-[#D2CABF] text-[#161D15]' },
-                drama: { label: '話劇/音樂劇', icon: 'theater', emoji: '🎭', badgeBg: 'bg-[#737C75] text-[#EFF0EA]' }
+                drama: { label: '話劇/音樂劇', icon: 'theatre.png', emoji: '🎭', badgeBg: 'bg-[#737C75] text-[#EFF0EA]' }
             };
 
             const venueDb = window.VENUE_DATABASE || {};
@@ -231,6 +231,63 @@
                     return <img src={cat.icon} alt={cat.label} className={`${sizeClass} object-contain inline-block shrink-0`} />;
                 }
                 return showFallback ? <span>{cat?.emoji}</span> : null;
+            }
+
+            function CustomCategorySelect({ value, onChange }) {
+                const [isOpen, setIsOpen] = useState(false);
+                const dropdownRef = useRef(null);
+
+                const selectedCat = CATEGORIES[value] || CATEGORIES.concert;
+
+                useEffect(() => {
+                    const handleClickOutside = (event) => {
+                        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                            setIsOpen(false);
+                        }
+                    };
+                    document.addEventListener('mousedown', handleClickOutside);
+                    return () => document.removeEventListener('mousedown', handleClickOutside);
+                }, []);
+
+                return (
+                    <div className="relative w-full" ref={dropdownRef}>
+                        <button
+                            type="button"
+                            onClick={() => setIsOpen(!isOpen)}
+                            className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF] flex items-center justify-between shadow-sm active:scale-[0.99] transition-transform"
+                        >
+                            <div className="flex items-center gap-2">
+                                <CategoryIcon cat={selectedCat} sizeClass="w-4 h-4" />
+                                <span className="font-bold text-[#161D15]">{selectedCat.label}</span>
+                            </div>
+                            <i data-lucide="chevron-down" className={`w-4 h-4 text-[#737C75] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}></i>
+                        </button>
+
+                        {isOpen && (
+                            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#D2CABF] rounded-xl shadow-xl z-50 overflow-hidden py-1 max-h-48 overflow-y-auto no-scrollbar">
+                                {Object.entries(CATEGORIES).map(([key, cat]) => {
+                                    const isSelected = key === value;
+                                    return (
+                                        <div
+                                            key={key}
+                                            onClick={() => {
+                                                onChange(key);
+                                                setIsOpen(false);
+                                            }}
+                                            className={`flex items-center gap-2.5 px-3 py-2 text-xs font-bold cursor-pointer transition-colors ${
+                                                isSelected ? 'bg-[#C5AB89]/20 text-[#161D15]' : 'text-[#161D15] hover:bg-[#EBEBE9]'
+                                            }`}
+                                        >
+                                            <CategoryIcon cat={cat} sizeClass="w-4 h-4" />
+                                            <span>{cat.label}</span>
+                                            {isSelected && <i data-lucide="check" className="w-3.5 h-3.5 ml-auto text-[#C5AB89]"></i>}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                );
             }
 
             function ImageCropperModal({ imageSrc, initialAspectRatio = 1, onConfirm, onCancel }) {
@@ -947,7 +1004,10 @@
                                             <input type="file" ref={fileRef} onChange={handleFileChange} accept="image/*" className="hidden" />
                                         </div>
                                     </div>
-                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">活動分類</label><select value={type} onChange={(e) => setType(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]">{Object.entries(CATEGORIES).map(([k, v]) => <option key={k} value={k}>{v.emoji} {v.label}</option>)}</select></div>
+                                    <div className="space-y-1">
+                                        <label className="text-[11px] font-bold text-[#737C75]">活動分類</label>
+                                        <CustomCategorySelect value={type} onChange={setType} />
+                                    </div>
                                     <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">活動名稱</label><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                     <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">演出藝人</label><input type="text" value={artist} onChange={(e) => setArtist(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                     <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">場館名稱</label><input type="text" value={venue} onChange={handleVenueChange} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>

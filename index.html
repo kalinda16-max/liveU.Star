@@ -183,7 +183,7 @@
                 exhibition: { label: '展覽', icon: 'abstract.png', emoji: '🎨', badgeBg: 'bg-[#CCB9AA] text-[#161D15]' },
                 movie: { label: '電影', icon: 'clapperboard.png', emoji: '🎬', badgeBg: 'bg-[#AB8C83] text-[#EFF0EA]' },
                 book: { label: '見面會', icon: 'chant.png', emoji: '📚', badgeBg: 'bg-[#D2CABF] text-[#161D15]' },
-                drama: { label: '話劇/音樂劇', icon: 'theatre.png', emoji: '🎭', badgeBg: 'bg-[#737C75] text-[#EFF0EA]' }
+                drama: { label: '舞台劇', icon: 'theatre.png', emoji: '🎭', badgeBg: 'bg-[#737C75] text-[#EFF0EA]' }
             };
 
             const venueDb = window.VENUE_DATABASE || {};
@@ -859,11 +859,11 @@
                                         </div>
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[11px] font-bold text-[#737C75]">稱呼</label>
+                                        <label className="text-[11px] font-bold text-[#737C75]">♛ Name ☻</label>
                                         <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[11px] font-bold text-[#737C75]">簡介</label>
+                                        <label className="text-[11px] font-bold text-[#737C75]">♛ Bio ☻</label>
                                         <input type="text" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" />
                                     </div>
                                     <div className="flex gap-2 pt-2">
@@ -1030,7 +1030,7 @@
                                     <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">Spotify 歌單</label><input type="text" value={spotifyUrl} onChange={(e) => setSpotifyUrl(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                     <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">心得筆記</label><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows="2" className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF] resize-none"></textarea></div>
 
-                                    <div className="space-y-2 pt-1 border-t border-[#D2CABF]/60">
+                                    <div className="space-y-2 pt-1">
                                         <div className="flex items-center justify-between">
                                             <label className="text-[11px] font-bold text-[#737C75]">補充圖片框</label>
                                             <button

@@ -91,7 +91,6 @@
             right: 0 !important;
             flex-shrink: 0;
             z-index: 999999 !important;
-            pointer-bottom: auto !important;
         }
 
         .app-safe-bottom {
@@ -105,10 +104,8 @@
             bottom: 0 !important;
             flex-shrink: 0;
             z-index: 99999 !important;
-            pointer-events: calc70px + env(safe-area-inset-bottom, 0px) !important;
-            backdrop-filter: blur(5px)
-            -webkit-backdrop-filter: blur(5px)
-
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
         }
 
         .ios-glass {
@@ -117,7 +114,22 @@
             -webkit-backdrop-filter: blur(20px);
         }
 
-        /* Leaflet Dark Mode & OpenStreetMap Invert Filter Overrides */
+        .liquid-glass-bar {
+            background: rgba(22, 29, 21, 0.85);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(197, 171, 137, 0.25);
+            border-radius: 9999px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .liquid-tab-active {
+            background: #C5AB89 !important;
+            color: #161D15 !important;
+            box-shadow: 0 4px 15px rgba(197, 171, 137, 0.4);
+        }
+
+        /* Leaflet Dark Mode Overrides */
         .leaflet-container {
             background: #000000 !important;
             font-family: inherit;
@@ -126,7 +138,6 @@
             filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(90%); 
         }
 
-        /* Simplified Numeric Leaflet Marker */
         .custom-numeric-marker {
             background: #C5AB89;
             border: 2px solid #EFF0EA;
@@ -236,48 +247,176 @@
                 });
             }
 
-            function TouchImageTransform({ src, initialTransform, onChange, className = "w-full h-full object-contain" }) {
-                const [transform, setTransform] = useState(() => initialTransform || { scale: 1, x: 0, y: 0 });
-                const isDragging = useRef(false);
-                const dragStart = useRef({ x: 0, y: 0 });
-                const pinchStartDist = useRef(null);
-                const pinchStartScale = useRef(1);
+            /* 輕量化互動裁切介面元件 (支援 1:1 / 自訂比例、九宮格、雙指縮放、平移與旋轉) */
+            function ImageCropperModal({ imageSrc, initialTransform, aspectMode = '1:1', onConfirm, onCancel }) {
+                const [ratio, setRatio] = useState(aspectMode); // '1:1' 或 'free'
+                const [transform, setTransform] = useState(() => initialTransform || { scale: 1, x: 0, y: 0, rotate: 0 });
+                const containerRef = useRef(null);
+                
+                const isInteracting = useRef(false);
+                const lastTouchCenter = useRef({ x: 0, y: 0 });
+                const lastTouchDist = useRef(null);
+                const lastTouchAngle = useRef(null);
+                const startTransform = useRef({ scale: 1, x: 0, y: 0, rotate: 0 });
 
                 const handleTouchStart = (e) => {
                     if (e.touches.length === 1) {
-                        isDragging.current = true;
-                        dragStart.current = { x: e.touches[0].clientX - transform.x, y: e.touches[0].clientY - transform.y };
+                        isInteracting.current = true;
+                        lastTouchCenter.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                        startTransform.current = { ...transform };
                     } else if (e.touches.length === 2) {
-                        isDragging.current = false;
-                        pinchStartDist.current = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-                        pinchStartScale.current = transform.scale;
+                        isInteracting.current = true;
+                        const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                        const angle = Math.atan2(e.touches[1].clientY - e.touches[0].clientY, e.touches[1].clientX - e.touches[0].clientX) * (180 / Math.PI);
+                        lastTouchDist.current = dist;
+                        lastTouchAngle.current = angle;
+                        lastTouchCenter.current = { x: (e.touches[0].clientX + e.touches[1].clientX) / 2, y: (e.touches[0].clientY + e.touches[1].clientY) / 2 };
+                        startTransform.current = { ...transform };
                     }
                 };
 
                 const handleTouchMove = (e) => {
-                    if (e.touches.length === 1 && isDragging.current) {
-                        const updated = { ...transform, x: e.touches[0].clientX - dragStart.current.x, y: e.touches[0].clientY - dragStart.current.y };
-                        setTransform(updated);
-                        if (onChange) onChange(updated);
-                    } else if (e.touches.length === 2 && pinchStartDist.current) {
+                    if (!isInteracting.current) return;
+                    e.preventDefault();
+                    if (e.touches.length === 1) {
+                        const dx = e.touches[0].clientX - lastTouchCenter.current.x;
+                        const dy = e.touches[0].clientY - lastTouchCenter.current.y;
+                        setTransform(prev => ({
+                            ...prev,
+                            x: startTransform.current.x + dx,
+                            y: startTransform.current.y + dy
+                        }));
+                    } else if (e.touches.length === 2 && lastTouchDist.current !== null) {
                         const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-                        const updated = { ...transform, scale: Math.min(Math.max(0.2, pinchStartScale.current * (dist / pinchStartDist.current)), 4) };
-                        setTransform(updated);
-                        if (onChange) onChange(updated);
+                        const angle = Math.atan2(e.touches[1].clientY - e.touches[0].clientY, e.touches[1].clientX - e.touches[0].clientX) * (180 / Math.PI);
+                        const scaleFactor = dist / lastTouchDist.current;
+                        const angleDelta = angle - lastTouchAngle.current;
+
+                        setTransform(prev => ({
+                            ...prev,
+                            scale: Math.min(Math.max(0.2, startTransform.current.scale * scaleFactor), 8),
+                            rotate: startTransform.current.rotate + angleDelta
+                        }));
                     }
                 };
 
-                const handleTouchEnd = () => { isDragging.current = false; pinchStartDist.current = null; };
+                const handleTouchEnd = () => {
+                    isInteracting.current = false;
+                    lastTouchDist.current = null;
+                    lastTouchAngle.current = null;
+                };
+
+                //滑鼠操作支援 (桌機端測試)
+                const mouseDragging = useRef(false);
+                const mouseStart = useRef({ x: 0, y: 0 });
+
+                const handleMouseDown = (e) => {
+                    mouseDragging.current = true;
+                    mouseStart.current = { x: e.clientX - transform.x, y: e.clientY - transform.y };
+                };
+
+                const handleMouseMove = (e) => {
+                    if (!mouseDragging.current) return;
+                    setTransform(prev => ({
+                        ...prev,
+                        x: e.clientX - mouseStart.current.x,
+                        y: e.clientY - mouseStart.current.y
+                    }));
+                };
+
+                const handleMouseUp = () => { mouseDragging.current = false; };
+
+                const handleRotateLeft = () => setTransform(prev => ({ ...prev, rotate: (prev.rotate - 90) % 360 }));
+                const handleRotateRight = () => setTransform(prev => ({ ...prev, rotate: (prev.rotate + 90) % 360 }));
+                const handleZoomIn = () => setTransform(prev => ({ ...prev, scale: Math.min(prev.scale * 1.2, 8) }));
+                const handleZoomOut = () => setTransform(prev => ({ ...prev, scale: Math.max(prev.scale / 1.2, 0.2) }));
+
+                const handleConfirmCrop = () => {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const size = 1200;
+                        canvas.width = size;
+                        canvas.height = ratio === '1:1' ? size : Math.round(size * 1.333);
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = '#161D15';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                        ctx.save();
+                        ctx.translate(canvas.width / 2 + transform.x, canvas.height / 2 + transform.y);
+                        ctx.rotate((transform.rotate * Math.PI) / 180);
+                        ctx.scale(transform.scale, transform.scale);
+                        ctx.drawImage(img, -img.width / 2, -img.height / 2);
+                        ctx.restore();
+
+                        const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+                        onConfirm(croppedDataUrl, transform);
+                    };
+                    img.src = imageSrc;
+                };
 
                 return (
-                    <div className="overflow-hidden relative select-none w-full h-full cursor-grab active:cursor-grabbing flex items-center justify-center bg-[#EBEBE9]"
-                        onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
-                        onMouseDown={(e) => { isDragging.current = true; dragStart.current = { x: e.clientX - transform.x, y: e.clientY - transform.y }; }}
-                        onMouseMove={(e) => { if (!isDragging.current) return; const updated = { ...transform, x: e.clientX - dragStart.current.x, y: e.clientY - dragStart.current.y }; setTransform(updated); if (onChange) onChange(updated); }}
-                        onMouseUp={() => { isDragging.current = false; }} onMouseLeave={() => { isDragging.current = false; }}>
-                        <img src={src} alt="Preview" className={className}
-                            style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`, transition: isDragging.current ? 'none' : 'transform 0.1s ease-out', maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                            draggable={false} />
+                    <div className="modal-overlay bg-black/95 flex flex-col justify-between p-4 z-[9999999]">
+                        <div className="flex items-center justify-between text-white py-2">
+                            <h3 className="font-extrabold text-sm flex items-center gap-1.5"><i data-lucide="crop" className="w-4 h-4 text-[#C5AB89]"></i> 圖片裁切與調整</h3>
+                            <div className="flex gap-2 bg-[#1A2218] p-1 rounded-xl border border-[#737C75]/40">
+                                <button onClick={() => setRatio('1:1')} className={`px-3 py-1 rounded-lg text-xs font-bold ${ratio === '1:1' ? 'bg-[#C5AB89] text-[#161D15]' : 'text-white'}`}>1:1 正方形</button>
+                                <button onClick={() => setRatio('free')} className={`px-3 py-1 rounded-lg text-xs font-bold ${ratio === 'free' ? 'bg-[#C5AB89] text-[#161D15]' : 'text-white'}`}>自訂比例</button>
+                            </div>
+                        </div>
+
+                        {/* 裁切預覽主畫面與九宮格參考線 */}
+                        <div 
+                            ref={containerRef}
+                            className="relative flex-1 my-3 overflow-hidden rounded-3xl bg-[#0b0f0a] border border-[#C5AB89]/40 flex items-center justify-center cursor-grab active:cursor-grabbing touch-none select-none shadow-2xl"
+                            onTouchStart={handleTouchStart}
+                            onTouchMove={handleTouchMove}
+                            onTouchEnd={handleTouchEnd}
+                            onMouseDown={handleMouseDown}
+                            onMouseMove={handleMouseMove}
+                            onMouseUp={handleMouseUp}
+                            onMouseLeave={handleMouseUp}
+                        >
+                            <div className={`relative overflow-hidden border-2 border-[#C5AB89]/80 shadow-2xl flex items-center justify-center ${ratio === '1:1' ? 'w-[300px] h-[300px] max-w-[85vw] max-h-[85vw]' : 'w-[300px] h-[400px] max-w-[85vw] max-h-[70vh]'}`}>
+                                <img 
+                                    src={imageSrc} 
+                                    alt="Crop Source" 
+                                    className="max-w-none pointer-events-none select-none"
+                                    style={{
+                                        transform: `translate(${transform.x}px, ${transform.y}px) rotate(${transform.rotate}deg) scale(${transform.scale})`,
+                                        transition: isInteracting.current ? 'none' : 'transform 0.05s ease-out'
+                                    }}
+                                    draggable={false}
+                                />
+                                {/* 九宮格參考線 */}
+                                <div className="absolute inset-0 pointer-events-none grid grid-cols-3 grid-rows-3 border border-white/20">
+                                    <div className="border-r border-b border-white/20"></div>
+                                    <div className="border-r border-b border-white/20"></div>
+                                    <div className="border-b border-white/20"></div>
+                                    <div className="border-r border-b border-white/20"></div>
+                                    <div className="border-r border-b border-white/20"></div>
+                                    <div className="border-b border-white/20"></div>
+                                    <div className="border-r border-white/20"></div>
+                                    <div className="border-r border-white/20"></div>
+                                    <div></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 控制工具列 */}
+                        <div className="flex items-center justify-center gap-3 py-2">
+                            <button onClick={handleRotateLeft} className="p-2.5 rounded-xl bg-[#232C20] text-white text-xs font-bold flex items-center gap-1 border border-[#737C75]/40" title="向左旋轉"><i data-lucide="rotate-ccw" className="w-4 h-4"></i> 左旋</button>
+                            <button onClick={handleRotateRight} className="p-2.5 rounded-xl bg-[#232C20] text-white text-xs font-bold flex items-center gap-1 border border-[#737C75]/40" title="向右旋轉"><i data-lucide="rotate-cw" className="w-4 h-4"></i> 右旋</button>
+                            <button onClick={handleZoomOut} className="p-2.5 rounded-xl bg-[#232C20] text-white text-xs font-bold flex items-center gap-1 border border-[#737C75]/40" title="縮小"><i data-lucide="zoom-out" className="w-4 h-4"></i> -</button>
+                            <button onClick={handleZoomIn} className="p-2.5 rounded-xl bg-[#232C20] text-white text-xs font-bold flex items-center gap-1 border border-[#737C75]/40" title="放大"><i data-lucide="zoom-in" className="w-4 h-4"></i> +</button>
+                        </div>
+
+                        {/* 取消與確認按鈕 */}
+                        <div className="flex gap-3 pt-2">
+                            <button onClick={onCancel} className="flex-1 py-3 rounded-2xl bg-[#C5AB89] text-[#161D15] font-extrabold text-xs shadow">取消</button>
+                            <button onClick={handleConfirmCrop} className="flex-1 py-3 rounded-2xl bg-[#EFF0EA] text-[#161D15] font-extrabold text-xs shadow">確認裁切</button>
+                        </div>
                     </div>
                 );
             }
@@ -369,8 +508,8 @@
                 const [userProfile, setUserProfile] = useState(() => {
                     try {
                         const saved = localStorage.getItem('liveecho_user_profile_v12');
-                        return saved ? JSON.parse(saved) : { name: 'LiveU', subtitle: 'say something', avatarUrl: '', avatarTransform: { scale: 1, x: 0, y: 0 }, initials: 'LU' };
-                    } catch (e) { return { name: 'LiveU', subtitle: 'say something', avatarUrl: '', avatarTransform: { scale: 1, x: 0, y: 0 }, initials: 'LU' }; }
+                        return saved ? JSON.parse(saved) : { name: 'LiveU', subtitle: 'say something', avatarUrl: '', avatarTransform: { scale: 1, x: 0, y: 0, rotate: 0 }, initials: 'LU' };
+                    } catch (e) { return { name: 'LiveU', subtitle: 'say something', avatarUrl: '', avatarTransform: { scale: 1, x: 0, y: 0, rotate: 0 }, initials: 'LU' }; }
                 });
 
                 const [activeTab, setActiveTab] = useState('archive');
@@ -420,12 +559,11 @@
                         book: events.filter(e => e.type === 'book').length,
                         drama: events.filter(e => e.type === 'drama').length,
                     };
-                    const uniqueArtistsCount = new Set(events.map(e => e.artist).filter(Boolean)).size;
                     return {
                         totalEvents: events.length, attendedCount: attended.length, totalCost,
                         uniqueVenuesCount: new Set(attended.map(e => e.venue).filter(Boolean)).size,
                         uniqueCountriesCount: new Set(attended.map(e => e.countryName || '台灣').filter(Boolean)).size,
-                        uniqueArtistsCount,
+                        uniqueArtistsCount: new Set(events.map(e => e.artist).filter(Boolean)).size,
                         categoryCounts
                     };
                 }, [events]);
@@ -478,7 +616,7 @@
                             <button onClick={() => setIsEditProfileOpen(true)} className="flex items-center gap-2.5 text-left group p-1 -ml-1 rounded-xl hover:bg-[#D2CABF]/10">
                                 {userProfile.avatarUrl ? (
                                     <div className="w-8 h-8 rounded-lg overflow-hidden border border-[#C5AB89] relative bg-[#EBEBE9] flex items-center justify-center">
-                                        <img src={userProfile.avatarUrl} alt="Avatar" className="w-full h-full object-contain" style={userProfile.avatarTransform ? { transform: `translate(${userProfile.avatarTransform.x * 0.2}px, ${userProfile.avatarTransform.y * 0.2}px) scale(${userProfile.avatarTransform.scale})` } : {}} />
+                                        <img src={userProfile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                                     </div>
                                 ) : (
                                     <div className="w-8 h-8 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center font-black text-xs">{userProfile.initials || 'LU'}</div>
@@ -513,7 +651,6 @@
                             {activeTab === 'stats' && <StatsSection stats={stats} events={events} />}
                         </main>
 
-                        {/* ===== iOS 18 Liquid Glass 新版懸浮底導覽列 ===== */}
                         <nav className="bottom-nav-container w-full">
                             <div className="liquid-glass-bar p-1.5 flex items-center justify-around max-w-sm mx-auto shadow-2xl">
                                 {NAV_ITEMS.map((item) => {
@@ -547,7 +684,9 @@
                 const [name, setName] = useState(userProfile.name);
                 const [subtitle, setSubtitle] = useState(userProfile.subtitle);
                 const [avatarUrl, setAvatarUrl] = useState(userProfile.avatarUrl);
-                const [avatarTransform, setAvatarTransform] = useState(userProfile.avatarTransform || { scale: 1, x: 0, y: 0 });
+                const [avatarTransform, setAvatarTransform] = useState(userProfile.avatarTransform || { scale: 1, x: 0, y: 0, rotate: 0 });
+                
+                const [rawImageForCrop, setRawImageForCrop] = useState(null);
                 const fileRef = useRef(null);
 
                 const handleSave = async (e) => {
@@ -564,43 +703,64 @@
                 };
 
                 return (
-                    <div className="modal-overlay bg-black/85 flex items-center justify-center p-4 pt-14 pb-20">
-                        <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-[#D2CABF] space-y-4 max-h-[75vh] overflow-y-auto no-scrollbar flex flex-col">
-                            <div className="flex items-center justify-between pb-1 shrink-0">
-                                <h3 className="font-extrabold text-sm"><i data-lucide="user-pen" className="w-4 h-4 inline"></i> 編輯個人檔案</h3>
-                            </div>
-                            <form onSubmit={handleSave} className="space-y-4 overflow-y-auto no-scrollbar flex-1">
-                                <div className="flex flex-col items-center gap-2 pt-2 pb-2">
-                                    <div 
-                                        onClick={() => fileRef.current?.click()}
-                                        className="w-40 h-40 rounded-2xl overflow-hidden border-2 border-solid border-[#C5AB89] relative bg-[#EBEBE9] flex items-center justify-center shadow-inner cursor-pointer hover:opacity-95 transition-opacity"
-                                    >
-                                        {avatarUrl ? (
-                                            <TouchImageTransform src={avatarUrl} initialTransform={avatarTransform} onChange={setAvatarTransform} className="w-full h-full object-contain" />
-                                        ) : (
-                                            <div className="text-center p-2">
-                                                <i data-lucide="image-plus" className="w-10 h-10 mx-auto text-[#737C75] mb-1"></i>
-                                                <span className="text-[11px] font-bold text-[#737C75]">點擊選擇照片</span>
-                                            </div>
-                                        )}
-                                        <input type="file" ref={fileRef} onChange={async (e) => { if (e.target.files[0]) { setAvatarUrl(await compressImageFile(e.target.files[0], 2400, 2400, 0.95)); setAvatarTransform({ scale: 1, x: 0, y: 0 }); } }} accept="image/*" className="hidden" />
+                    <>
+                        <div className="modal-overlay bg-black/85 flex items-center justify-center p-4 pt-14 pb-20">
+                            <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-[#D2CABF] space-y-4 max-h-[75vh] overflow-y-auto no-scrollbar flex flex-col">
+                                <div className="flex items-center justify-between pb-1 shrink-0">
+                                    <h3 className="font-extrabold text-sm"><i data-lucide="user-pen" className="w-4 h-4 inline"></i> 編輯個人檔案</h3>
+                                </div>
+                                <form onSubmit={handleSave} className="space-y-4 overflow-y-auto no-scrollbar flex-1">
+                                    <div className="flex flex-col items-center gap-2 pt-2 pb-2">
+                                        <div 
+                                            onClick={() => fileRef.current?.click()}
+                                            className="w-32 h-32 rounded-full overflow-hidden border-2 border-solid border-[#C5AB89] relative bg-[#EBEBE9] flex items-center justify-center shadow-inner cursor-pointer hover:opacity-95 transition-opacity"
+                                        >
+                                            {avatarUrl ? (
+                                                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="text-center p-2">
+                                                    <i data-lucide="image-plus" className="w-8 h-8 mx-auto text-[#737C75] mb-1"></i>
+                                                    <span className="text-[10px] font-bold text-[#737C75]">選擇頭像</span>
+                                                </div>
+                                            )}
+                                            <input type="file" ref={fileRef} onChange={async (e) => { 
+                                                if (e.target.files[0]) {
+                                                    const base = await compressImageFile(e.target.files[0], 2000, 2000, 0.95);
+                                                    setRawImageForCrop(base);
+                                                } 
+                                            }} accept="image/*" className="hidden" />
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#737C75]">稱呼</label>
-                                    <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#737C75]">簡介</label>
-                                    <input type="text" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" />
-                                </div>
-                                <div className="flex gap-2 pt-2">
-                                    <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-bold">取消</button>
-                                    <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] text-xs font-bold">儲存變更</button>
-                                </div>
-                            </form>
+                                    <div className="space-y-1">
+                                        <label className="text-[11px] font-bold text-[#737C75]">稱呼</label>
+                                        <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[11px] font-bold text-[#737C75]">簡介</label>
+                                        <input type="text" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" />
+                                    </div>
+                                    <div className="flex gap-2 pt-2">
+                                        <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-bold">取消</button>
+                                        <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] text-xs font-bold">儲存變更</button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
-                    </div>
+
+                        {rawImageForCrop && (
+                            <ImageCropperModal
+                                imageSrc={rawImageForCrop}
+                                initialTransform={avatarTransform}
+                                aspectMode="1:1"
+                                onConfirm={(croppedUrl, newTrans) => {
+                                    setAvatarUrl(croppedUrl);
+                                    setAvatarTransform(newTrans);
+                                    setRawImageForCrop(null);
+                                }}
+                                onCancel={() => setRawImageForCrop(null)}
+                            />
+                        )}
+                    </>
                 );
             }
 
@@ -619,11 +779,12 @@
                 const [spotifyUrl, setSpotifyUrl] = useState(initialData?.spotifyUrl || '');
                 const [notes, setNotes] = useState(initialData?.notes || '');
                 const [coverImg, setCoverImg] = useState(initialData?.coverImg || '');
-                const [imageTransform, setImageTransform] = useState(initialData?.imageTransform || { scale: 1, x: 0, y: 0 });
+                const [imageTransform, setImageTransform] = useState(initialData?.imageTransform || { scale: 1, x: 0, y: 0, rotate: 0 });
                 
                 const [lat, setLat] = useState(initialData?.lat || null);
                 const [lng, setLng] = useState(initialData?.lng || null);
 
+                const [rawImageForCrop, setRawImageForCrop] = useState(null);
                 const fileRef = useRef(null);
 
                 const handleVenueChange = (e) => {
@@ -643,8 +804,6 @@
                 const handleSubmit = async (e) => {
                     e.preventDefault();
                     const resolved = resolveCountryInfo(countryName);
-                    const finalImg = await compressImageFile(coverImg, 2400, 2400, 0.95);
-
                     const finalLat = lat !== null ? Number(lat) : resolved.lat;
                     const finalLng = lng !== null ? Number(lng) : resolved.lng;
 
@@ -654,66 +813,87 @@
                         artist: artist || '',
                         city: city || '台北', countryCode: resolved.code, countryName: resolved.name,
                         lat: finalLat, lng: finalLng, status: 'attended',
-                        cost: Number(cost) || 0, detailSeat, coverImg: finalImg, imageTransform, spotifyUrl, notes
+                        cost: Number(cost) || 0, detailSeat, coverImg, imageTransform, spotifyUrl, notes
                     });
                     onClose();
                 };
 
                 return (
-                    <div className="modal-overlay bg-black/85 flex items-center justify-center p-4 pt-14 pb-20">
-                        <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 max-h-[75vh] flex flex-col">
-                            <div className="flex items-center justify-between pb-1 shrink-0">
-                                <h3 className="font-extrabold text-sm"><i data-lucide="ticket-plus" className="w-4 h-4 inline"></i> {initialData ? '編輯藝文紀錄' : '新增藝文紀錄'}</h3>
-                            </div>
-                            <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar">
-                                <div className="bg-white p-3 rounded-2xl border border-[#D2CABF] space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <label className="text-[11px] font-bold text-[#737C75]">圖片調整</label>
+                    <>
+                        <div className="modal-overlay bg-black/85 flex items-center justify-center p-4 pt-14 pb-20">
+                            <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 max-h-[75vh] flex flex-col">
+                                <div className="flex items-center justify-between pb-1 shrink-0">
+                                    <h3 className="font-extrabold text-sm"><i data-lucide="ticket-plus" className="w-4 h-4 inline"></i> {initialData ? '編輯藝文紀錄' : '新增藝文紀錄'}</h3>
+                                </div>
+                                <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar">
+                                    <div className="bg-white p-3 rounded-2xl border border-[#D2CABF] space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[11px] font-bold text-[#737C75]">活動封面圖片</label>
+                                        </div>
+                                        <div 
+                                            onClick={() => fileRef.current?.click()}
+                                            className="w-full h-40 rounded-xl overflow-hidden bg-[#EBEBE9] border border-[#D2CABF] relative flex items-center justify-center cursor-pointer hover:opacity-95 transition-opacity shadow-inner"
+                                        >
+                                            {coverImg ? (
+                                                <img src={coverImg} alt="Cover" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="text-center p-2">
+                                                    <i data-lucide="image-plus" className="w-8 h-8 mx-auto text-[#737C75] mb-1"></i>
+                                                    <span className="text-[11px] font-bold text-[#737C75]">點擊新增與裁切照片</span>
+                                                </div>
+                                            )}
+                                            <input type="file" ref={fileRef} onChange={async (e) => { 
+                                                if(e.target.files[0]) {
+                                                    const base = await compressImageFile(e.target.files[0], 2400, 2400, 0.95);
+                                                    setRawImageForCrop(base);
+                                                } 
+                                            }} accept="image/*" className="hidden" />
+                                        </div>
                                     </div>
-                                    <div 
-                                        onClick={() => fileRef.current?.click()}
-                                        className="w-full h-40 rounded-xl overflow-hidden bg-[#EBEBE9] border border-[#D2CABF] relative flex items-center justify-center cursor-pointer hover:opacity-95 transition-opacity shadow-inner"
-                                    >
-                                        {coverImg ? (
-                                            <TouchImageTransform src={coverImg} initialTransform={imageTransform} onChange={setImageTransform} className="w-full h-full object-contain" />
-                                        ) : (
-                                            <div className="text-center p-2">
-                                                <i data-lucide="image-plus" className="w-8 h-8 mx-auto text-[#737C75] mb-1"></i>
-                                                <span className="text-[11px] font-bold text-[#737C75]">點擊新增照片</span>
-                                            </div>
-                                        )}
-                                        <input type="file" ref={fileRef} onChange={async (e) => { if(e.target.files[0]) { setCoverImg(await compressImageFile(e.target.files[0], 2400, 2400, 0.95)); setImageTransform({ scale: 1, x: 0, y: 0 }); }}} accept="image/*" className="hidden" />
+                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">活動分類</label><select value={type} onChange={(e) => setType(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]">{Object.entries(CATEGORIES).map(([k, v]) => <option key={k} value={k}>{v.emoji} {v.label}</option>)}</select></div>
+                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">活動名稱</label><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
+                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">演出藝人</label><input type="text" value={artist} onChange={(e) => setArtist(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
+                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">場館名稱</label><input type="text" value={venue} onChange={handleVenueChange} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
+                                    
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">國家</label><input type="text" value={countryName} onChange={(e) => setCountryName(e.target.value)} required className="w-full h-9 bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
+                                        <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">城市</label><input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="w-full h-9 bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                     </div>
-                                </div>
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">活動分類</label><select value={type} onChange={(e) => setType(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]">{Object.entries(CATEGORIES).map(([k, v]) => <option key={k} value={k}>{v.emoji} {v.label}</option>)}</select></div>
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">活動名稱</label><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">演出藝人</label><input type="text" value={artist} onChange={(e) => setArtist(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">場館名稱</label><input type="text" value={venue} onChange={handleVenueChange} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">國家</label><input type="text" value={countryName} onChange={(e) => setCountryName(e.target.value)} required className="w-full h-9 bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">城市</label><input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="w-full h-9 bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                </div>
-                                
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">日期</label><input type="text" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">票價 (NT)</label><input type="text" value={cost} onChange={(e) => setCost(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                </div>
-                                
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">座位＆票區資訊</label><input type="text" value={detailSeat} onChange={(e) => setDetailSeat(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">開演時間</label><input type="text" value={time} onChange={(e) => setTime(e.target.value)} placeholder="19:30" className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">日期</label><input type="text" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
+                                        <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">票價 (NT)</label><input type="text" value={cost} onChange={(e) => setCost(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">座位＆票區資訊</label><input type="text" value={detailSeat} onChange={(e) => setDetailSeat(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
+                                        <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">開演時間</label><input type="text" value={time} onChange={(e) => setTime(e.target.value)} placeholder="19:30" className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
+                                    </div>
 
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">Spotify 歌單</label><input type="text" value={spotifyUrl} onChange={(e) => setSpotifyUrl(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">心得筆記</label><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows="2" className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF] resize-none"></textarea></div>
-                                <div className="flex gap-2 pt-2">
-                                    <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-bold">取消</button>
-                                    <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] text-xs font-bold">{initialData ? '儲存修改' : '確認新增'}</button>
-                                </div>
-                            </form>
+                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">Spotify 歌單</label><input type="text" value={spotifyUrl} onChange={(e) => setSpotifyUrl(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
+                                    <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">心得筆記</label><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows="2" className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF] resize-none"></textarea></div>
+                                    <div className="flex gap-2 pt-2">
+                                        <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-bold">取消</button>
+                                        <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] text-xs font-bold">{initialData ? '儲存修改' : '確認新增'}</button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
-                    </div>
+
+                        {rawImageForCrop && (
+                            <ImageCropperModal
+                                imageSrc={rawImageForCrop}
+                                initialTransform={imageTransform}
+                                aspectMode="free"
+                                onConfirm={(croppedUrl, newTrans) => {
+                                    setCoverImg(croppedUrl);
+                                    setImageTransform(newTrans);
+                                    setRawImageForCrop(null);
+                                }}
+                                onCancel={() => setRawImageForCrop(null)}
+                            />
+                        )}
+                    </>
                 );
             }
 
@@ -796,14 +976,13 @@
                 if (!event) return null;
                 const cat = CATEGORIES[event.type] || CATEGORIES.concert;
                 const spotifyEmbed = parseSpotifyEmbedUrl(event.spotifyUrl);
-                const t = event.imageTransform || { scale: 1, x: 0, y: 0 };
 
                 return (
                     <div className="modal-overlay bg-black/85 backdrop-blur-md flex items-center justify-center p-4 pt-14 pb-20 z-[999999]">
                         <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-[#D2CABF] my-auto flex flex-col max-h-[75vh]">
                             <div className="relative h-48 bg-[#1A1A1A] shrink-0 overflow-hidden flex items-center justify-center">
                                 {event.coverImg ? (
-                                    <img src={event.coverImg} alt={event.title} className="w-full h-full object-contain" style={{ transform: `translate(${t.x}px, ${t.y}px) scale(${t.scale})` }} />
+                                    <img src={event.coverImg} alt={event.title} className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="w-full h-full bg-[#EBEBE9]" />
                                 )}
@@ -916,9 +1095,7 @@
                         if (mapInst.current) mapInst.current.invalidateSize();
                     });
 
-                    return () => { 
-                        cancelAnimationFrame(timer);
-                    };
+                    return () => { cancelAnimationFrame(timer); };
                 }, []);
 
                 useEffect(() => {
@@ -1059,7 +1236,7 @@
                                                         className="w-16 h-20 rounded-xl overflow-hidden shrink-0 border border-[#D2CABF] bg-[#EBEBE9] relative shadow-sm cursor-pointer hover:opacity-95 flex items-center justify-center"
                                                     >
                                                         {evt.coverImg ? (
-                                                            <img src={evt.coverImg} alt={evt.title} className="w-full h-full object-contain" />
+                                                            <img src={evt.coverImg} alt={evt.title} className="w-full h-full object-cover" />
                                                         ) : (
                                                             <div className="w-full h-full bg-[#EBEBE9]" />
                                                         )}

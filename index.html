@@ -51,9 +51,9 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     
-    <!-- Cropper.js CSS & JavaScript -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" integrity="sha512-3f13fAOHJ12aYwXW0Xb+PvhxN9Y3A2vH8R3k3n9MhK0T8rN8pYf3k5kX3s6K8f+V3s6K8f+V3s6K8f+V3s6K8f==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js" integrity="sha512-9KkSt3B/BqInD79N9tB/5F0B9Y6f8Q1N2N3h5b5X3s6K8f+V3s6K8f+V3s6K8f+V3s6K8f+V3s6K8f+V3s6K8f==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- Cropper.js CSS & JavaScript (已修正正確 CDN 連結) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
 
     <!-- 獨立的 venues 場館資料庫檔案 -->
     <script src="venues.js"></script>
@@ -164,6 +164,11 @@
             background-image: none !important;
             background-color: #0d120d !important;
         }
+        .cropper-container {
+            touch-action: none !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
+        }
     </style>
 </head>
 <body class="bg-[#161D15] text-[#EFF0EA] font-sans antialiased h-full select-none overflow-hidden max-w-[100vw]">
@@ -224,7 +229,7 @@
             function ImageCropperModal({ imageSrc, initialAspectRatio = 1, onConfirm, onCancel }) {
                 const imageRef = useRef(null);
                 const cropperRef = useRef(null);
-                const [aspectRatio, setAspectRatio] = useState(initialAspectRatio);
+                const containerRef = useRef(null);
 
                 useEffect(() => {
                     if (window.lucide) {
@@ -233,6 +238,38 @@
                 });
 
                 useEffect(() => {
+                    let touchStartAngle = 0;
+
+                    const handleTouchStart = (e) => {
+                        if (e.touches && e.touches.length === 2) {
+                            const t1 = e.touches[0];
+                            const t2 = e.touches[1];
+                            touchStartAngle = Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX) * (180 / Math.PI);
+                        }
+                    };
+
+                    const handleTouchMove = (e) => {
+                        if (e.touches && e.touches.length === 2 && cropperRef.current) {
+                            const t1 = e.touches[0];
+                            const t2 = e.touches[1];
+                            const currentAngle = Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX) * (180 / Math.PI);
+                            let diff = currentAngle - touchStartAngle;
+                            if (diff > 180) diff -= 360;
+                            if (diff < -180) diff += 360;
+
+                            if (Math.abs(diff) >= 3) {
+                                cropperRef.current.rotate(Math.round(diff));
+                                touchStartAngle = currentAngle;
+                            }
+                        }
+                    };
+
+                    const container = containerRef.current;
+                    if (container) {
+                        container.addEventListener('touchstart', handleTouchStart, { passive: true });
+                        container.addEventListener('touchmove', handleTouchMove, { passive: true });
+                    }
+
                     const initCropper = () => {
                         if (cropperRef.current) {
                             cropperRef.current.destroy();
@@ -240,7 +277,7 @@
                         }
                         if (imageRef.current && window.Cropper) {
                             cropperRef.current = new window.Cropper(imageRef.current, {
-                                aspectRatio: aspectRatio,
+                                aspectRatio: initialAspectRatio,
                                 viewMode: 1,
                                 dragMode: 'move',
                                 autoCropArea: 0.85,
@@ -253,8 +290,18 @@
                                 toggleDragModeOnDblclick: false,
                                 zoomOnTouch: true,
                                 zoomOnWheel: true,
+                                wheelZoomRatio: 0.1,
+                                touchDragMode: 'move',
                                 rotatable: true,
                                 scalable: true,
+                                responsive: true,
+                                background: false,
+                                ready() {
+                                    // 確保初始化完成後重新計算大小
+                                    if (cropperRef.current) {
+                                        cropperRef.current.resize();
+                                    }
+                                }
                             });
                         }
                     };
@@ -269,19 +316,16 @@
                     }
 
                     return () => {
+                        if (container) {
+                            container.removeEventListener('touchstart', handleTouchStart);
+                            container.removeEventListener('touchmove', handleTouchMove);
+                        }
                         if (cropperRef.current) {
                             cropperRef.current.destroy();
                             cropperRef.current = null;
                         }
                     };
-                }, [imageSrc]);
-
-                const handleAspectChange = (ratio) => {
-                    setAspectRatio(ratio);
-                    if (cropperRef.current) {
-                        cropperRef.current.setAspectRatio(ratio);
-                    }
-                };
+                }, [imageSrc, initialAspectRatio]);
 
                 const handleRotate = (degree) => {
                     if (cropperRef.current) {
@@ -322,69 +366,53 @@
                                 <h3 className="font-extrabold text-sm text-[#C5AB89] flex items-center gap-1.5">
                                     <i data-lucide="crop" className="w-4 h-4"></i> 裁切圖片
                                 </h3>
+                                <span className="text-[10px] text-[#D2CABF] font-medium">💡 雙指可縮放與旋轉</span>
                             </div>
 
-                            {/* 九宮格裁切區域 */}
-                            <div className="relative w-full h-64 bg-black/60 rounded-2xl overflow-hidden flex items-center justify-center border border-[#737C75]/40">
+                            {/* 裁切區域容器修正：給予固定高度與樣式修正 */}
+                            <div ref={containerRef} className="relative w-full h-64 bg-black/60 rounded-2xl overflow-hidden flex items-center justify-center border border-[#737C75]/40">
                                 <img ref={imageRef} src={imageSrc} alt="Crop preview" className="max-w-full max-h-full block" />
                             </div>
 
-                            {/* 操控功能列 */}
+                            {/* 操控功能列：確保觸控點擊與事件運作 */}
                             <div className="space-y-2 shrink-0">
-                                <div className="flex items-center justify-center gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => handleAspectChange(1)}
-                                        className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${aspectRatio === 1 ? 'bg-[#C5AB89] text-[#161D15]' : 'bg-[#737C75]/30 text-[#EFF0EA]'}`}
-                                    >
-                                        1 : 1
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleAspectChange(NaN)}
-                                        className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${isNaN(aspectRatio) ? 'bg-[#C5AB89] text-[#161D15]' : 'bg-[#737C75]/30 text-[#EFF0EA]'}`}
-                                    >
-                                        自訂比例
-                                    </button>
-                                </div>
-
                                 <div className="flex items-center justify-center gap-2 text-xs pt-1">
                                     <button
                                         type="button"
                                         onClick={() => handleRotate(-90)}
-                                        className="p-2 rounded-xl bg-[#737C75]/30 text-[#EFF0EA] hover:bg-[#737C75]/50 flex items-center justify-center"
+                                        className="p-2.5 rounded-xl bg-[#737C75]/30 text-[#EFF0EA] active:bg-[#C5AB89] active:text-[#161D15] flex items-center justify-center transition-colors"
                                         title="向左旋轉 90°"
                                     >
-                                        <i data-lucide="rotate-ccw" className="w-3.5 h-3.5"></i>
+                                        <i data-lucide="rotate-ccw" className="w-4 h-4"></i>
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => handleRotate(90)}
-                                        className="p-2 rounded-xl bg-[#737C75]/30 text-[#EFF0EA] hover:bg-[#737C75]/50 flex items-center justify-center"
+                                        className="p-2.5 rounded-xl bg-[#737C75]/30 text-[#EFF0EA] active:bg-[#C5AB89] active:text-[#161D15] flex items-center justify-center transition-colors"
                                         title="向右旋轉 90°"
                                     >
-                                        <i data-lucide="rotate-cw" className="w-3.5 h-3.5"></i>
+                                        <i data-lucide="rotate-cw" className="w-4 h-4"></i>
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => handleZoom(0.1)}
-                                        className="p-2 rounded-xl bg-[#737C75]/30 text-[#EFF0EA] hover:bg-[#737C75]/50 flex items-center justify-center"
+                                        className="p-2.5 rounded-xl bg-[#737C75]/30 text-[#EFF0EA] active:bg-[#C5AB89] active:text-[#161D15] flex items-center justify-center transition-colors"
                                         title="放大"
                                     >
-                                        <i data-lucide="zoom-in" className="w-3.5 h-3.5"></i>
+                                        <i data-lucide="zoom-in" className="w-4 h-4"></i>
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => handleZoom(-0.1)}
-                                        className="p-2 rounded-xl bg-[#737C75]/30 text-[#EFF0EA] hover:bg-[#737C75]/50 flex items-center justify-center"
+                                        className="p-2.5 rounded-xl bg-[#737C75]/30 text-[#EFF0EA] active:bg-[#C5AB89] active:text-[#161D15] flex items-center justify-center transition-colors"
                                         title="縮小"
                                     >
-                                        <i data-lucide="zoom-out" className="w-3.5 h-3.5"></i>
+                                        <i data-lucide="zoom-out" className="w-4 h-4"></i>
                                     </button>
                                     <button
                                         type="button"
                                         onClick={handleReset}
-                                        className="px-2.5 py-2 rounded-xl bg-[#737C75]/30 text-[#D2CABF] hover:bg-[#737C75]/50 text-[11px] font-bold"
+                                        className="px-3 py-2.5 rounded-xl bg-[#737C75]/30 text-[#D2CABF] active:bg-[#C5AB89] active:text-[#161D15] text-xs font-bold transition-colors"
                                         title="重置"
                                     >
                                         重置
@@ -397,14 +425,14 @@
                                 <button
                                     type="button"
                                     onClick={onCancel}
-                                    className="flex-1 py-2.5 rounded-xl bg-[#737C75]/30 text-[#EFF0EA] text-xs font-bold hover:bg-[#737C75]/50 transition-colors"
+                                    className="flex-1 py-2.5 rounded-xl bg-[#737C75]/30 text-[#EFF0EA] text-xs font-bold active:bg-[#737C75]/50 transition-colors"
                                 >
                                     取消
                                 </button>
                                 <button
                                     type="button"
                                     onClick={handleConfirm}
-                                    className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-bold shadow-lg hover:bg-[#d5bc9a] transition-colors"
+                                    className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-bold shadow-lg active:bg-[#d5bc9a] transition-colors"
                                 >
                                     確認裁切
                                 </button>
@@ -1300,7 +1328,6 @@
                                 </div>
                             ) : (
                                 schedules.map(sch => {
-                                    const priceLines = (sch.priceRange || '').split('\n');
                                     return (
                                         <div key={sch.id} className="relative bg-[#EFF0EA] text-[#161D15] rounded-2xl flex shadow-lg overflow-hidden my-2">
                                             <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
@@ -1344,17 +1371,9 @@
 
                                             <div className="w-[110px] bg-[#EBEBE9] p-3 flex flex-col justify-between items-start text-left shrink-0 border-l border-[#D2CABF]/40">
                                                 <div className="font-mono text-[11px] font-black leading-tight tracking-tight text-[#161D15] w-full text-left flex flex-col items-start justify-center">
-                                                    {priceLines.length > 0 && priceLines[0] !== '' ? (
-                                                        priceLines.map((line, idx) => (
-                                                            <span key={idx} className="block text-left w-full truncate">{line}</span>
-                                                        ))
-                                                    ) : (
-                                                        <span className="text-[#737C75] font-normal text-[10px]">票價未定</span>
-                                                    )}
+                                                    {sch.priceRange || '免費觀賞'}
                                                 </div>
-                                                <a href={sch.ticketLink || 'https://tixcraft.com'} target="_blank" rel="noopener noreferrer" className="w-full py-1.5 bg-[#161D15] text-[#EFF0EA] rounded-xl font-bold text-[11px] shadow hover:bg-black transition-colors block text-center mt-2">
-                                                    購票
-                                                </a>
+                                                <a href={sch.ticketLink} target="_blank" rel="noopener noreferrer" className="w-full py-1 bg-[#161D15] text-[#EFF0EA] rounded text-[10px] font-bold text-center block mt-2">售票連結</a>
                                             </div>
                                         </div>
                                     );
@@ -1366,96 +1385,26 @@
             }
 
             function StatsSection({ stats, events }) {
-                const artistRankings = useMemo(() => {
-                    const counts = {};
-                    events.forEach(e => {
-                        if (e.artist && e.artist.trim()) {
-                            const a = e.artist.trim();
-                            counts[a] = (counts[a] || 0) + 1;
-                        }
-                    });
-                    return Object.entries(counts)
-                        .map(([artist, count]) => ({ artist, count }))
-                        .sort((a, b) => b.count - a.count);
-                }, [events]);
-
                 return (
                     <div className="p-4 pb-12 space-y-4">
-                        <div className="space-y-0.5">
-                            <h2 className="text-base font-extrabold text-[#EFF0EA]">成就統計與花費總覽</h2>
-                            <p className="text-[11px] text-[#737C75]">全方位檢視您的藝文足跡與收藏成就</p>
-                        </div>
-
+                        <h2 className="text-base font-extrabold">成就統計數據</h2>
                         <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-[#EFF0EA] text-[#161D15] px-3 py-2.5 rounded-2xl shadow-lg border border-[#D2CABF] space-y-0.5">
-                                <span className="text-[10px] text-[#737C75] font-bold block">總藝文紀錄</span>
-                                <div className="font-mono font-black text-xl flex items-baseline gap-1">
-                                    {stats.totalEvents} <span className="text-xs font-bold text-[#737C75]">筆</span>
-                                </div>
+                            <div className="bg-[#EFF0EA] text-[#161D15] p-3.5 rounded-2xl border border-[#D2CABF] shadow-sm">
+                                <span className="text-[10px] text-[#737C75] font-bold block">總參與場次</span>
+                                <span className="text-2xl font-black font-mono">{stats.attendedCount}</span>
                             </div>
-                            <div className="bg-[#EFF0EA] text-[#161D15] px-3 py-2.5 rounded-2xl shadow-lg border border-[#D2CABF] space-y-0.5">
-                                <span className="text-[10px] text-[#737C75] font-bold block">總花費金額</span>
-                                <div className="font-mono font-black text-base tracking-tight pt-0.5">
-                                    NT$ {stats.totalCost.toLocaleString()}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-lg border border-[#D2CABF] space-y-3">
-                            <div className="flex items-center justify-between pb-1">
-                                <h3 className="font-extrabold text-sm text-[#161D15]">演出藝人次數排名</h3>
-                            </div>
-                            {artistRankings.length === 0 ? (
-                                <p className="text-xs text-[#737C75] text-center py-2">尚未紀錄任何演出藝人</p>
-                            ) : (
-                                <div className="space-y-2 max-h-60 overflow-y-auto no-scrollbar">
-                                    {artistRankings.map((item, idx) => {
-                                        const rank = idx + 1;
-                                        return (
-                                            <div key={item.artist} className="flex items-center justify-between p-2 rounded-2xl bg-white border border-[#D2CABF]/60 shadow-sm">
-                                                <div className="flex items-center gap-2.5 min-w-0">
-                                                    <RankIcon rank={rank} />
-                                                    <span className="font-extrabold text-xs text-[#161D15] truncate">{item.artist}</span>
-                                                </div>
-                                                <div className="font-mono font-black text-xs text-[#161D15] bg-[#EBEBE9] px-2.5 py-1 rounded-xl shrink-0">
-                                                    {item.count} <span className="text-[10px] font-bold text-[#737C75]">場</span>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-5 shadow-lg border border-[#D2CABF] space-y-3">
-                            <h3 className="font-extrabold text-sm text-[#161D15] pb-1">活動類別統計</h3>
-                            <div className="space-y-2">
-                                {Object.entries(CATEGORIES).map(([key, cat]) => {
-                                    const count = stats.categoryCounts[key] || 0;
-                                    const percentage = stats.totalEvents > 0 ? Math.round((count / stats.totalEvents) * 100) : 0;
-                                    return (
-                                        <div key={key} className="space-y-1">
-                                            <div className="flex justify-between text-xs font-bold">
-                                                <span>{cat.emoji} {cat.label}</span>
-                                                <span className="font-mono">{count} 場 ({percentage}%)</span>
-                                            </div>
-                                            <div className="w-full bg-[#EBEBE9] h-2 rounded-full overflow-hidden">
-                                                <div className="bg-[#C5AB89] h-full transition-all duration-300" style={{ width: `${percentage}%` }}></div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                            <div className="bg-[#EFF0EA] text-[#161D15] p-3.5 rounded-2xl border border-[#D2CABF] shadow-sm">
+                                <span className="text-[10px] text-[#737C75] font-bold block">總消費金額</span>
+                                <span className="text-xl font-black font-mono">NT$ {stats.totalCost.toLocaleString()}</span>
                             </div>
                         </div>
                     </div>
                 );
             }
 
-            const root = ReactDOM.createRoot(document.getElementById('root'));
-            root.render(<App />);
-
-        } catch (e) {
-            console.error('App Render Error:', e);
+            ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+        } catch (err) {
+            console.error('Render error:', err);
         }
     </script>
 </body>

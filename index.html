@@ -47,6 +47,9 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+    <!-- Canvas Confetti for Fireworks Animation -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
     <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -168,6 +171,11 @@
             touch-action: none !important;
             max-width: 100% !important;
             max-height: 100% !important;
+        }
+
+        /* Gold Glow for Artist of the Year */
+        .glow-gold {
+            box-shadow: 0 0 25px rgba(197, 171, 137, 0.35);
         }
     </style>
 </head>
@@ -515,55 +523,52 @@
                 );
             }
 
+            /* 皇冠 Icon 與星星 Icon 渲染組件 */
             function RankIcon({ rank }) {
                 if (rank === 1) {
                     return (
-                        <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
-                            <svg viewBox="0 0 100 80" className="w-7 h-7 filter drop-shadow">
+                        <div className="relative w-6 h-6 flex items-center justify-center shrink-0">
+                            <svg viewBox="0 0 100 80" className="w-6 h-6 filter drop-shadow">
                                 <path d="M10,65 L90,65 L85,25 L65,45 L50,15 L35,45 L15,25 Z" fill="#E5A912" />
                                 <circle cx="10" cy="22" r="5" fill="#E5A912" />
                                 <circle cx="50" cy="12" r="6" fill="#E5A912" />
                                 <circle cx="90" cy="22" r="5" fill="#E5A912" />
                                 <path d="M15,65 L85,65 L82,72 L18,72 Z" fill="#C58D00" />
-                                <text x="50" y="56" textAnchor="middle" fill="#FFFFFF" fontSize="28" fontWeight="900" fontFamily="sans-serif">1</text>
                             </svg>
                         </div>
                     );
                 }
                 if (rank === 2) {
                     return (
-                        <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
-                            <svg viewBox="0 0 100 80" className="w-7 h-7 filter drop-shadow">
+                        <div className="relative w-6 h-6 flex items-center justify-center shrink-0">
+                            <svg viewBox="0 0 100 80" className="w-6 h-6 filter drop-shadow">
                                 <path d="M10,65 L90,65 L85,25 L65,45 L50,15 L35,45 L15,25 Z" fill="#B5B8BC" />
                                 <circle cx="10" cy="22" r="5" fill="#B5B8BC" />
                                 <circle cx="50" cy="12" r="6" fill="#B5B8BC" />
                                 <circle cx="90" cy="22" r="5" fill="#B5B8BC" />
                                 <path d="M15,65 L85,65 L82,72 L18,72 Z" fill="#8F9296" />
-                                <text x="50" y="56" textAnchor="middle" fill="#FFFFFF" fontSize="28" fontWeight="900" fontFamily="sans-serif">2</text>
                             </svg>
                         </div>
                     );
                 }
                 if (rank === 3) {
                     return (
-                        <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
-                            <svg viewBox="0 0 100 80" className="w-7 h-7 filter drop-shadow">
+                        <div className="relative w-6 h-6 flex items-center justify-center shrink-0">
+                            <svg viewBox="0 0 100 80" className="w-6 h-6 filter drop-shadow">
                                 <path d="M10,65 L90,65 L85,25 L65,45 L50,15 L35,45 L15,25 Z" fill="#A46738" />
                                 <circle cx="10" cy="22" r="5" fill="#A46738" />
                                 <circle cx="50" cy="12" r="6" fill="#A46738" />
                                 <circle cx="90" cy="22" r="5" fill="#A46738" />
                                 <path d="M15,65 L85,65 L82,72 L18,72 Z" fill="#824E24" />
-                                <text x="50" y="56" textAnchor="middle" fill="#FFFFFF" fontSize="28" fontWeight="900" fontFamily="sans-serif">3</text>
                             </svg>
                         </div>
                     );
                 }
                 return (
-                    <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
-                        <svg viewBox="0 0 100 100" className="w-6 h-6 filter drop-shadow">
-                            <polygon points="50,5 64,36 98,39 72,62 80,95 50,77 20,95 28,62 2,39 36,36" fill="#F3B000" />
+                    <div className="relative w-6 h-6 flex items-center justify-center shrink-0">
+                        <svg viewBox="0 0 100 100" className="w-5 h-5 filter drop-shadow">
+                            <polygon points="50,5 64,36 98,39 72,62 80,95 50,77 20,95 28,62 2,39 36,36" fill="#737C75" />
                         </svg>
-                        <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-[#161D15] pt-0.5">{rank}</span>
                     </div>
                 );
             }
@@ -1559,18 +1564,31 @@
             }
 
             function StatsSection({ stats, events }) {
+                const [imgError, setImgError] = useState(false);
+                const [isCardActive, setIsCardActive] = useState(false);
+
+                // 計算藝人排名 (Top Artists)
                 const artistRankings = useMemo(() => {
                     const counts = {};
+                    const avatarMap = {};
                     events.forEach(e => {
                         if (e.artist) {
                             counts[e.artist] = (counts[e.artist] || 0) + 1;
+                            if (e.coverImg && !avatarMap[e.artist]) {
+                                avatarMap[e.artist] = e.coverImg;
+                            }
                         }
                     });
                     return Object.entries(counts)
-                        .map(([artist, count]) => ({ artist, count }))
+                        .map(([artist, count]) => ({ 
+                            artist, 
+                            count, 
+                            avatar: avatarMap[artist] || null 
+                        }))
                         .sort((a, b) => b.count - a.count);
                 }, [events]);
 
+                // 計算場館排名 (Top Venues)
                 const venueRankings = useMemo(() => {
                     const counts = {};
                     events.forEach(e => {
@@ -1583,15 +1601,176 @@
                         .sort((a, b) => b.count - a.count);
                 }, [events]);
 
-                const maxYearCount = useMemo(() => {
-                    if (!stats.yearlyList || stats.yearlyList.length === 0) return 1;
-                    return Math.max(...stats.yearlyList.map(y => y.count), 1);
-                }, [stats.yearlyList]);
+                // 計算最高次數場館，供長條圖比例計算
+                const maxVenueCount = useMemo(() => {
+                    if (venueRankings.length === 0) return 1;
+                    return Math.max(...venueRankings.map(v => v.count), 1);
+                }, [venueRankings]);
+
+                // 年度藝人數據
+                const topArtistObj = artistRankings[0] || null;
+
+                // 觸發彩帶/煙火動畫與卡片點擊反饋
+                const triggerFireworks = (e) => {
+                    setIsCardActive(true);
+                    setTimeout(() => setIsCardActive(false), 200);
+
+                    if (typeof window.confetti === 'function') {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const x = (rect.left + rect.width / 2) / window.innerWidth;
+                        const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+                        window.confetti({
+                            particleCount: 80,
+                            spread: 70,
+                            origin: { x, y },
+                            colors: ['#C5AB89', '#EFF0EA', '#FFC800', '#D2CABF', '#E5A912']
+                        });
+                    }
+                };
 
                 return (
                     <div className="p-4 pb-12 space-y-4">
                         <div className="space-y-0.5">
-                            <h2 className="text-base font-extrabold text-[#EFF0EA]">星辰軌跡</h2>
+                            <h2 className="text-base font-extrabold text-[#EFF0EA]">浩瀚星辰</h2>
+                        </div>
+
+                        {/* 1. 年度藝人 (Artist of the Year) */}
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <h3 className="font-extrabold text-sm text-[#C5AB89] flex items-center gap-1.5">
+                                    👑 2026 年度藝人
+                                </h3>
+                                <span className="text-[10px] text-[#D2CABF] font-mono">點擊卡片釋放煙火 ✨</span>
+                            </div>
+
+                            <div 
+                                onClick={triggerFireworks}
+                                className={`relative w-full bg-[#121812] border border-[#C5AB89]/50 rounded-3xl p-4 shadow-2xl overflow-hidden cursor-pointer glow-gold transition-all duration-200 ${
+                                    isCardActive ? 'scale-95' : 'hover:scale-[1.01]'
+                                }`}
+                            >
+                                {/* 裝飾背景微光 */}
+                                <div className="absolute -top-12 -right-12 w-32 h-32 bg-[#C5AB89]/15 rounded-full blur-2xl pointer-events-none"></div>
+
+                                {/* 拍立得 1:1 照片相框 */}
+                                <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-[#1A2218] border border-[#C5AB89]/30 shadow-inner flex items-center justify-center">
+                                    {!imgError ? (
+                                        <img 
+                                            src="./images/artists/artist-of-the-year.jpg" 
+                                            alt={topArtistObj ? topArtistObj.artist : "年度藝人"}
+                                            onError={() => setImgError(true)}
+                                            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                                        />
+                                    ) : topArtistObj && topArtistObj.avatar ? (
+                                        <img 
+                                            src={topArtistObj.avatar} 
+                                            alt={topArtistObj.artist}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center p-4 text-center space-y-2">
+                                            <div className="w-16 h-16 rounded-full bg-[#C5AB89]/20 flex items-center justify-center text-[#C5AB89] font-black text-xl border border-[#C5AB89]/40">
+                                                {topArtistObj ? topArtistObj.artist.slice(0, 1) : "🌟"}
+                                            </div>
+                                            <span className="text-xs font-bold text-[#EFF0EA]">
+                                                {topArtistObj ? topArtistObj.artist : "尚無年度藝人紀錄"}
+                                            </span>
+                                            <span className="text-[9px] text-[#737C75]">放置 artist-of-the-year.jpg 於相對路徑資料夾</span>
+                                        </div>
+                                    )}
+
+                                    {/* 相片內右上角標籤 */}
+                                    <div className="absolute top-3 right-3 bg-[#161D15]/80 backdrop-blur-md px-2.5 py-1 rounded-full border border-[#C5AB89]/40 text-[10px] font-black text-[#C5AB89] shadow-md">
+                                        2026 TOP 1
+                                    </div>
+                                </div>
+
+                                {/* 卡片下半部文字資訊 */}
+                                <div className="mt-3.5 flex items-center justify-between px-1">
+                                    <div className="min-w-0 flex-1 pr-2">
+                                        <div className="text-[10px] font-extrabold text-[#C5AB89] tracking-wider uppercase">Most Played Artist</div>
+                                        <h2 className="text-base font-black text-[#EFF0EA] truncate mt-0.5">
+                                            {topArtistObj ? topArtistObj.artist : "尚未產生"}
+                                        </h2>
+                                    </div>
+                                    <div className="bg-[#C5AB89] text-[#161D15] px-3 py-1.5 rounded-2xl font-black text-xs shrink-0 shadow-md">
+                                        {topArtistObj ? `${topArtistObj.count} 場演唱會` : "0 場"}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 2. 藝人次數排名 (Top Artists) */}
+                        <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-lg border border-[#D2CABF] space-y-3">
+                            <div className="flex items-center justify-between border-b border-[#D2CABF]/60 pb-2">
+                                <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-1.5">
+                                    🎤 藝人次數排名 (Top 5)
+                                </h3>
+                                <span className="text-[10px] text-[#737C75] font-mono">共 {stats.uniqueArtistsCount} 位藝人</span>
+                            </div>
+
+                            <div className="space-y-2 pt-1">
+                                {artistRankings.length === 0 ? (
+                                    <p className="text-xs text-[#737C75] text-center py-4">尚無藝人參戰紀錄</p>
+                                ) : (
+                                    artistRankings.slice(0, 5).map((item, idx) => {
+                                        const rank = idx + 1;
+                                        return (
+                                            <div key={item.artist} className="bg-white p-2.5 rounded-2xl border border-[#D2CABF]/60 flex items-center justify-between text-xs shadow-sm">
+                                                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                                    <RankIcon rank={rank} />
+                                                    <div className="w-8 h-8 rounded-full overflow-hidden bg-[#EBEBE9] border border-[#D2CABF] shrink-0 flex items-center justify-center font-bold text-[#161D15]">
+                                                        {item.avatar ? (
+                                                            <img src={item.avatar} alt={item.artist} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            item.artist.slice(0, 1)
+                                                        )}
+                                                    </div>
+                                                    <span className="font-extrabold text-[#161D15] truncate">{item.artist}</span>
+                                                </div>
+                                                <div className="font-mono font-black text-[11px] bg-[#EBEBE9] px-2.5 py-1 rounded-xl shrink-0 text-[#161D15]">
+                                                    觀看 {item.count} 次
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </div>
+
+                        {/* 3. 場館次數排名 (Top Venues - Bar Chart) */}
+                        <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-lg border border-[#D2CABF] space-y-3">
+                            <div className="flex items-center justify-between border-b border-[#D2CABF]/60 pb-2">
+                                <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-1.5">
+                                    📍 場館次數排名 (Top Venues)
+                                </h3>
+                                <span className="text-[10px] text-[#737C75] font-mono">共 {stats.uniqueVenuesCount} 個場館</span>
+                            </div>
+
+                            <div className="space-y-2.5 pt-1">
+                                {venueRankings.length === 0 ? (
+                                    <p className="text-xs text-[#737C75] text-center py-4">尚無場館踩點紀錄</p>
+                                ) : (
+                                    venueRankings.slice(0, 5).map((item) => {
+                                        const percentage = Math.round((item.count / maxVenueCount) * 100);
+                                        return (
+                                            <div key={item.venue} className="space-y-1">
+                                                <div className="flex justify-between items-center text-xs font-bold">
+                                                    <span className="truncate pr-2 text-[#161D15]">{item.venue}</span>
+                                                    <span className="font-mono text-[11px] text-[#737C75] shrink-0">{item.count} 次踩點</span>
+                                                </div>
+                                                <div className="w-full bg-white h-2.5 rounded-full overflow-hidden border border-[#D2CABF]/50">
+                                                    <div 
+                                                        className="h-full bg-[#C5AB89] rounded-full transition-all duration-500" 
+                                                        style={{ width: `${percentage}%` }}
+                                                    ></div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
                         </div>
 
                         {/* 總覽與總花費金額 */}

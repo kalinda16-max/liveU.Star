@@ -1090,8 +1090,8 @@
 
                 return (
                     <>
-                        <div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4 pt-14 pb-20">
-                            <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 max-h-[75vh] flex flex-col">
+                        <div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4 overflow-y-auto">
+                            <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 my-auto flex-col max-h-[90vh">
                                 <div className="flex items-center justify-between pb-1 shrink-0">
                                     <h3 className="font-extrabold text-sm"><i data-lucide="ticket-plus" className="w-4 h-4 inline"></i> {initialData ? '編輯藝文紀錄' : '新增藝文紀錄'}</h3>
                                 </div>
@@ -1157,7 +1157,7 @@
                                         {extraImgs.length > 0 && (
                                             <div className="grid grid-cols-2 gap-2 pt-1">
                                                 {extraImgs.map((img, idx) => (
-                                                    <div key={`${img}-${idx}`}className="relative w-full h-28 rounded-xl overflow-hidden bg-[#EBEBE9] border border-[#D2CABF] shadow-sm group">
+                                                    <div key={`${img}-${idx}`} className="relative w-full h-28 rounded-xl overflow-hidden bg-[#EBEBE9] border border-[#D2CABF] shadow-sm group">
                                                         <img src={img} alt={`Extra ${idx}`} className="w-full h-full object-cover" />
                                                         <button
                                                             type="button"

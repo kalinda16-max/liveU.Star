@@ -1476,8 +1476,11 @@ function AddEventModal({ initialData, onSave, onClose }) {
                                                 <div key={e.id} className="bg-white p-2.5 rounded-2xl border border-[#D2CABF] flex items-center justify-between text-xs shadow-sm">
                                                     <div className="min-w-0 flex-1 pr-2">
                                                         <div className="font-extrabold text-[#161D15] truncate">{e.artist || e.title}</div>
-                                                        <div className="text-[10px] text-[#737C75] truncate mt-0.5">📍 {e.venue || '未定場館'}</div>
-                                                    </div>
+                                                        <div className="text-[10px] text-[#737C75] mt-0.5 flex items-center gap-1">
+                                                        <img src="./image/icons/favourite.png" alt="場館名稱" className="w-3.5 h-3.5 object-contain shrink-0" />
+                                                        <span className="truncate">{e.venue || '未定場館'}</span>
+                                                     </div>
+                                                  </div>
                                                     <div className="font-mono text-[10px] font-bold text-[#161D15] bg-[#EBEBE9] px-2 py-1 rounded-lg shrink-0">
                                                         {e.date}
                                                     </div>

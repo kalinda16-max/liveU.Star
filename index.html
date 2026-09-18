@@ -432,13 +432,13 @@
                 const handleConfirm = () => {
                     if (!cropperRef.current) return;
                     const canvas = cropperRef.current.getCroppedCanvas({
-                        maxWidth: 1600,
-                        maxHeight: 1600,
+                        maxWidth: 800,
+                        maxHeight: 800,
                         imageSmoothingEnabled: true,
-                        imageSmoothingQuality: 'high',
+                        imageSmoothingQuality: 'medium',
                     });
                     if (canvas) {
-                        const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.92);
+                        const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
                         onConfirm(croppedDataUrl);
                     }
                 };
@@ -599,6 +599,92 @@
                 );
             }
 
+            function BackupModal({ events, schedules, userProfile, onClose, onImport, showAlert }) {
+                const fileInputRef = useRef(null);
+
+                const handleExport = () => {
+                    const data = {
+                        version: 'liveecho_v12',
+                        exportDate: new Date().toISOString(),
+                        events,
+                        schedules,
+                        userProfile
+                    };
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+                    const downloadAnchor = document.createElement('a');
+                    downloadAnchor.setAttribute("href", dataStr);
+                    downloadAnchor.setAttribute("download", `liveu_backup_${new Date().toISOString().slice(0, 10)}.json`);
+                    document.body.appendChild(downloadAnchor);
+                    downloadAnchor.click();
+                    downloadAnchor.remove();
+                    showAlert('備份資料匯出成功');
+                };
+
+                const handleImportFile = (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const importedData = JSON.parse(event.target.result);
+                            if (importedData.events || importedData.schedules || importedData.userProfile) {
+                                onImport(importedData);
+                                showAlert('資料備份匯入成功');
+                                onClose();
+                            } else {
+                                alert('無效的備份檔案格式！');
+                            }
+                        } catch (err) {
+                            alert('解析備份檔案失敗，請確認檔案格式是否正確。');
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+
+                return (
+                    <div className="modal-overlay bg-black/85 flex items-center justify-center p-4 z-[999999]">
+                        <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-[#D2CABF] space-y-4 my-auto">
+                            <div className="flex items-center justify-between pb-1 border-b border-[#D2CABF]">
+                                <h3 className="font-extrabold text-sm flex items-center gap-1.5">
+                                    <i data-lucide="database" className="w-4 h-4"></i> 資料備份與匯入
+                                </h3>
+                                <button onClick={onClose}><i data-lucide="x" className="w-5 h-5"></i></button>
+                            </div>
+                            <p className="text-xs text-[#737C75] leading-relaxed">
+                                您可以將所有藝文紀錄、演出排程及個人設定導出為備份 JSON 檔案，或從先前備份的檔案恢復資料。
+                            </p>
+                            <div className="space-y-2 pt-2">
+                                <button 
+                                    onClick={handleExport}
+                                    className="w-full py-3 rounded-2xl bg-[#C5AB89] text-[#161D15] text-xs font-extrabold flex items-center justify-center gap-2 shadow hover:bg-[#d5bc9a] transition-colors"
+                                >
+                                    <i data-lucide="download" className="w-4 h-4"></i> 匯出備份資料 JSON
+                                </button>
+                                <button 
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="w-full py-3 rounded-2xl bg-[#161D15] text-[#EFF0EA] text-xs font-extrabold flex items-center justify-center gap-2 shadow hover:bg-[#2A3626] transition-colors"
+                                >
+                                    <i data-lucide="upload" className="w-4 h-4"></i> 匯入備份資料 JSON
+                                </button>
+                                <input 
+                                    type="file" 
+                                    ref={fileInputRef} 
+                                    onChange={handleImportFile} 
+                                    accept=".json" 
+                                    className="hidden" 
+                                />
+                            </div>
+                            <button 
+                                onClick={onClose}
+                                className="w-full py-2.5 rounded-xl bg-[#EBEBE9] text-[#737C75] font-bold text-xs"
+                            >
+                                關閉
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
             function App() {
                 const [events, setEvents] = useState(() => {
                     try {
@@ -627,6 +713,7 @@
                 const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
                 const [isAddModalOpen, setIsAddModalOpen] = useState(false);
                 const [isAddScheduleModalOpen, setIsAddScheduleModalOpen] = useState(false);
+                const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
                 const [editingEvent, setEditingEvent] = useState(null);
                 const [editingSchedule, setEditingSchedule] = useState(null);
                 const [alertMsg, setAlertMsg] = useState(null);
@@ -644,6 +731,12 @@
                 });
 
                 const showAlert = (msg) => { setAlertMsg(msg); setTimeout(() => setAlertMsg(null), 3000); };
+
+                const handleImportData = (data) => {
+                    if (data.events) setEvents(data.events);
+                    if (data.schedules) setSchedules(data.schedules);
+                    if (data.userProfile) setUserProfile(data.userProfile);
+                };
 
                 const filteredEvents = useMemo(() => {
                     return events.filter(evt => {
@@ -775,6 +868,11 @@
                                 {activeTab === 'schedule' && (
                                     <button onClick={() => setIsAddScheduleModalOpen(true)} className="w-8 h-8 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow"><i data-lucide="plus" className="w-4 h-4 font-black"></i></button>
                                 )}
+                                {activeTab === 'stats' && (
+                                    <button onClick={() => setIsBackupModalOpen(true)} className="w-8 h-8 rounded-lg bg-[#737C75]/40 text-[#EFF0EA] flex items-center justify-center shadow hover:bg-[#737C75]/60 transition-colors" title="備份資料">
+                                        <i data-lucide="database" className="w-4 h-4"></i>
+                                    </button>
+                                )}
                             </div>
                         </header>
 
@@ -809,6 +907,7 @@
                             </div>
                         </nav>
 
+                        {isBackupModalOpen && <BackupModal events={events} schedules={schedules} userProfile={userProfile} onClose={() => setIsBackupModalOpen(false)} onImport={handleImportData} showAlert={showAlert} />}
                         {isEditProfileOpen && <EditProfileModal userProfile={userProfile} setUserProfile={setUserProfile} onClose={() => setIsEditProfileOpen(false)} showAlert={showAlert} />}
                         {(isAddModalOpen || editingEvent) && <AddEventModal initialData={editingEvent} onSave={handleSaveEvent} onClose={() => { setIsAddModalOpen(false); setEditingEvent(null); }} />}
                         {(isAddScheduleModalOpen || editingSchedule) && <AddScheduleModal initialData={editingSchedule} onSave={handleSaveSchedule} onDelete={handleDeleteSchedule} onClose={() => { setIsAddScheduleModalOpen(false); setEditingSchedule(null); }} />}
@@ -1753,20 +1852,20 @@
 
                             <div className="space-y-2.5 pt-1">
                                 {venueRankings.length === 0 ? (
-                                    <p className="text-xs text-[#737C75] text-center py-4">尚無場館踩點紀錄</p>
+                                    <p className="text-xs text-[#737C75] text-center py-4">尚無場館紀錄</p>
                                 ) : (
-                                    venueRankings.slice(0, 5).map((item) => {
-                                        const percentage = Math.round((item.count / maxVenueCount) * 100);
+                                    venueRankings.slice(0, 5).map((item, idx) => {
+                                        const pct = Math.round((item.count / maxVenueCount) * 100);
                                         return (
                                             <div key={item.venue} className="space-y-1">
-                                                <div className="flex justify-between items-center text-xs font-bold">
-                                                    <span className="truncate pr-2 text-[#161D15]">{item.venue}</span>
-                                                    <span className="font-mono text-[11px] text-[#737C75] shrink-0">{item.count} 次踩點</span>
+                                                <div className="flex items-center justify-between text-xs font-bold">
+                                                    <span className="truncate max-w-[200px] text-[#161D15]">📍 {item.venue}</span>
+                                                    <span className="font-mono text-[11px] text-[#737C75]">{item.count} 次</span>
                                                 </div>
-                                                <div className="w-full bg-white h-2.5 rounded-full overflow-hidden border border-[#D2CABF]/50">
+                                                <div className="w-full bg-[#EBEBE9] h-2.5 rounded-full overflow-hidden border border-[#D2CABF]/40">
                                                     <div 
-                                                        className="h-full bg-[#C5AB89] rounded-full transition-all duration-500" 
-                                                        style={{ width: `${percentage}%` }}
+                                                        className="bg-[#C5AB89] h-full rounded-full transition-all duration-500" 
+                                                        style={{ width: `${pct}%` }}
                                                     ></div>
                                                 </div>
                                             </div>
@@ -1776,63 +1875,56 @@
                             </div>
                         </div>
 
-                        {/* 總覽與總花費金額 */}
+                        {/* 4. 總藝文紀錄與總累積花費 */}
                         <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-[#EFF0EA] text-[#161D15] px-3 py-2.5 rounded-2xl shadow-lg border border-[#D2CABF] space-y-0.5">
-                                <span className="text-[10px] text-[#737C75] font-bold block">總藝文紀錄</span>
-                                <div className="font-mono font-black text-xl flex items-baseline gap-1">
-                                    {stats.totalEvents} <span className="text-xs font-bold text-[#737C75]">筆</span>
-                                </div>
+                            <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-lg border border-[#D2CABF] space-y-1">
+                                <div className="text-[10px] font-extrabold text-[#737C75]">總藝文紀錄</div>
+                                <div className="font-mono text-2xl font-black text-[#161D15]">{stats.attendedCount} <span className="text-xs font-normal">場</span></div>
+                                <div className="text-[9px] text-[#737C75]">今年度：{stats.currentYearCount} 場</div>
                             </div>
-                            <div className="bg-[#EFF0EA] text-[#161D15] px-3 py-2.5 rounded-2xl shadow-lg border border-[#D2CABF] space-y-0.5">
-                                <span className="text-[10px] text-[#737C75] font-bold block">總累積花費</span>
-                                <div className="font-mono font-black text-xl flex items-baseline gap-1">
-                                    NT${stats.totalCost.toLocaleString()}
-                                </div>
+                            <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-lg border border-[#D2CABF] space-y-1">
+                                <div className="text-[10px] font-extrabold text-[#737C75]">總累積花費</div>
+                                <div className="font-mono text-xl font-black text-[#161D15] truncate">NT$ {stats.totalCost.toLocaleString()}</div>
+                                <div className="text-[9px] text-[#737C75]">今年度：NT$ {stats.currentYearCost.toLocaleString()}</div>
                             </div>
                         </div>
 
-                        {/* 4. 類別占比分析 */}
-                       <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-lg border border-[#D2CABF] space-y-3">
-                             <div className="flex items-center justify-between border-b border-[#D2CABF]/60 pb-2">
-                                   <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-1.5">
-                                         <GreyFourPointStar className="w-4 h-4" /> 類別佔比分析
-                                   </h3>
-                             </div>
-
-                        <div className="space-y-2.5 pt-1">
-                              {Object.entries(CATEGORIES).map(([key, cat]) => {
-                                   const count = stats.categoryCounts[key] || 0;
-                                   const percentage = stats.totalEvents > 0 ? Math.round((count / stats.totalEvents) * 100) : 0;
-                                   return (
+                        {/* 5. 類別佔比分析 */}
+                        <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-lg border border-[#D2CABF] space-y-3">
+                            <div className="flex items-center justify-between border-b border-[#D2CABF]/60 pb-2">
+                                <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-1.5">
+                                    <GreyFourPointStar className="w-4 h-4" /> 類別佔比分析
+                                </h3>
+                            </div>
+                            <div className="space-y-2 pt-1">
+                                {Object.entries(CATEGORIES).map(([key, cat]) => {
+                                    const count = stats.categoryCounts[key] || 0;
+                                    const pct = stats.totalEvents > 0 ? Math.round((count / stats.totalEvents) * 100) : 0;
+                                    return (
                                         <div key={key} className="space-y-1">
-                                                <div className="flex justify-between items-center text-xs font-bold">
-                                                      <span className="flex items-center gap-1.5 text-[#161D15]">
-                                                              <CategoryIcon cat={cat} sizeClass="w-4 h-4" />
-                                                              {cat.label}
-                                                      </span>
-                                                      {/* 僅保留次數文字 */}
-                                                      <span className="font-mono text-[11px] text-[#737C75] shrink-0">{count} 次</span>
-                                                </div>
-                                                <div className="w-full bg-white h-2.5 rounded-full overflow-hidden border border-[#D2CABF]/50">
-                                                     {/* 保留 percentage 變數控制寬度進度條 */}
-                                                <div className="h-full bg-[#C5AB89] rounded-full transition-all duration-500" 
-                                                        style={{ width: `${percentage}%` }}
-                                                ></div>
-                                          </div>
-                                    </div>
-                                );
-                          })}
-                  </div>
-            </div>
-      </div>
+                                            <div className="flex items-center justify-between text-xs font-bold">
+                                                <span className="flex items-center gap-1 text-[#161D15]">
+                                                    <CategoryIcon cat={cat} sizeClass="w-3.5 h-3.5" />
+                                                    {cat.label}
+                                                </span>
+                                                <span className="font-mono text-[11px] text-[#737C75]">{count} 場 ({pct}%)</span>
+                                            </div>
+                                            <div className="w-full bg-[#EBEBE9] h-2 rounded-full overflow-hidden border border-[#D2CABF]/40">
+                                                <div className="bg-[#C5AB89] h-full rounded-full transition-all duration-500" style={{ width: `${pct}%` }}></div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
                 );
             }
 
             const root = ReactDOM.createRoot(document.getElementById('root'));
             root.render(<App />);
-        } catch (err) {
-            console.error(err);
+        } catch (e) {
+            console.error("App Render Error:", e);
         }
     </script>
 </body>

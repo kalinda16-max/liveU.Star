@@ -800,34 +800,34 @@
                 const handleSaveEvent = (data) => {
                     if (data.id) {
                         setEvents(events.map(e => e.id === data.id ? data : e));
-                        showAlert('已成功更新藝文紀錄');
+                        
                     } else {
                         const created = { ...data, id: 'evt-' + Date.now() };
                         setEvents([created, ...events]);
-                        showAlert('已成功新增藝文紀錄');
+                        
                     }
                     setEditingEvent(null);
                 };
 
                 const handleDeleteEvent = (id) => {
                     setEvents(events.filter(e => e.id !== id));
-                    showAlert('已刪除該筆藝文紀錄');
+                    
                 };
 
                 const handleSaveSchedule = (data) => {
                     if (data.id) {
                         setSchedules(schedules.map(s => s.id === data.id ? data : s));
-                        showAlert('已成功更新演出排程');
+                        
                     } else {
                         setSchedules([{ ...data, id: 'sch-' + Date.now() }, ...schedules]);
-                        showAlert('已成功新增演出排程');
+                        
                     }
                     setEditingSchedule(null);
                 };
 
                 const handleDeleteSchedule = (id) => {
                     setSchedules(schedules.filter(s => s.id !== id));
-                    showAlert('已刪除該筆演出排程');
+                    
                 };
 
                 const getGoogleMapsUrl = (venue, address) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${venue} ${address || ''}`)}`;
@@ -1131,7 +1131,7 @@
                                     
                                     <div className="grid grid-cols-2 gap-2">
                                         <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">日期</label><input type="text" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
-                                        <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">票價 (NT)</label><input type="text" value={cost} onChange={(e) => setCost(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
+                                        <div className="space-y-1"><label className="text-[11px] font-bold text-[#737C75]">票價 (NT$)</label><input type="text" value={cost} onChange={(e) => setCost(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" /></div>
                                     </div>
                                     
                                     <div className="grid grid-cols-2 gap-2">

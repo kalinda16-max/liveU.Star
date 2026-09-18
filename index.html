@@ -450,7 +450,6 @@
                                 <h3 className="font-extrabold text-sm text-[#C5AB89] flex items-center gap-1.5">
                                     <i data-lucide="crop" className="w-4 h-4"></i> 裁切圖片
                                 </h3>
-                                <span className="text-[10px] text-[#D2CABF] font-medium">💡 支援雙指捏合縮放與旋轉</span>
                             </div>
 
                             <div ref={containerRef} className="relative w-full h-64 bg-black/60 rounded-2xl overflow-hidden flex items-center justify-center border border-[#737C75]/40">
@@ -942,7 +941,7 @@
                         avatarUrl,
                         initials: name ? name.substring(0, 2).toUpperCase() : 'LU'
                     });
-                    showAlert('個人檔案更新成功');
+                    
                     onClose();
                 };
 

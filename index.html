@@ -573,6 +573,14 @@
                 );
             }
 
+            function GreyFourPointStar({ className = "w-4 h-4" }) {
+                return (
+                    <svg viewBox="0 0 24 24" className={`${className} shrink-0 fill-[#737C75] inline-block`}>
+                        <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41Z" />
+                    </svg>
+                );
+            }
+
             function CompassStarIcon({ className = "w-5 h-5" }) {
                 return (
                     <svg viewBox="0 0 500 500" className={className}>
@@ -1632,16 +1640,15 @@
                 return (
                     <div className="p-4 pb-12 space-y-4">
                         <div className="space-y-0.5">
-                            <h2 className="text-base font-extrabold text-[#EFF0EA]">浩瀚星辰</h2>
+                            <h2 className="text-base font-extrabold text-[#EFF0EA]"></h2>
                         </div>
 
                         {/* 1. 年度藝人 (Artist of the Year) */}
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <h3 className="font-extrabold text-sm text-[#C5AB89] flex items-center gap-1.5">
-                                    👑 2026 年度藝人
+                                    <img src="image/icons/crown.png" alt="icon" className="w-4 h-4 object-contain inline-block" /> 2026 年度藝人
                                 </h3>
-                                <span className="text-[10px] text-[#D2CABF] font-mono">點擊卡片釋放煙火 ✨</span>
                             </div>
 
                             <div 
@@ -1705,7 +1712,7 @@
                         <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-lg border border-[#D2CABF] space-y-3">
                             <div className="flex items-center justify-between border-b border-[#D2CABF]/60 pb-2">
                                 <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-1.5">
-                                    🎤 藝人次數排名 (Top 5)
+                                    <GreyFourPointStar className="w-4 h-4" /> 藝人次數排名 (Top 5)
                                 </h3>
                                 <span className="text-[10px] text-[#737C75] font-mono">共 {stats.uniqueArtistsCount} 位藝人</span>
                             </div>
@@ -1743,7 +1750,7 @@
                         <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-lg border border-[#D2CABF] space-y-3">
                             <div className="flex items-center justify-between border-b border-[#D2CABF]/60 pb-2">
                                 <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-1.5">
-                                    📍 場館次數排名 (Top Venues)
+                                    <GreyFourPointStar className="w-4 h-4" /> 場館次數排名 (Top Venues)
                                 </h3>
                                 <span className="text-[10px] text-[#737C75] font-mono">共 {stats.uniqueVenuesCount} 個場館</span>
                             </div>
@@ -1782,47 +1789,39 @@
                                 </div>
                             </div>
                             <div className="bg-[#EFF0EA] text-[#161D15] px-3 py-2.5 rounded-2xl shadow-lg border border-[#D2CABF] space-y-0.5">
-                                <span className="text-[10px] text-[#737C75] font-bold block">總花費金額</span>
-                                <div className="font-mono font-black text-base tracking-tight pt-0.5">
-                                    NT$ {stats.totalCost.toLocaleString()}
+                                <span className="text-[10px] text-[#737C75] font-bold block">總累積花費</span>
+                                <div className="font-mono font-black text-xl flex items-baseline gap-1">
+                                    NT${stats.totalCost.toLocaleString()}
                                 </div>
                             </div>
                         </div>
 
-                        {/* 當年度統計 */}
-                        <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-lg border border-[#D2CABF] space-y-2">
-                            <div className="flex items-center justify-between pb-1">
+                        {/* 4. 類別占比分析 */}
+                        <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-lg border border-[#D2CABF] space-y-3">
+                            <div className="flex items-center justify-between border-b border-[#D2CABF]/60 pb-2">
                                 <h3 className="font-extrabold text-sm text-[#161D15] flex items-center gap-1.5">
-                                   當年度概況
+                                    <GreyFourPointStar className="w-4 h-4" /> 類別占比分析
                                 </h3>
                             </div>
-                            <div className="grid grid-cols-2 gap-2 pt-1">
-                                <div className="bg-white p-2.5 rounded-2xl border border-[#D2CABF]/60">
-                                    <span className="text-[10px] text-[#737C75] font-bold block">當年度紀錄場次</span>
-                                    <div className="font-mono font-black text-base text-[#161D15]">{stats.currentYearCount} <span className="text-xs font-normal">場</span></div>
-                                </div>
-                                <div className="bg-white p-2.5 rounded-2xl border border-[#D2CABF]/60">
-                                    <span className="text-[10px] text-[#737C75] font-bold block">當年度累積金額</span>
-                                    <div className="font-mono font-black text-base text-[#161D15]">NT$ {stats.currentYearCost.toLocaleString()}</div>
-                                </div>
-                            </div>
-                        </div>
 
-                        {/* 各類別占比 */}
-                        <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-lg border border-[#D2CABF] space-y-3">
-                            <h3 className="font-extrabold text-sm text-[#161D15]">類別占比分析</h3>
-                            <div className="space-y-2 pt-1">
+                            <div className="space-y-2.5 pt-1">
                                 {Object.entries(CATEGORIES).map(([key, cat]) => {
                                     const count = stats.categoryCounts[key] || 0;
                                     const percentage = stats.totalEvents > 0 ? Math.round((count / stats.totalEvents) * 100) : 0;
                                     return (
                                         <div key={key} className="space-y-1">
-                                            <div className="flex justify-between text-xs font-bold">
-                                                <span className="flex items-center gap-1.5"><CategoryIcon cat={cat} sizeClass="w-4 h-4" /> {cat.label}</span>
-                                                <span className="font-mono">{count} 場 ({percentage}%)</span>
+                                            <div className="flex justify-between items-center text-xs font-bold">
+                                                <span className="flex items-center gap-1.5 text-[#161D15]">
+                                                    <CategoryIcon cat={cat} sizeClass="w-4 h-4" />
+                                                    {cat.label}
+                                                </span>
+                                                <span className="font-mono text-[11px] text-[#737C75] shrink-0">{count} 次 ({percentage})</span>
                                             </div>
-                                            <div className="w-full bg-white h-2 rounded-full overflow-hidden border border-[#D2CABF]/40">
-                                                <div className={`h-full ${cat.badgeBg.split(' ')[0]}`} style={{ width: `${percentage}%` }}></div>
+                                            <div className="w-full bg-white h-2.5 rounded-full overflow-hidden border border-[#D2CABF]/50">
+                                                <div 
+                                                    className="h-full bg-[#C5AB89] rounded-full transition-all duration-500" 
+                                                    style={{ width: `${percentage}%` }}
+                                                ></div>
                                             </div>
                                         </div>
                                     );
@@ -1835,8 +1834,8 @@
 
             const root = ReactDOM.createRoot(document.getElementById('root'));
             root.render(<App />);
-        } catch (e) {
-            console.error("App Render Error:", e);
+        } catch (err) {
+            console.error(err);
         }
     </script>
 </body>

@@ -970,11 +970,25 @@
                                         </div>
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[11px] font-bold text-[#737C75]">♛ Name</label>
+                                        <label className="text-[11px] font-bold text-[#737C75] flex items-center gap-1.5">
+                                        <img 
+                                            src="./image/icons/christmas-star_01.png" 
+                                            alt="Name圖示" 
+                                            className="w-3.5 h-3.5 object-contain shrink-0" 
+                                        />
+                                        Name
+                                        </label>
                                         <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[11px] font-bold text-[#737C75]">♛ Bio</label>
+                                        <label className="text-[11px] font-bold text-[#737C75] flex items-center gap-1.5">
+                                        <img 
+                                            src="./image/icons/christmas-star_02.png" 
+                                            alt="Bio圖示" 
+                                            className="w-3.5 h-3.5 object-contain shrink-0" 
+                                        />
+                                        Bio
+                                        </label>
                                         <input type="text" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="w-full bg-white px-3 py-2 rounded-xl text-xs border border-[#D2CABF]" />
                                     </div>
                                     <div className="flex gap-2 pt-2">

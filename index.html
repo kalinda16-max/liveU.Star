@@ -1538,30 +1538,37 @@ function AddEventModal({ initialData, onSave, onClose }) {
                         </div>
                     )}
                 </div>
-                   
-                {/* 票券風格的虛線分隔 */}
-                <div className="border-t-2 border-dashed border-[#D2CABF] my-2 pt-1"></div>
 
-                {/* 當地活動清單 */}
                 {selectedCountry.events && selectedCountry.events.length > 0 ? (
-                    <div className="space-y-1.5 max-h-36 overflow-y-auto no-scrollbar pt-3">
-                        {selectedCountry.events.map(e => (
-                            <div key={e.id} className="bg-white p-2.5 rounded-2xl border border-[#D2CABF] flex items-center justify-between text-xs shadow-sm">
-                                <div className="min-w-0 flex-1 pr-2">
-                                    <div className="font-extrabold text-[#161D15] truncate">{e.artist || e.title}</div>
-                                    <div className="text-[10px] text-[#737C75] mt-0.5 flex items-center gap-1">
-                                        <img src="./image/icons/favourite.png" alt="場館名稱" className="w-3.5 h-3.5 object-contain shrink-0" />
-                                        <span className="truncate">{e.venue || '未定場館'}</span>
+                    <div className="relative mt-2">
+                        {/* 固定的虛線分隔：設定 sticky 與卡片背景色，讓往上捲動的文字被它遮擋消失 */}
+                        <div className="sticky top-0 bg-[#EFF0EA] z-10 pb-2 pt-1.5 -mx-4 px-4">
+                            <div className="border-t-2 border-dashed border-[#D2CABF]"></div>
+                        </div>
+
+                        {/* 活動清單本體（可捲動） */}
+                        <div className="space-y-1.5 max-h-36 overflow-y-auto no-scrollbar">
+                            {selectedCountry.events.map(e => (
+                                <div key={e.id} className="bg-white p-2.5 rounded-2xl border border-[#D2CABF] flex items-center justify-between text-xs shadow-sm">
+                                    <div className="min-w-0 flex-1 pr-2">
+                                        <div className="font-extrabold text-[#161D15] truncate">{e.artist || e.title}</div>
+                                        <div className="text-[10px] text-[#737C75] mt-0.5 flex items-center gap-1">
+                                            <img src="./image/icons/favourite.png" alt="場館名稱" className="w-3.5 h-3.5 object-contain shrink-0" />
+                                            <span className="truncate">{e.venue || '未定場館'}</span>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="font-mono text-[10px] font-bold text-[#161D15] bg-[#EBEBE9] px-2 py-1 rounded-lg shrink-0">
-                                    {e.date}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                                    <div className="font-mono text-[10px] font-bold text-[#161D15] bg-[#EBEBE9] px-2 py-1 rounded-lg shrink-0">
+                                        {e.date}
+                                    </div>
+                              </div>
+                           ))}
+                     </div>
+                </div> 
                 ) : (
+                <>
+                    <div className="border-t-2 border-dashed border-[#D2CABF] my-2 pt-1"></div>
                     <p className="text-xs text-[#737C75] py-2 text-center">尚未在當地紀錄演出活動</p>
+                </>    
                 )}
                 
                 {/* 底部關閉按鈕 */}

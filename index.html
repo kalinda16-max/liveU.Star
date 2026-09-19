@@ -1463,7 +1463,15 @@ function AddEventModal({ initialData, onSave, onClose }) {
                     <div id="map-wrapper" className="relative flex-1 w-full flex flex-col bg-[#000000] overflow-hidden">
                         <div className="absolute top-3 left-4 right-4 z-[999] flex items-center justify-between pointer-events-none top-stats-card">
                             <div className="ios-glass px-3 py-1.5 rounded-full shadow-xl border border-[#737C75]/30 pointer-events-auto flex items-center gap-2">
-                                <span className="text-[10px] font-bold text-[#C5AB89]">🌍 星跡Map</span>
+
+                                <span className="text-[10px] font-bold text-[#C5AB89] flex items-center gap-1.5">
+                                <img 
+                                    src="/image/icons/star.png"
+                                    alt="星跡Map圖示"
+                                    className="w-4 h-4 object-contain" // 控制圖片大小為 16px x 16px
+                                    />星跡Map
+                                    </span>
+                                
                                 <span className="text-[10px] font-mono"><strong className="text-[#C5AB89]">{stats.uniqueCountriesCount}</strong> 國 · <strong className="text-[#C5AB89]">{stats.attendedCount}</strong> 場</span>
                             </div>
                         </div>

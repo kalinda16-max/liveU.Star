@@ -1352,6 +1352,15 @@ function AddEventModal({ initialData, onSave, onClose }) {
                 }, [events]);
 
                 const visited = useMemo(() => Object.keys(countryMap), [countryMap]);
+                const venueCounts = useMemo(() => {
+                    const counts = {};
+                    events.forEach(e => {
+                        if (e.venue) {
+                            counts[e.venue] = (counts[e.venue] || 0) + 1;
+                        }
+                    });
+                    return counts;
+                }, [events]);
 
                 useEffect(() => {
                     if (!mapRef.current) return;
@@ -1421,16 +1430,18 @@ function AddEventModal({ initialData, onSave, onClose }) {
                     if (!mapInst.current) return;
                     markersLayerRef.current.clearLayers();
 
-                    events.forEach((evt, idx) => {
+                    events.forEach((evt) => {
                         const latVal = parseFloat(evt.lat);
                         const lngVal = parseFloat(evt.lng);
 
                         if (isNaN(latVal) || isNaN(lngVal)) return;
+ 
+                        const visitCount = evt.venue ? (venueCounts[evt.venue] || 1) : 1;
 
                         const marker = L.marker([latVal, lngVal], {
                             icon: L.divIcon({ 
                                 className: 'custom-div-icon', 
-                                html: `<div class="custom-numeric-marker w-7 h-7 flex items-center justify-center">${idx + 1}</div>`, 
+                                html: `<div class="custom-numeric-marker w-7 h-7 flex items-center justify-center">${visitCount}</div>`, 
                                 iconSize: [28, 28], 
                                 iconAnchor: [14, 14] 
                             })
@@ -1438,7 +1449,7 @@ function AddEventModal({ initialData, onSave, onClose }) {
                         
                         markersLayerRef.current.addLayer(marker);
                     });
-                }, [events]);
+                }, [events, venueCounts]);
 
                 const handleCloseCountryModal = () => {
                     if (activeLayerRef.current && geoJsonLayerRef.current) {

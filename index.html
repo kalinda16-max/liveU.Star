@@ -187,11 +187,11 @@
             const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
             const CATEGORIES = {
-                concert: { label: '演唱會', icon: 'concert.png', emoji: '🎵', badgeBg: 'bg-[#C5AB89] text-[#EFF0EA]' },
-                exhibition: { label: '展覽', icon: 'abstract.png', emoji: '🎨', badgeBg: 'bg-[#C5AB89] text-[#EFF0EA]' },
-                movie: { label: '電影', icon: 'clapperboard.png', emoji: '🎬', badgeBg: 'bg-[#C5AB89] text-[#EFF0EA]' },
-                book: { label: '見面會', icon: 'chant.png', emoji: '📚', badgeBg: 'bg-[#C5AB89] text-[#EFF0EA]' },
-                drama: { label: '舞台劇', icon: 'theatre.png', emoji: '🎭', badgeBg: 'bg-[#C5AB89] text-[#EFF0EA]' }
+                concert: { label: '演唱會', icon: 'concert.png', emoji: '🎵', badgeBg: 'bg-[#C5AB89] text-[#737C75]' },
+                exhibition: { label: '展覽', icon: 'abstract.png', emoji: '🎨', badgeBg: 'bg-[#C5AB89] text-[#737C75]' },
+                movie: { label: '電影', icon: 'clapperboard.png', emoji: '🎬', badgeBg: 'bg-[#C5AB89] text-[#737C75]' },
+                book: { label: '見面會', icon: 'chant.png', emoji: '📚', badgeBg: 'bg-[#C5AB89] text-[#737C75]' },
+                drama: { label: '舞台劇', icon: 'theatre.png', emoji: '🎭', badgeBg: 'bg-[#C5AB89] text-[#737C75]' }
             };
 
             const venueDb = window.VENUE_DATABASE || {};
@@ -1482,13 +1482,14 @@ function AddEventModal({ initialData, onSave, onClose }) {
                             <div className="absolute bottom-4 left-4 right-4 z-[1000]">
                                 <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-2xl border-2 border-[#C5AB89] space-y-3 relative">
                                     <button onClick={handleCloseCountryModal} className="absolute top-4 right-4 text-[#737C75] hover:text-[#161D15]"><i data-lucide="x" className="w-5 h-5"></i></button>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 mb-4">
                                         <CompassStarIcon className="w-6 h-6 shrink-0" />
                                         <h3 className="font-black text-base text-[#161D15]">{selectedCountry.name}</h3>
                                     </div>
                                     <div className="inline-block px-3 py-1 rounded-xl bg-[#161D15] text-[#EFF0EA] text-[11px] font-bold">
                                         已去過當地 <span className="text-[#C5AB89] font-black">{selectedCountry.venues ? selectedCountry.venues.size : 0}</span> 個場館
                                     </div>
+                                    <div className="border-t-2 border-dashed border-[#D2CABF] my-3 pt-1"></div>
 
                                     {selectedCountry.events && selectedCountry.events.length > 0 ? (
                                         <div className="space-y-1.5 max-h-44 overflow-y-auto no-scrollbar pt-1">

@@ -1478,43 +1478,100 @@ function AddEventModal({ initialData, onSave, onClose }) {
                         </div>
                         <div ref={mapRef} id="map" className="w-full h-full flex-1"></div>
                         
-                        {selectedCountry && (
-                            <div className="absolute bottom-4 left-4 right-4 z-[1000]">
-                                <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-2xl border-2 border-[#C5AB89] space-y-3 relative">
-                                    <button onClick={handleCloseCountryModal} className="absolute top-4 right-4 text-[#737C75] hover:text-[#161D15]"><i data-lucide="x" className="w-5 h-5"></i></button>
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <CompassStarIcon className="w-6 h-6 shrink-0" />
-                                        <h3 className="font-black text-base text-[#161D15]">{selectedCountry.name}</h3>
-                                    </div>
-                                    <div className="inline-block px-3 py-1 rounded-xl bg-[#161D15] text-[#EFF0EA] text-[11px] font-bold">
-                                        已去過當地 <span className="text-[#C5AB89] font-black">{selectedCountry.venues ? selectedCountry.venues.size : 0}</span> 個場館
-                                    </div>
-                                    <div className="border-t-2 border-dashed border-[#D2CABF] my-3 pt-1"></div>
+                        {selectedCountry && (() => {
+    // 自動計算該國家觀看最多次的當地藝人及其對應照片
+    const localArtistCounts = {};
+    const localArtistAvatar = {};
+    selectedCountry.events?.forEach(e => {
+        if (e.artist) {
+            localArtistCounts[e.artist] = (localArtistCounts[e.artist] || 0) + 1;
+            if (e.coverImg && !localArtistAvatar[e.artist]) {
+                localArtistAvatar[e.artist] = e.coverImg;
+            }
+        }
+    });
+    const sortedLocalArtists = Object.entries(localArtistCounts).sort((a, b) => b[1] - a[1]);
+    const topLocalArtist = sortedLocalArtists.length > 0 ? {
+        name: sortedLocalArtists[0][0],
+        count: sortedLocalArtists[0][1],
+        avatar: localArtistAvatar[sortedLocalArtists[0][0]] || null
+    } : null;
 
-                                    {selectedCountry.events && selectedCountry.events.length > 0 ? (
-                                        <div className="space-y-1.5 max-h-44 overflow-y-auto no-scrollbar pt-1">
-                                            {selectedCountry.events.map(e => (
-                                                <div key={e.id} className="bg-white p-2.5 rounded-2xl border border-[#D2CABF] flex items-center justify-between text-xs shadow-sm">
-                                                    <div className="min-w-0 flex-1 pr-2">
-                                                        <div className="font-extrabold text-[#161D15] truncate">{e.artist || e.title}</div>
-                                                        <div className="text-[10px] text-[#737C75] mt-0.5 flex items-center gap-1">
-                                                        <img src="./image/icons/favourite.png" alt="場館名稱" className="w-3.5 h-3.5 object-contain shrink-0" />
-                                                        <span className="truncate">{e.venue || '未定場館'}</span>
-                                                     </div>
-                                                  </div>
-                                                    <div className="font-mono text-[10px] font-bold text-[#161D15] bg-[#EBEBE9] px-2 py-1 rounded-lg shrink-0">
-                                                        {e.date}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <p className="text-xs text-[#737C75]">尚未在當地紀錄演出活動</p>
-                                    )}
-                                    <button onClick={handleCloseCountryModal} className="w-full py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs">關閉</button>
+    return (
+        <div className="absolute bottom-4 left-4 right-4 z-[1000]">
+            <div className="bg-[#EFF0EA] text-[#161D15] rounded-3xl p-4 shadow-2xl border-2 border-[#C5AB89] space-y-3 relative overflow-hidden">
+                
+                {/* 上半部：左右並排設計 */}
+                <div className="flex items-center justify-between gap-3">
+                    
+                    {/* 左側：國家名稱與已去過場館數 */}
+                    <div className="space-y-2 min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                            <CompassStarIcon className="w-6 h-6 shrink-0" />
+                            <h3 className="font-black text-base text-[#161D15] truncate">{selectedCountry.name}</h3>
+                        </div>
+                        <div className="inline-block px-3 py-1 rounded-xl bg-[#161D15] text-[#EFF0EA] text-[11px] font-bold">
+                            已去過當地 <span className="text-[#C5AB89] font-black">{selectedCountry.venues ? selectedCountry.venues.size : 0}</span> 個場館
+                        </div>
+                    </div>
+
+                    {/* 右側：當地代表藝人方形框（含照片、名稱與場次） */}
+                    {topLocalArtist && (
+                        <div className="relative w-20 h-20 rounded-2xl overflow-hidden border-2 border-[#C5AB89] shadow-md shrink-0 bg-[#1A2218]">
+                            {topLocalArtist.avatar ? (
+                                <img src={topLocalArtist.avatar} alt={topLocalArtist.name} className="absolute inset-0 w-full h-full object-cover" />
+                            ) : (
+                                <div className="absolute inset-0 bg-[#C5AB89]/20 flex items-center justify-center text-[#C5AB89] font-black text-sm">
+                                    {topLocalArtist.name.slice(0, 1)}
+                                </div>
+                            )}
+        
+                            {/* 底部漸層與文字資訊（加上 z-10 確保文字浮在圖片上方） */}
+                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent pt-3 pb-1 px-1 text-center z-10">
+                                <div className="text-[9px] font-black text-white truncate w-full leading-tight">
+                                    {topLocalArtist.name}
+                                </div>
+                                <div className="text-[8px] font-mono text-[#C5AB89] font-bold leading-tight mt-0.5">
+                                    {topLocalArtist.count} 場
                                 </div>
                             </div>
-                        )}
+                        </div>
+                    )}
+                </div>
+                   
+                {/* 票券風格的虛線分隔 */}
+                <div className="border-t-2 border-dashed border-[#D2CABF] my-2 pt-1"></div>
+
+                {/* 當地活動清單 */}
+                {selectedCountry.events && selectedCountry.events.length > 0 ? (
+                    <div className="space-y-1.5 max-h-36 overflow-y-auto no-scrollbar pt-1">
+                        {selectedCountry.events.map(e => (
+                            <div key={e.id} className="bg-white p-2.5 rounded-2xl border border-[#D2CABF] flex items-center justify-between text-xs shadow-sm">
+                                <div className="min-w-0 flex-1 pr-2">
+                                    <div className="font-extrabold text-[#161D15] truncate">{e.artist || e.title}</div>
+                                    <div className="text-[10px] text-[#737C75] mt-0.5 flex items-center gap-1">
+                                        <img src="./image/icons/favourite.png" alt="場館名稱" className="w-3.5 h-3.5 object-contain shrink-0" />
+                                        <span className="truncate">{e.venue || '未定場館'}</span>
+                                    </div>
+                                </div>
+                                <div className="font-mono text-[10px] font-bold text-[#161D15] bg-[#EBEBE9] px-2 py-1 rounded-lg shrink-0">
+                                    {e.date}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p className="text-xs text-[#737C75] py-2 text-center">尚未在當地紀錄演出活動</p>
+                )}
+                
+                {/* 底部關閉按鈕 */}
+                <button onClick={handleCloseCountryModal} className="w-full py-2.5 rounded-xl bg-[#161D15] text-[#EFF0EA] font-bold text-xs shadow-md hover:bg-black transition-colors">
+                    關閉
+                </button>
+            </div>
+        </div>
+    );
+})()}
                     </div>
                 );
             }

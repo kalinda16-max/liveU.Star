@@ -1090,8 +1090,8 @@ function AddEventModal({ initialData, onSave, onClose }) {
 
                 return (
                     <>
-                        <div className="modal-overlay bg-black/85 flex items-center justify-center p-4 pt-14 pb-20 z-50">
-                            <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 flex flex-col max-h-[75vh]">
+                        <div className="fixed inset-0 z-[99999] bg-black/85 flex items-center justify-center p-4 py-12 overflow-hidden">
+                            <div className="bg-[#EFF0EA] text-[#161D15] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#D2CABF] space-y-3 my-auto flex flex-col max-h-[80vh] overflow-y-auto no-scrollbar">
                                 <div className="flex items-center justify-between pb-1 shrink-0">
                                     <h3 className="font-extrabold text-sm"><i data-lucide="ticket-plus" className="w-4 h-4 inline"></i> {initialData ? '編輯藝文紀錄' : '新增藝文紀錄'}</h3>
                                 </div>
@@ -1871,7 +1871,7 @@ function AddEventModal({ initialData, onSave, onClose }) {
                                                 <span className="font-mono text-[11px] text-[#737C75] shrink-0">{item.count} 次</span>
 
                                                 </div>
-                                                
+
                                                 <div className="w-full bg-[#EBEBE9] h-2.5 rounded-full overflow-hidden border border-[#D2CABF]/40">
                                                     <div 
                                                         className="bg-[#C5AB89] h-full rounded-full transition-all duration-500" 

@@ -37,9 +37,31 @@ const VENUE_GROUPS = {
     },
     "日本地區": {
         '東京巨蛋': { address: '日本東京都文京區後樂一丁目3番61號', city: '東京', country: '日本', lat: 35.705788, lng: 139.751913 },
-        'tokyo dome': { address: '1-3 Koraku, Bunkyo City, Tokyo 112-0004', city: '東京', country: '日本', lat: 35.705788, lng: 139.751913 },
         '日本武道館': { address: '日本東京都千代田區北之丸公園2番3號', city: '東京', country: '日本', lat: 35.693628, lng: 139.749690 },
-        'budokan': { address: '2-3 Kitanomarukoen, Chiyoda City, Tokyo 102-0091', city: '東京', country: '日本', lat: 35.693628, lng: 139.749690 }
+    },
+    "韓國地區": {
+        '奧林匹克體操競技場': { address: '424 Olympic-ro, Songpa District, Seoul, 南韓', city: '首爾', country: '南韓', lat: 37.5193, lng: 127.1274 },
+        '高尺天空巨蛋': { address: '430 Gyeongin-ro, Guro District, Seoul, 南韓', city: '首爾', country: '南韓', lat: 37.4982, lng: 127.6873 },
+        '仁川亞運主體育場': { address: '379-2 Yeonhui-dong, Seo-gu, Incheon, 南韓', city: '仁川', country: '南韓', lat: 37.5474, lng: 126.6658 },
+        '高陽體育館': { address: '1601 Jungang-ro, Ilsanseo-gu, Goyang-si, Gyeonggi-do, 南韓', city: '高陽', country: '南韓', lat: 37.6763, lng: 127.7432 }
+    },
+    "香港地區": {
+        '啟德主場館': { address: '香港九龍九龍城承啟道39號', city: '香港', country: '中國', lat: 22.322383, lng: 114.197416 },
+        '紅館': { address: '香港九龍紅磡灣暢運道9號', city: '香港', country: '中國', lat: 22.301453, lng: 114.182034 },
+        '亞洲國際博覽館': { address: '香港新界赤鱲角航展道1號', city: '香港', country: '中國', lat: 22.321510, lng: 114.943243 },
+    },
+    "新加坡地區": {
+        '新加坡室內體育館': { address: '2 Stadium Walk, Singapore 397691', city: '新加坡', country: '新加坡', lat: 1.300903, lng: 103.874351 },
+        '星宇表演藝術中心': { address: '1 Vista Exchange Grn, #04-01新加坡 138617', city: '新加坡', country: '新加坡', lat: 1.306928, lng: 103.788438 },
+        '國家體育場': { address: '1 Stadium Dr, 新加坡 397629', city: '新加坡', country: '新加坡', lat: 1.304228, lng: 103.874875 },
+    },
+    "泰國地區": {
+        '拉加曼加拉國家體育場': { address: '286 Soi Ramkhamhaeng 24 Yaek 18, Hua Mak, Bang Kapi, Bangkok 10240泰國', city: '曼谷', country: '泰國', lat: 13.763905, lng: 100.621300 },
+        'Impact Arena': { address: 'IMPACT Arena Hall, Popular Rd, Ban Mai, Amphoe Pak Kret, Nonthaburi 11120泰國', city: '曼谷', country: '泰國', lat: 13.911885, lng: 100.548386 }
+    },
+    "馬來西亞地區": {
+        '亞通體育館': { address: 'Sports City, Level 2, Unifi Arena, Sri Petaling, 57700 Kuala Lumpur, Selangor, 馬來西亞', city: '吉隆坡', country: '馬來西亞', lat: 3.054093, lng: 101.693391 },
+        '武吉加里爾國家體育場': { address: 'Bukit Jalil, 57000 Kuala Lumpur, Malaysia馬來西亞', city: '吉隆坡', country: '馬來西亞', lat: 3.054823, lng: 101.691320 },
     }
 };
 

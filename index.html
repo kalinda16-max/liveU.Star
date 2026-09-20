@@ -183,8 +183,50 @@
     <div id="root" class="h-full"></div>
 
     <script type="text/babel">
+
         try {
             const { useState, useEffect, useMemo, useRef, useCallback } = React;
+            
+            // --- 【請加在這裡】IndexedDB 封裝輔助函式 ---
+            const DB_NAME = 'LiveU_DB';
+            const STORE_NAME = 'app_data';
+
+            function openDB() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(DB_NAME, 1);
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains(STORE_NAME)) {
+                            db.createObjectStore(STORE_NAME);
+                        }
+                    };
+                });
+            }
+
+            async function saveToIDB(key, value) {
+                const db = await openDB();
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction(STORE_NAME, 'readwrite');
+                    const store = transaction.objectStore(STORE_NAME);
+                    const request = store.put(value, key);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async function getFromIDB(key) {
+                const db = await openDB();
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction(STORE_NAME, 'readonly');
+                    const store = transaction.objectStore(STORE_NAME);
+                    const request = store.get(key);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+            // ---------------------------------------------
 
             const CATEGORIES = {
                 concert: { label: '演唱會', icon: 'concert.png', emoji: '🎵', badgeBg: 'bg-[#C5AB89] text-[#737C75]' },
@@ -685,25 +727,13 @@
             }
 
             function App() {
-                const [events, setEvents] = useState(() => {
-                    try {
-                        const saved = localStorage.getItem('liveecho_records_palette_v12');
-                        return saved ? JSON.parse(saved) : [];
-                    } catch (e) { return []; }
-                });
-                const [schedules, setSchedules] = useState(() => {
-                    try {
-                        const saved = localStorage.getItem('liveecho_schedules_v12');
-                        return saved ? JSON.parse(saved) : [];
-                    } catch (e) { return []; }
-                });
-                const [userProfile, setUserProfile] = useState(() => {
-                    try {
-                        const saved = localStorage.getItem('liveecho_user_profile_v12');
-                        return saved ? JSON.parse(saved) : { name: 'LiveU', subtitle: 'say something', avatarUrl: '', initials: 'LU' };
-                    } catch (e) { return { name: 'LiveU', subtitle: 'say something', avatarUrl: '', initials: 'LU' }; }
-                });
+// 1. 資料 State（改為預設空值/預設物件，準備從 IndexedDB 載入）
+                const [events, setEvents] = useState([]);
+                const [schedules, setSchedules] = useState([]);
+                const [userProfile, setUserProfile] = useState({ name: 'LiveU', subtitle: 'say something', avatarUrl: '', initials: 'LU' });
+                const [isDataLoaded, setIsDataLoaded] = useState(false);
 
+                // 2. 【要保留】原本的 UI 狀態、分頁、搜尋與各種 Modal 開關
                 const [activeTab, setActiveTab] = useState('archive');
                 const [viewMode, setViewMode] = useState('list');
                 const [selectedCategory, setSelectedCategory] = useState('all');
@@ -717,12 +747,60 @@
                 const [editingSchedule, setEditingSchedule] = useState(null);
                 const [alertMsg, setAlertMsg] = useState(null);
 
+                // 3. 頁面載入時：從 IndexedDB 讀取資料（會自動向後相容去抓舊的 localStorage 資料）
                 useEffect(() => {
-                    try { localStorage.setItem('liveecho_records_palette_v12', JSON.stringify(events)); } catch (e) { alert('儲存空間不足，建議清理部分圖片記錄！'); }
-                }, [events]);
-                useEffect(() => { localStorage.setItem('liveecho_schedules_v12', JSON.stringify(schedules)); }, [schedules]);
-                useEffect(() => { localStorage.setItem('liveecho_user_profile_v12', JSON.stringify(userProfile)); }, [userProfile]);
+                    async function loadInitialData() {
+                        try {
+                            const savedEvents = await getFromIDB('events');
+                            const savedSchedules = await getFromIDB('schedules');
+                            const savedProfile = await getFromIDB('userProfile');
+
+                            if (savedEvents) {
+                                setEvents(savedEvents);
+                            } else {
+                                const legacyEvents = localStorage.getItem('liveecho_records_palette_v12');
+                                if (legacyEvents) setEvents(JSON.parse(legacyEvents));
+                            }
+
+                            if (savedSchedules) {
+                                setSchedules(savedSchedules);
+                            } else {
+                                const legacySchedules = localStorage.getItem('liveecho_schedules_v12');
+                                if (legacySchedules) setSchedules(JSON.parse(legacySchedules));
+                            }
+
+                            if (savedProfile) {
+                                setUserProfile(savedProfile);
+                            } else {
+                                const legacyProfile = localStorage.getItem('liveecho_user_profile_v12');
+                                if (legacyProfile) setUserProfile(JSON.parse(legacyProfile));
+                            }
+                        } catch (e) {
+                            console.error('從 IndexedDB 載入失敗:', e);
+                        } finally {
+                            setIsDataLoaded(true);
+                        }
+                    }
+                    loadInitialData();
+                }, []);
+
+                // 4. 資料變更時：自動非同步寫入 IndexedDB （取代原本會爆掉的 localStorage.setItem）
+                useEffect(() => {
+                    if (!isDataLoaded) return;
+                    saveToIDB('events', events).catch(e => console.error('儲存 events 失敗', e));
+                }, [events, isDataLoaded]);
+
+                useEffect(() => {
+                    if (!isDataLoaded) return;
+                    saveToIDB('schedules', schedules).catch(e => console.error('儲存 schedules 失敗', e));
+                }, [schedules, isDataLoaded]);
+
+                useEffect(() => {
+                    if (!isDataLoaded) return;
+                    saveToIDB('userProfile', userProfile).catch(e => console.error('儲存 userProfile 失敗', e));
+                }, [userProfile, isDataLoaded]);
                 
+                // 5. 【要保留】Lucide 圖標渲染
                 useEffect(() => { 
                     if (window.lucide) {
                         try { window.lucide.createIcons(); } catch (e) {}

@@ -40,7 +40,7 @@ const VENUE_GROUPS = {
         '日本武道館': { address: '日本東京都千代田區北之丸公園2番3號', city: '東京', country: '日本', lat: 35.693628, lng: 139.749690 },
     },
     "韓國地區": {
-        '奧林匹克體操競技場': { address: '424 Olympic-ro, Songpa District, Seoul, 南韓', city: '首爾', country: '南韓', lat: 37.520641, lng: 126.127415 },
+        '奧林匹克體操競技場': { address: '424 Olympic-ro, Songpa District, Seoul, 南韓', city: '首爾', country: '南韓', lat: 37.5191503, lng: 127.1273644 },
         '高尺天空巨蛋': { address: '430 Gyeongin-ro, Guro District, Seoul, 南韓', city: '首爾', country: '南韓', lat: 37.498231, lng: 126.867119 },
         '仁川亞運主體育場': { address: '379-2 Yeonhui-dong, Seo-gu, Incheon, 南韓', city: '仁川', country: '南韓', lat: 37.548232, lng: 126.666994 },
         '高陽體育館': { address: '1601 Jungang-ro, Ilsanseo-gu, Goyang-si, Gyeonggi-do, 南韓', city: '高陽', country: '南韓', lat: 37.676422, lng: 126.743056 },

@@ -988,7 +988,7 @@ function BackupModal({ events, schedules, userProfile, onClose, onImport, showAl
                             </div>
                         </header>
 
-                        {alertMsg && <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[999999] bg-[#C5AB89] text-[#161D15] px-5 py-2.5 rounded-full text-xs font-bold shadow-2xl animate-bounce">{alertMsg}</div>}
+                        {alertMsg && <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[999999] bg-[#C5AB89] text-[#161D15] px-5 py-2.5 rounded-full text-xs font-bold shadow-2xl animate-bounce">{alertMsg}</div>}
 
                         <main className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
                             {activeTab === 'archive' && <ArchiveSection events={filteredEvents} allEvents={events} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} searchQuery={searchQuery} setSearchQuery={setSearchQuery} viewMode={viewMode} onDelete={handleDeleteEvent} onEdit={(evt) => setEditingEvent(evt)} getGoogleMapsUrl={getGoogleMapsUrl} onOpenAddModal={() => setIsAddModalOpen(true)} />}

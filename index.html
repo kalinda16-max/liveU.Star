@@ -645,23 +645,52 @@
             function BackupModal({ events, schedules, userProfile, onClose, onImport, showAlert }) {
                 const fileInputRef = useRef(null);
 
-                const handleExport = () => {
+                const handleExport = async () => {
                     const data = {
-                        version: 'liveecho_v12',
+                        version: 'liveU_v12',
                         exportDate: new Date().toISOString(),
                         events,
                         schedules,
                         userProfile
                     };
-                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
-                    const downloadAnchor = document.createElement('a');
-                    downloadAnchor.setAttribute("href", dataStr);
-                    downloadAnchor.setAttribute("download", `liveu_backup_${new Date().toISOString().slice(0, 10)}.json`);
-                    document.body.appendChild(downloadAnchor);
-                    downloadAnchor.click();
-                    downloadAnchor.remove();
-                    showAlert('備份資料匯出成功');
-                };
+                    const jsonString = JSON.stringify(data, null, 2);
+                    const fileName = `liveu_backup_${new Date().toISOString().slice(0, 10)}.json`);
+
+                    if (navigator.share && navigator.canshare) {
+                        try {
+                            const file = new File ([jsonString], fileName, { type: 'application/json' });
+                            if (navigator.canShare({ files: [file] })) {
+                                await navigator.share({
+                                    files: [file],
+                                    title: 'LiveU 備份資料',
+                                    text: '請儲存備份JSON檔案'
+                                });
+                                showAlert('備份資料匯出成功');
+                                return;
+                            }
+                        } catch (error) {
+                            if (error.name !== 'AbortFrror') {
+                                console.warn('share API failed, falling back to Blob download:' error);
+                            } else {
+                                return;
+                            }
+                        }
+
+                        try {
+                            const blob = new Blob([jsonString], { type: 'application/json;charest=utf-8' });
+                            const url = URL.createObjectURL(blob);
+                            const downloadAnchor = document.createElement('a');
+                            downloadAnchor.href = url;
+                            downloadAnchor.download = fileName;
+                            document.body.appendChild(downloadAnchor);
+                            downloadAnchor.click();
+                            downloadAnchor.remove();
+                            URL.revokeObjectURL(url);
+                            showAlert('備份資料匯出成功');
+                        } catch (err) {
+                            alert('匯出失敗，請確認瀏覽器權限。');
+                        }
+                    };
 
                 const handleImportFile = (e) => {
                     const file = e.target.files[0];
@@ -694,20 +723,20 @@
                                 <button onClick={onClose}><i data-lucide="x" className="w-5 h-5"></i></button>
                             </div>
                             <p className="text-xs text-[#737C75] leading-relaxed">
-                                您可以將所有藝文紀錄、演出排程及個人設定導出為備份 JSON 檔案，或從先前備份的檔案恢復資料。
+                                將所有藝文紀錄、演出排程及個人設定導出為備份 JSON 檔案，或從先前備份的檔案恢復資料。
                             </p>
                             <div className="space-y-2 pt-2">
                                 <button 
                                     onClick={handleExport}
                                     className="w-full py-3 rounded-2xl bg-[#C5AB89] text-[#161D15] text-xs font-extrabold flex items-center justify-center gap-2 shadow hover:bg-[#d5bc9a] transition-colors"
                                 >
-                                    <i data-lucide="download" className="w-4 h-4"></i> 匯出備份資料 JSON
+                                    <i data-lucide="download" className="w-4 h-4"></i> 匯出備份資料
                                 </button>
                                 <button 
                                     onClick={() => fileInputRef.current?.click()}
                                     className="w-full py-3 rounded-2xl bg-[#161D15] text-[#EFF0EA] text-xs font-extrabold flex items-center justify-center gap-2 shadow hover:bg-[#2A3626] transition-colors"
                                 >
-                                    <i data-lucide="upload" className="w-4 h-4"></i> 匯入備份資料 JSON
+                                    <i data-lucide="upload" className="w-4 h-4"></i> 匯入備份資料
                                 </button>
                                 <input 
                                     type="file" 

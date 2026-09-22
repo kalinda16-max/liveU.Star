@@ -654,9 +654,9 @@
                         userProfile
                     };
                     const jsonString = JSON.stringify(data, null, 2);
-                    const fileName = `liveu_backup_${new Date().toISOString().slice(0, 10)}.json`);
+                    const fileName = liveu_backup_${new Date().toISOString().slice(0, 10)}.json;
 
-                    if (navigator.share && navigator.canshare) {
+                    if (navigator.Share && navigator.canShare) {
                         try {
                             const file = new File ([jsonString], fileName, { type: 'application/json' });
                             if (navigator.canShare({ files: [file] })) {
@@ -670,14 +670,14 @@
                             }
                         } catch (error) {
                             if (error.name !== 'AbortFrror') {
-                                console.warn('share API failed, falling back to Blob download:' error);
+                                console.warn('share API failed, falling back to Blob download:', error);
                             } else {
                                 return;
                             }
                         }
 
                         try {
-                            const blob = new Blob([jsonString], { type: 'application/json;charest=utf-8' });
+                            const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
                             const url = URL.createObjectURL(blob);
                             const downloadAnchor = document.createElement('a');
                             downloadAnchor.href = url;

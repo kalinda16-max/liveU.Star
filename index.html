@@ -59,7 +59,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
 
     <!-- 獨立的 venues 場館資料庫檔案 -->
-    <script src="venues.js" onerror="window.VENUE_DATABASE = {};"></script>
+    <script>
+    document.write('<script src="venues.js?t=' + Date.now() + '" onerror="window.VENUE_DATABASE = {};"><\/script>');
+</script>
     
     <style>
         *, *::before, *::after { 

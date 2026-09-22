@@ -476,10 +476,10 @@
                 const handleConfirm = () => {
                     if (!cropperRef.current) return;
                     const canvas = cropperRef.current.getCroppedCanvas({
-                        maxWidth: 800,
-                        maxHeight: 800,
+                        maxWidth: 1920,
+                        maxHeight: 1080,
                         imageSmoothingEnabled: true,
-                        imageSmoothingQuality: 'medium',
+                        imageSmoothingQuality: 'high',
                     });
                     if (canvas) {
                         const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.6);

@@ -43,7 +43,7 @@ const VENUE_GROUPS = {
         '奧林匹克體操競技場': { address: '424 Olympic-ro, Songpa District, Seoul, 南韓', city: '首爾', country: '南韓', lat: 37.5193, lng: 127.1274 },
         '高尺天空巨蛋': { address: '430 Gyeongin-ro, Guro District, Seoul, 南韓', city: '首爾', country: '南韓', lat: 37.4982, lng: 127.6873 },
         '仁川亞運主體育場': { address: '379-2 Yeonhui-dong, Seo-gu, Incheon, 南韓', city: '仁川', country: '南韓', lat: 37.5474, lng: 126.6658 },
-        '高陽體育館': { address: '1601 Jungang-ro, Ilsanseo-gu, Goyang-si, Gyeonggi-do, 南韓', city: '高陽', country: '南韓', lat: 37.676353, lng: 126.743208 },
+        '高陽體育館': { address: '1601 Jungang-ro, Ilsanseo-gu, Goyang-si, Gyeonggi-do, 南韓', city: '高陽', country: '南韓', lat: 37.676422, lng: 126.743056 },
     },
     "香港地區": {
         '啟德主場館': { address: '香港九龍九龍城承啟道39號', city: '香港', country: '中國', lat: 22.322383, lng: 114.197416 },

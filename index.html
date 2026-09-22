@@ -10,7 +10,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#161D15">
 
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="/.manifest.json">
     <link rel="apple-touch-icon" href="image/icons/icon-180.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -343,17 +343,17 @@
             }
 
             function ImageCropperModal({ imageSrc, initialAspectRatio = 1, onConfirm, onCancel }) {
-                const imageRef = useRef(null);
-                const cropperRef = useRef(null);
-                const containerRef = useRef(null);
+                const imageRef = React.useRef(null);
+                const cropperRef = React.useRef(null);
+                const containerRef = React.useRef(null);
 
-                useEffect(() => {
+                React.useEffect(() => {
                     if (window.lucide) {
                         try { window.lucide.createIcons(); } catch (e) {}
                     }
                 });
 
-                useEffect(() => {
+                React.useEffect(() => {
                     let touchStartAngle = 0;
                     let touchStartDist = 0;
 

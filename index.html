@@ -654,7 +654,7 @@
                         userProfile
                     };
                     const jsonString = JSON.stringify(data, null, 2);
-                    const fileName = liveu_backup_${new Date().toISOString().slice(0, 10)}.json;
+                    const fileName = 'liveu_backup_${new Date().toISOString().slice(0, 10)}.json';
 
                     if (navigator.Share && navigator.canShare) {
                         try {
@@ -669,7 +669,7 @@
                                 return;
                             }
                         } catch (error) {
-                            if (error.name !== 'AbortFrror') {
+                            if (error.name !== 'AbortError') {
                                 console.warn('share API failed, falling back to Blob download:', error);
                             } else {
                                 return;

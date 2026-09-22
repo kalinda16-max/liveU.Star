@@ -675,6 +675,7 @@
                                 return;
                             }
                         }
+                    }
 
                         try {
                             const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
@@ -2237,7 +2238,8 @@ return (
                     </div>
                 );
             }
-
+  
+        try {
             const root = ReactDOM.createRoot(document.getElementById('root'));
             root.render(<App />);
         } catch (e) {

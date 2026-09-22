@@ -654,9 +654,9 @@
                         userProfile
                     };
                     const jsonString = JSON.stringify(data, null, 2);
-                    const fileName = 'liveu_backup_${new Date().toISOString().slice(0, 10)}.json';
+                    const fileName = `liveu_backup_${new Date().toISOString().slice(0, 10)}.json`;
 
-                    if (navigator.Share && navigator.canShare) {
+                    if (navigator.share && navigator.canShare) {
                         try {
                             const file = new File ([jsonString], fileName, { type: 'application/json' });
                             if (navigator.canShare({ files: [file] })) {

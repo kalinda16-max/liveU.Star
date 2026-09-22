@@ -709,10 +709,50 @@ function BackupModal({ events, schedules, userProfile, onClose, onImport, showAl
                 }
             } catch (err) {
                 alert('解析備份檔案失敗，請確認檔案格式是否正確。');
+            } finally {
+                e.target.value = ''; // 清空 value，確保二次選取相同檔案時仍能觸發 onChange
             }
         };
         reader.readAsText(file);
     };
+
+    return (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl">
+                <div className="flex justify-between items-center border-b pb-3">
+                    <h3 className="text-lg font-bold text-gray-800">資料備份與還原</h3>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                        ✕
+                    </button>
+                </div>
+                
+                <div className="space-y-3 pt-2">
+                    <button
+                        onClick={handleExport}
+                        className="w-full py-3 bg-[#737C75] text-white rounded-xl font-medium hover:bg-[#5e6660] transition-colors"
+                    >
+                        匯出備份檔案 (.json)
+                    </button>
+                    
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-full py-3 border border-[#737C75] text-[#737C75] rounded-xl font-medium hover:bg-gray-50 transition-colors"
+                    >
+                        匯入備份檔案
+                    </button>
+                    
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleImportFile}
+                        accept=".json"
+                        className="hidden"
+                    />
+                </div>
+            </div>
+        </div>
+    );
+}
 
     return (
         <div className="modal-overlay bg-black/85 flex items-center justify-center p-4 z-[999999]">

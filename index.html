@@ -31,6 +31,7 @@
                             cardbg: '#F8F8F8',
                             softgrey: '#EBEBE9',
                             darkslate: '#161D15',
+                            mintgrey: '#C4D1B6',
                         }
                     },
                     fontFamily: {
@@ -1927,60 +1928,123 @@ return (
                             ) : (
                                 schedules.map(sch => {
                                     return (
-                                        <div key={sch.id} className="relative bg-[#EFF0EA] text-[#161D15] rounded-2xl flex shadow-lg overflow-hidden my-2">
-                                            <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
-                                            <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#161D15] rounded-full z-20"></div>
-                                            
-                                            <div className="flex-1 p-3.5 pl-5 flex flex-col justify-between min-w-0 pr-3 overflow-hidden">
-                                                <div className="space-y-2">
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="px-2.5 py-1 rounded-lg bg-[#CCB9AA]/40 text-[#161D15] font-mono text-[10px] font-extrabold">{sch.date}</span>
-                                                        <div className="flex items-center gap-1.5">
-                                                            <button
-                                                                onClick={(e) => handleCycleStatus(sch, e)}
-                                                                className={`px-2.5 py-1 rounded-xl font-bold text-[10px] border transition-all cursor-pointer ${
-                                                                    sch.status === '已完售'
-                                                                        ? 'bg-red-100 text-red-700 border-red-300'
-                                                                        : sch.status === '售票中'
-                                                                        ? 'bg-green-100 text-green-700 border-green-300'
-                                                                        : 'bg-transparent text-[#AB8C83] border-[#AB8C83]/60'
-                                                                }`}
-                                                                title="點擊切換狀態"
-                                                            >
-                                                                {sch.status || '即將開賣'}
-                                                            </button>
-                                                            <button onClick={() => onEdit(sch)} className="w-7 h-7 rounded-full bg-[#CCB9AA]/30 text-[#161D15] flex items-center justify-center hover:bg-[#CCB9AA]/50 transition-colors shadow-sm" title="編輯排程">
-                                                                <i data-lucide="pencil" className="w-3.5 h-3.5"></i>
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="min-w-0 overflow-hidden">
-                                                        <h3 className="font-black text-sm text-[#161D15] leading-snug break-words whitespace-normal max-w-full">
-                                                            {sch.title}
-                                                        </h3>
-                                                        <p className="text-[11px] text-[#737C75] font-medium leading-relaxed truncate mt-1">
-                                                            {sch.organizer} • {sch.venue}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
+<div
+    key={sch.id}
+    className="my-4 relative drop-shadow-[0_0_5px_rgba(197,171,137,0.40)]"
+>
+    <div
+        className="relative bg-[#232B25] text-[#EFF0EA] rounded-2xl flex overflow-hidden border border-[#C5AB89]/40"
+        style={{
+            maskImage: `
+                radial-gradient(
+                    circle 12px at 0% 50%,
+                    transparent 0,
+                    transparent 12px,
+                    black 12px
+                ),
+                radial-gradient(
+                    circle 12px at 100% 50%,
+                    transparent 0,
+                    transparent 12px,
+                    black 12px
+                )
+            `,
+            maskComposite: 'intersect',
+            WebkitMaskImage: `
+                radial-gradient(
+                    circle 12px at 0% 50%,
+                    transparent 0,
+                    transparent 12px,
+                    black 12px
+                ),
+                radial-gradient(
+                    circle 12px at 100% 50%,
+                    transparent 0,
+                    transparent 12px,
+                    black 12px
+                )
+            `,
+            WebkitMaskComposite: 'source-in'
+        }}
+    >
+        <div className="flex w-full">
 
-                                            <div className="relative w-0 border-r-2 border-dashed border-[#737C75]/40 my-1 z-10"></div>
+            {/* 左側內容 */}
+            <div className="flex-1 p-3.5 pl-5 flex flex-col justify-between min-w-0 pr-3 overflow-hidden">
+                <div className="space-y-2">
 
-                                            <div className="w-[110px] bg-[#EBEBE9] p-3 flex flex-col justify-between items-start text-left shrink-0 border-l border-[#D2CABF]/40">
-                                                <div className="font-mono text-[11px] font-black leading-tight tracking-tight text-[#161D15] w-full text-left flex flex-col items-start justify-center">
-                                                    {sch.priceRange || '免費觀賞'}
-                                                </div>
-                                                <a href={sch.ticketLink} target="_blank" rel="noopener noreferrer" className="w-full py-1 bg-[#161D15] text-[#EFF0EA] rounded text-[10px] font-bold text-center block mt-2">售票連結</a>
-                                            </div>
-                                        </div>
-                                    );
-                                })
-                            )}
+                    <div className="flex items-center justify-between">
+                        <span className="px-2.5 py-1 rounded-lg bg-white/10 text-[#EFF0EA] font-mono text-[10px] font-extrabold border border-white/10">
+                            {sch.date}
+                        </span>
+
+                        <div className="flex items-center gap-1.5">
+                            <button
+                                onClick={(e) => handleCycleStatus(sch, e)}
+                                className={`px-2.5 py-1 rounded-xl font-bold text-[10px] border transition-all cursor-pointer ${
+                                    sch.status === '已完售'
+                                        ? 'bg-red-500/20 text-red-300 border-red-500/30'
+                                        : sch.status === '售票中'
+                                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                                        : 'bg-white/10 text-[#CCB9AA] border-white/20'
+                                }`}
+                                title="點擊切換狀態"
+                            >
+                                {sch.status || '即將開賣'}
+                            </button>
+
+                            <button
+                                onClick={() => onEdit(sch)}
+                                className="w-7 h-7 rounded-full bg-white/10 text-[#EFF0EA] flex items-center justify-center hover:bg-white/20 transition-colors shadow-sm border border-white/10"
+                                title="編輯排程"
+                            >
+                                <i data-lucide="pencil" className="w-3.5 h-3.5"></i>
+                            </button>
                         </div>
                     </div>
-                );
-            }
+
+                    <div className="min-w-0 overflow-hidden">
+                        <h3 className="font-black text-sm text-[#EFF0EA] leading-snug break-words whitespace-normal max-w-full">
+                            {sch.title}
+                        </h3>
+
+                        <p className="text-[11px] text-[#A3ADA5] font-medium leading-relaxed truncate mt-1">
+                            {sch.organizer} • {sch.venue}
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            {/* 中間虛線 */}
+            <div className="relative w-0 border-r border-dashed border-white/20 my-2 z-10"></div>
+
+            {/* 右側票價 */}
+            <div className="w-[110px] bg-white/[0.08] border-1 border-white/5 p-3 flex flex-col justify-between items-start text-left shrink-0 shadow-[inset_1px_0_0_rgba(255,255,255,0.05)]">
+                <div className="font-mono text-[11px] font-black leading-tight tracking-tight text-[#EFF0EA] w-full text-left flex flex-col items-start justify-center">
+                    {sch.priceRange || '免費觀賞'}
+                </div>
+
+                <a
+                    href={sch.ticketLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-1.5 bg-[#739c99]/75 hover:bg-[#739c99]/90 text-[#161D15] rounded-lg text-[10px] font-bold text-center block mt-2 transition-colors"
+                >
+                    售票連結
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+                       );
+                    })
+                )}
+            </div>
+     </div>
+   );
+ }
 
             function StatsSection({ stats, events }) {
                 const [imgError, setImgError] = useState(false);
@@ -2035,25 +2099,77 @@ return (
                 // 年度藝人數據
                 const topArtistObj = artistRankings[0] || null;
 
-                // 觸發彩帶/煙火動畫與卡片點擊反饋
-                const triggerFireworks = (e) => {
-                    setIsCardActive(true);
-                    setTimeout(() => setIsCardActive(false), 200);
+                // 觸發三段式奢華煙火特效與卡片點擊反饋
+const triggerFireworks = (e) => {
+    setIsCardActive(true);
+    setTimeout(() => setIsCardActive(false), 200);
 
-                    if (typeof window.confetti === 'function') {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const x = (rect.left + rect.width / 2) / window.innerWidth;
-                        const y = (rect.top + rect.height / 2) / window.innerHeight;
+    if (typeof window.confetti === 'function') {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = (rect.left + rect.width / 2) / window.innerWidth;
+        const y = (rect.top + rect.height / 2) / window.innerHeight;
 
-                        window.confetti({
-                            particleCount: 80,
-                            spread: 70,
-                            origin: { x, y },
-                            colors: ['#C5AB89', '#EFF0EA', '#FFC800', '#D2CABF', '#E5A912']
-                        });
-                    }
-                };
+        // 1. 第一波：強力核心大爆發（高初速、廣範圍、混搭圓形與方形增加質感）
+        window.confetti({
+            particleCount: 60,
+            spread: 120,
+            startVelocity: 35, // 增加爆發力道
+            origin: { x, y },
+            colors: ['#FF4500', '#FFA500', '#FFD700', '#FFFFFF'],
+            shapes: ['circle'], // 形狀交錯更有層次
+            scalar: 0.8,
+            gravity: 0.35,
+            ticks: 350,
+            zIndex: 9999
+        });
 
+        // 2. 第二波：左右側翼夾擊（製造向外擴散的大型煙火感）
+        setTimeout(() => {
+            // 左側噴發
+            window.confetti({
+                particleCount: 35,
+                angle: 60,
+                spread: 60,
+                startVelocity: 28,
+                origin: { x: x - 0.05, y },
+                colors: ['#FF4500', '#FFA500', '#FFD700', '#FFFFFF'],
+                shapes: ['circle'],
+                scalar: 0.9,
+                ticks: 180,
+                zIndex: 9999
+            });
+            // 右側噴發
+            window.confetti({
+                particleCount: 35,
+                angle: 120,
+                spread: 60,
+                startVelocity: 18,
+                origin: { x: x + 0.05, y },
+                colors: ['#FFFFFF', '#FFC800', '#EFF0EA'],
+                shapes: ['circle'],
+                scalar: 0.5,
+                ticks: 180,
+                zIndex: 9999
+            });
+        }, 80);
+
+        // 3. 第三波：延遲 200ms 的高級金色粉塵雨（輕盈飄落）
+        setTimeout(() => {
+            window.confetti({
+                particleCount: 50,
+                spread: 130,
+                startVelocity: 15,
+                origin: { x, y: y - 0.08 },
+                colors: ['#FFFFFF', '#FFD700', '#D2CABF'],
+                scalar: 0.6,
+                gravity: 0.4,  // 重力減半，飄得更慢更優雅
+                drift: 0.2,    // 帶有一點微風飄移
+                ticks: 300,
+                zIndex: 9999
+            });
+        }, 200);
+    }
+};
                 return (
                     <div className="p-4 pb-12 space-y-4">
                         {isArtistOfTheYearVisible && (

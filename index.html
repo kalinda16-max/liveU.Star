@@ -1794,53 +1794,79 @@ return (
     <div className="space-y-4 p-4 pb-12">
         <div className="space-y-2.5">
             <div className="relative">
-                <i data-lucide="search" className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#737C75]"></i>
-                <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="搜尋名稱、場館、藝人..." className="w-full bg-[#EFF0EA] text-[#161D15] pl-9 pr-8 py-2 rounded-xl text-xs border border-[#D2CABF]" />
+                <i data-lucide="search" className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#C5AB89]"></i>
+                <input 
+                type="text" 
+                value={searchQuery} 
+                onChange={(e) => setSearchQuery(e.target.value)} 
+                placeholder="搜尋名稱、場館、藝人..." 
+                className="w-full bg-white/10 backdrop-blur-md text-[#EFFOEA] placeholder-[#A3ADA5] pl-9 pr-8 py-2 rounded-xl text-xs border border-[C5AB89]/30 shadow-[0_0_15px_rgba(197,171,137,0.15)] focus:outline-none focus:border-[#C5AB89] transition-all"/>
             </div>
             <div className="categories-fade-container overflow-x-hidden w-full">
                 <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 px-4 -mx-4">
-                    <button onClick={() => setSelectedCategory('all')} className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 ${selectedCategory === 'all' ? 'bg-[#C5AB89] text-[#161D15]' : 'bg-[#EFF0EA] text-[#161D15]'}`}>✨ 全部 ({allEvents.length})</button>
+
+                    <button onClick={() => setSelectedCategory('all')} 
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 backdrop-blur-md transition-all ${selectedCategory === 'all' ? 
+                    'bg-[#C5AB89] text-[#161D15] shadow-[0_0_12px_rgba(197,171,137,0.5)]' 
+                    : 'bg-white/10 text-[#EFF0EA] border border-white/10 hover:bg-white/20'}`}>✨ 全部 ({allEvents.length})</button>
+
                     {Object.entries(CATEGORIES).map(([k, cat]) => (
-                        <button key={k} onClick={() => setSelectedCategory(k)} className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 flex items-center gap-1.5 ${selectedCategory === k ? `${cat.badgeBg}` : 'bg-[#EFF0EA] text-[#161D15]'}`}><CategoryIcon cat={cat} sizeClass="w-4 h-4" /> {cat.label}</button>
+                        <button key={k} 
+                        onClick={() => setSelectedCategory(k)} 
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 flex items-center gap-1.5 backdrop-blur-md transition-all ${selectedCategory === k 
+                        ? `${cat.badgeBg} shadow-[0_0_12px_rgba(197,171,137,0.5)]` 
+                        : 'bg-white/10 text-[#EFF0EA] border border-white/10 hover:bg-white/20'}`}
+                        >
+                        <CategoryIcon cat={cat} sizeClass="w-4 h-4" /> {cat.label}</button>
                     ))}
                 </div>
             </div>
         </div>
 
         {viewMode === 'calendar' ? (
-            <div className="bg-[#EFF0EA] text-[#161D15] p-4 rounded-3xl shadow-lg border border-[#D2CABF] space-y-4">
-                <div className="flex items-center justify-between"><h3 className="font-extrabold text-sm">{year} 年 {month + 1} 月</h3><div className="flex gap-1"><button onClick={() => setCalendarDate(new Date(year, month - 1, 1))} className="p-1 rounded bg-[#EBEBE9]"><i data-lucide="chevron-left" className="w-4 h-4"></i></button><button onClick={() => setCalendarDate(new Date(year, month + 1, 1))} className="p-1 rounded bg-[#EBEBE9]"><i data-lucide="chevron-right" className="w-4 h-4"></i></button></div></div>
-                <div className="grid grid-cols-7 gap-1 text-center font-bold text-[10px] text-[#737C75]"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
-                <div className="grid grid-cols-7 gap-1">{calendarDays.map((item, idx) => !item ? <div key={idx} className="h-10"></div> : <div key={idx} onClick={() => { if(item.events.length) setDetailEvent(item.events[0]); }} className={`h-10 rounded-xl flex flex-col items-center justify-center ${item.events.length ? 'bg-[#C5AB89] font-black cursor-pointer' : 'bg-[#EBEBE9]'}`}><span>{item.day}</span></div>)}</div>
+            <div className="bg-[#232B25]/80 backdrop-blur-xl text-[#EFF0EA] p-4 rounded-3xl shadow-[0_0_25px_rgba(197,171,137,0.25)] border border-[#C5AB89]/40 space-y-4">
+                <div className="flex items-center justify-between">
+                    <h3 className="font-extrabold text-sm text-[#C5AB89]">{year} 年 {month + 1} 月</h3>
+                    <div className="flex gap-1">
+                    
+                    <button onClick={() => setCalendarDate(new Date(year, month - 1, 1))} className="p-1 rounded-xl bg-white/10 text-[#EFF0EA] hover:bg-white/20 transition-all">
+                    <i data-lucide="chevron-left" className="w-4 h-4"></i></button>
+                    
+                    <button onClick={() => setCalendarDate(new Date(year, month + 1, 1))} className="p-1 rounded-xl bg-white/10 text-[#EFF0EA] hover:bg-white/20 transition-all"><i data-lucide="chevron-right" className="w-4 h-4"></i></button>
+                    </div>
+                </div>
+                <div className="grid grid-cols-7 gap-1 text-center font-bold text-[10px] text-[#A3ADA5]"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+                <div className="grid grid-cols-7 gap-1">
+                {calendarDays.map((item, idx) => !item ? <div key={idx} className="h-10"></div> : <div key={idx} onClick={() => { if(item.events.length) setDetailEvent(item.events[0]); }} className={`h-10 rounded-xl flex flex-col items-center justify-center transition-all ${item.events.length ? 'bg-[#C5AB89] text-[#161D15] font-black cursor-pointer shadow-[0_0_10px_rgba(197,171,137,0.5)]' : 'bg-white/5 text-[#EFF0EA] border border-white/5'}`}><span>{item.day}</span></div>)}</div>
             </div>
         ) : (
             <div className="space-y-3">
                 {events.length === 0 ? (
-                    <div className="text-center py-16 bg-[#EFF0EA]/5 border border-dashed border-[#737C75]/40 rounded-3xl p-6 space-y-3">
+                    <div className="text-center py-16 bg-white/5 backdrop-blur-md border border-dashed border-[#C5AB89]/40 rounded-3xl p-6 space-y-3 shadow-[0_0_15px_rgba(197,171,137,0.1)]">
                         <p className="text-xs text-[#EFF0EA] font-extrabold">暫無藝文紀錄</p>
-                        <button onClick={onOpenAddModal} className="px-4 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-xs">新增藝文紀錄</button>
+                        <button onClick={onOpenAddModal} className="px-4 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-xs shadow-[0_0_10px_rgba(197,171,137,0.4)">新增藝文紀錄</button>
                     </div>
                 ) : (
                     events.map((evt) => {
                         const cat = CATEGORIES[evt.type] || CATEGORIES.concert;
                         return (
-                            <div key={evt.id} onClick={() => setDetailEvent(evt)} className="my-4 relative drop-shadow-[0_0_5px_rgba(197,171,137,0.40)] cursor-pointer hover:scale-[1.01] transition-all">
-                                <div className="relative bg-[#232B25] text-[#EFF0EA] rounded-2xl flex overflow-hidden border border-[#C5AB89]/40"
+                            <div key={evt.id} onClick={() => setDetailEvent(evt)} className="my-4 relative drop-shadow-[0_0_8px_rgba(197,171,137,0.3)] cursor-pointer hover:scale-[1.01] transition-all">
+                                <div className="relative bg-[#232B25]/90 backdrop-blur-xl text-[#EFF0EA] rounded-2xl flex overflow-hidden border border-[#C5AB89]/50 shadow-[inset_0_0_15px_rgba(255,255,255,0.03)]"
                                     style={{
                                         maskImage: `
-                                            radial-gradient(circle 12px at 0% 50%, transparent 0, transparent 12px, black 12px),
-                                            radial-gradient(circle 12px at 100% 50%, transparent 0, transparent 12px, black 12px)
+                                            radial-gradient(circle 10px at 0% 50%, transparent 0, transparent 10px, black 10px),
+                                            radial-gradient(circle 10px at 100% 50%, transparent 0, transparent 10px, black 10px)
                                         `,
                                         maskComposite: 'intersect',
                                         WebkitMaskImage: `
-                                            radial-gradient(circle 12px at 0% 50%, transparent 0, transparent 12px, black 12px),
-                                            radial-gradient(circle 12px at 100% 50%, transparent 0, transparent 12px, black 12px)
+                                            radial-gradient(circle 10px at 0% 50%, transparent 0, transparent 10px, black 10px),
+                                            radial-gradient(circle 10px at 100% 50%, transparent 0, transparent 10px, black 10px)
                                         `,
                                         WebkitMaskComposite: 'source-in'
                                     }}
                                 >
                                     <div className="flex w-full">
-                                      <div className="flex-1 p-3.5 pl-5 flex item-start gap-3 min-w-0 pr-3">
+                                      <div className="flex-1 p-3.5 pl-5 flex items-start gap-3 min-w-0 pr-3">
                                         {/* 封面圖片區塊 */}
                                         <div 
                                             onClick={(e) => { e.stopPropagation(); setDetailEvent(evt); }}

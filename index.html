@@ -232,11 +232,11 @@
             // ---------------------------------------------
 
             const CATEGORIES = {
-                concert: { label: '演唱會', icon: 'concert.png', emoji: '🎵', badgeBg: 'bg-[#C5AB89] text-[#737C75]' },
-                exhibition: { label: '展覽', icon: 'abstract.png', emoji: '🎨', badgeBg: 'bg-[#C5AB89] text-[#737C75]' },
-                movie: { label: '電影', icon: 'clapperboard.png', emoji: '🎬', badgeBg: 'bg-[#C5AB89] text-[#737C75]' },
-                book: { label: '見面會', icon: 'chant.png', emoji: '📚', badgeBg: 'bg-[#C5AB89] text-[#737C75]' },
-                drama: { label: '舞台劇', icon: 'theatre.png', emoji: '🎭', badgeBg: 'bg-[#C5AB89] text-[#737C75]' }
+                concert: { label: '演唱會', icon: 'concert.png', emoji: '🎵', badgeBg: 'bg-[#A9B7AA] text-[#161D15]' },
+                exhibition: { label: '展覽', icon: 'abstract.png', emoji: '🎨', badgeBg: 'bg-[#A9B7AA] text-[#161D15]' },
+                movie: { label: '電影', icon: 'clapperboard.png', emoji: '🎬', badgeBg: 'bg-[#A9B7AA] text-[#161D15]' },
+                book: { label: '見面會', icon: 'chant.png', emoji: '📚', badgeBg: 'bg-[#A9B7AA] text-[#161D15]' },
+                drama: { label: '舞台劇', icon: 'theatre.png', emoji: '🎭', badgeBg: 'bg-[#A9B7AA] text-[#161D15]' }
             };
 
             const venueDb = window.VENUE_DATABASE || {};
@@ -1800,14 +1800,14 @@ return (
                 value={searchQuery} 
                 onChange={(e) => setSearchQuery(e.target.value)} 
                 placeholder="搜尋名稱、場館、藝人..." 
-                className="w-full bg-white/10 backdrop-blur-md text-[#EFFOEA] placeholder-[#A3ADA5] pl-9 pr-8 py-2 rounded-xl text-xs border border-[C5AB89]/30 shadow-[0_0_15px_rgba(197,171,137,0.15)] focus:outline-none focus:border-[#C5AB89] transition-all"/>
+                className="w-full bg-white/10 backdrop-blur-md text-[#EFFOEA] placeholder-[#A3ADA5] pl-9 pr-8 py-2 rounded-xl text-xs border border-[C5AB89]/30 shadow-[0_0_15px_rgba(197,171,137,0.15)] focus:outline-none focus:border-[#C5AB89] focus:ring-2 focus:ring-[#C5AB89]/50 transition-colors"/>
             </div>
             <div className="categories-fade-container overflow-x-hidden w-full">
                 <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 px-4 -mx-4">
 
                     <button onClick={() => setSelectedCategory('all')} 
                     className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 backdrop-blur-md transition-all ${selectedCategory === 'all' ? 
-                    'bg-[#C5AB89] text-[#161D15] shadow-[0_0_12px_rgba(197,171,137,0.5)]' 
+                    'bg-[#A9B7AA] text-[#161D15] shadow-[0_0_12px_rgba(197,171,137,0.5)]' 
                     : 'bg-white/10 text-[#EFF0EA] border border-white/10 hover:bg-white/20'}`}>✨ 全部 ({allEvents.length})</button>
 
                     {Object.entries(CATEGORIES).map(([k, cat]) => (
@@ -1851,7 +1851,7 @@ return (
                         const cat = CATEGORIES[evt.type] || CATEGORIES.concert;
                         return (
                             <div key={evt.id} onClick={() => setDetailEvent(evt)} className="my-4 relative drop-shadow-[0_0_8px_rgba(197,171,137,0.3)] cursor-pointer hover:scale-[1.01] transition-all">
-                                <div className="relative bg-[#232B25]/90 backdrop-blur-xl text-[#EFF0EA] rounded-2xl flex overflow-hidden border border-[#C5AB89]/50 shadow-[inset_0_0_15px_rgba(255,255,255,0.03)]"
+                                <div className="relative bg-[#232B25]/90 backdrop-blur-xl text-[#161D15] rounded-2xl flex overflow-hidden border border-[#C5AB89]/50 shadow-[inset_0_0_15px_rgba(255,255,255,0.03)]"
                                     style={{
                                         maskImage: `
                                             radial-gradient(circle 10px at 0% 50%, transparent 0, transparent 10px, black 10px),

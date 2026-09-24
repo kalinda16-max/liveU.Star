@@ -1802,8 +1802,8 @@ return (
                 placeholder="搜尋名稱、場館、藝人..." 
                 className="w-full bg-white/5 backdrop-blur-md text-[#EFFOEA] placeholder-[#A3ADA5] pl-9 pr-8 py-2 rounded-xl text-xs border border-[rgba(197,171,137,0.45)] shadow-[0_0_5px_rgba(197,171,137,0.20)] focus:outline-none focus:border-[#C5AB89] focus:ring-0 focus:ring-[#C5AB89]/50 transition-colors"/>
             </div>
-            <div className="relative w-full min-w-0">
-                <div className="flex items-center gap-4 overflow-x-auto no-scrollbar py-2 w-full min-w-0 px-2">
+            <div className="relative w-full pt-2 min-w-0">
+                <div className="flex items-center gap-4 overflow-x-auto no-scrollbar py-2 w-full min-w-0 px-1">
 
                     <button onClick={() => setSelectedCategory('all')} 
                     className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 backdrop-blur-md transition-all ${selectedCategory === 'all' ? 
@@ -1850,7 +1850,7 @@ return (
                     events.map((evt) => {
                         const cat = CATEGORIES[evt.type] || CATEGORIES.concert;
                         return (
-                            <div key={evt.id} onClick={() => setDetailEvent(evt)} className="my-1 m-2 relative drop-shadow-[0_0_5px_rgba(197,171,137,0.40)] cursor-pointer hover:scale-[1.01] transition-all">
+                            <div key={evt.id} onClick={() => setDetailEvent(evt)} className="my-2 m-2 relative drop-shadow-[0_0_5px_rgba(197,171,137,0.40)] cursor-pointer hover:scale-[1.01] transition-all">
                                 <div className="relative bg-[#232B25]/90 backdrop-blur-xl text-[#161D15] rounded-2xl flex overflow-hidden border border-[#C5AB89]/50 shadow-[inset_0_0_15px_rgba(255,255,255,0.03)]"
                                     style={{
                                         maskImage: `

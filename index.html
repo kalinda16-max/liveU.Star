@@ -1496,22 +1496,22 @@ return (
             }
 
             function EventDetailModal({ event, onClose, onDelete, onEdit }) {
-    useEffect(() => {
-        if (window.lucide) {
-            try { window.lucide.createIcons(); } catch (e) {}
-        }
-    }, [event]);
+                useEffect(() => {
+                    if (window.lucide) {
+                       try { window.lucide.createIcons(); } catch (e) {}
+                    }
+                }, [event]);
 
-    if (!event) return null;
-    const cat = CATEGORIES[event.type] || CATEGORIES.concert;
-    const spotifyEmbed = parseSpotifyEmbedUrl(event.spotifyUrl);
+                if (!event) return null;
+                const cat = CATEGORIES[event.type] || CATEGORIES.concert;
+                const spotifyEmbed = parseSpotifyEmbedUrl(event.spotifyUrl);
 
-    return (
-        <div className="modal-overlay bg-black/85 backdrop-blur-md flex items-center justify-center p-4 pt-14 pb-20 z-[999999]">
-            <style>{`
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 5px;
-                }
+                return (
+                   <div className="modal-overlay bg-black/85 backdrop-blur-md flex items-center justify-center p-4 pt-14 pb-20 z-[999999]">
+                       <style>{`
+                           .custom-scrollbar::-webkit-scrollbar {
+                               width: 5px;
+                           }
                 .custom-scrollbar::-webkit-scrollbar-track {
                     background: rgba(0, 0, 0, 0.2);
                     border-radius: 9999px;
@@ -1524,12 +1524,16 @@ return (
                     background: rgba(197, 171, 137, 0.7);
                 }
             `}</style>
-            <div className="bg-[#161D15]/75 backdrop-blur-2xl text-[#EFF0EA] w-full max-w-sm rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-t border-x border-b border-[#C5AB89]/50 shadow-[inset_0_1px_0_rgba(197,171,137,0.3)] my-auto flex flex-col max-h-[75vh]">
-                <div className="relative h-48 bg-[#1A1A1A]/50 shrink-0 overflow-hidden flex items-center justify-center border-b border-[#C5AB89]/20">
+                <div className="w-full max-w-sm my-auto rounded-3xl shadow-[0_5px_10px_rgba(0,0,0,0.8),0_0_15px_rgba(197,171,137,0.80)]">
+
+                <div className="bg-[#161D15]/70 backdrop-blur-2xl text-[#EFF0EA] w-full rounded-3xl overflow-hidden border border-[#C5AB89] flex flex-col max-h-[75vh] transform-gpu">
+
+                <div className="relative h-48 bg-[#1A1A1A]/30 shrink-0 overflow-hidden flex items-center justify-center border-b border-[#C5AB89]/30">
+                    
                     {event.coverImg ? (
                         <img src={event.coverImg} alt={event.title} className="w-full h-full object-cover" />
                     ) : (
-                        <div className="w-full h-full bg-[#1A1A1A]" />
+                        <div className="w-full h-full bg-[#1A1A1A]/50" />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-[#161D15]/95 via-[#161D15]/30 to-transparent flex items-end p-4 pointer-events-none">
                         <div>
@@ -1540,12 +1544,12 @@ return (
                 </div>
                 <div className="p-4 space-y-3 overflow-y-auto flex-1 text-xs custom-scrollbar">
                     {event.artist && (
-                        <div className="bg-white/5 backdrop-blur-xl p-3 rounded-2xl border border-[#C5AB89]/25 shadow-inner">
+                        <div className="bg-[#1C261B]/60 backdrop-blur-xl p-3 rounded-2xl border border-[#C5AB89]/50 shadow-[0_0_15px_rgba(197,171,137,0.15),inset_0_1px_0_rgba(197,171,137,0.35)]">
                             <span className="text-[10px] text-[#C5AB89] font-bold block">演出藝人</span>
                             <p className="font-bold text-white">{event.artist}</p>
                         </div>
                     )}
-                    <div className="grid grid-cols-2 gap-2 bg-white/5 backdrop-blur-xl p-3 rounded-2xl border border-[#C5AB89]/25 shadow-inner">
+                    <div className="grid grid-cols-2 gap-2 bg-[#1C261B]/60 backdrop-blur-xl p-3 rounded-2xl border border-[#C5AB89]/50 shadow-[0_0_15px_rgba(197,171,137,0.15),inset_0_1px_0_rgba(197,171,137,0.35)]">
                         <div>
                             <span className="text-[10px] text-[#C5AB89] font-bold block">演出日期</span>
                             <span className="font-mono font-bold text-white">{event.date}</span>
@@ -1556,34 +1560,34 @@ return (
                         </div>
                     </div>
                     {event.detailSeat && (
-                        <div className="bg-white/5 backdrop-blur-xl p-3 rounded-2xl border border-[#C5AB89]/25 shadow-inner">
+                        <div className="bg-[#1C261B]/60 backdrop-blur-xl p-3 rounded-2xl border border-[#C5AB89]/50 shadow-[0_0_15px_rgba(197,171,137,0.15),inset_0_1px_0_rgba(197,171,137,0.35)]">
                             <span className="text-[10px] text-[#C5AB89] font-bold block">座位＆票區資訊</span>
                             <p className="font-bold text-white">{event.detailSeat}</p>
                         </div>
                     )}
-                    <div className="bg-white/5 backdrop-blur-xl p-3 rounded-2xl border border-[#C5AB89]/25 shadow-inner">
+                    <div className="bg-[#1C261B]/60 backdrop-blur-xl p-3 rounded-2xl border border-[#C5AB89]/50 shadow-[0_0_15px_rgba(197,171,137,0.15),inset_0_1px_0_rgba(197,171,137,0.35)]">
                         <span className="text-[10px] text-[#C5AB89] font-bold block">舉辦場館與國家 ({event.countryName || '台灣'})</span>
                         <p className="font-bold text-sm text-white">{event.venue}</p>
-                        <p className="text-[11px] text-[#C5AB89]/75">{event.venueAddress}</p>
+                        <p className="text-[11px] text-[#C5AB89]/80">{event.venueAddress}</p>
                     </div>
                     {spotifyEmbed && (
-                        <div className="bg-white/5 backdrop-blur-xl p-2 rounded-2xl border border-[#C5AB89]/25 shadow-inner">
+                        <div className="bg-[#1C261B]/60 backdrop-blur-xl p-2 rounded-2xl border border-[#C5AB89]/50 shadow-[0_0_15px_rgba(197,171,137,0.15),inset_0_1px_0_rgba(197,171,137,0.35)]">
                             <span className="text-[10px] text-[#C5AB89] font-bold block px-1 mb-1">🎵 Spotify 音樂預覽</span>
                             <iframe src={spotifyEmbed} width="100%" height="80" frameBorder="0" allowTransparency="true" allow="encrypted-media" className="rounded-xl opacity-90"></iframe>
                         </div>
                     )}
                     {event.notes && (
-                        <div className="bg-white/5 backdrop-blur-xl p-3 rounded-2xl border border-[#C5AB89]/25 shadow-inner">
+                        <div className="bg-[#1C261B]/60 backdrop-blur-xl p-3 rounded-2xl border border-[#C5AB89]/50 shadow-[0_0_15px_rgba(197,171,137,0.15),inset_0_1px_0_rgba(197,171,137,0.35)]">
                             <span className="text-[10px] text-[#C5AB89] font-bold block">心得筆記</span>
                             <p className="leading-relaxed text-white/90">{event.notes}</p>
                         </div>
                     )}
                     {event.extraImgs && event.extraImgs.length > 0 && (
-                        <div className="bg-white/5 backdrop-blur-xl p-3 rounded-2xl border border-[#C5AB89]/25 space-y-2 shadow-inner">
+                        <div className="bg-[#1C261B]/60 backdrop-blur-xl p-3 rounded-2xl border border-[#C5AB89]/50 space-y-2 shadow-[0_0_15px_rgba(197,171,137,0.15),inset_0_1px_0_rgba(197,171,137,0.35)]">
                             <span className="text-[10px] text-[#C5AB89] font-bold block">補充照片</span>
                             <div className="grid grid-cols-2 gap-2">
                                 {event.extraImgs.map((img, idx) => (
-                                    <div key={idx} className="w-full h-28 rounded-xl overflow-hidden border border-[#C5AB89]/30">
+                                    <div key={idx} className="w-full h-28 rounded-xl overflow-hidden border border-[#C5AB89]/40 shadow">
                                         <img src={img} alt={`Detail Extra ${idx}`} className="w-full h-full object-cover" />
                                     </div>
                                 ))}
@@ -1591,13 +1595,17 @@ return (
                         </div>
                     )}
                 </div>
-                <div className="p-3 bg-[#161D15]/80 backdrop-blur-xl border-t border-[#C5AB89]/30 flex gap-2">
+                <div className="p-3 bg-[#1C261B]/60 backdrop-blur-xl border-t border-[#C5AB89]/40 flex gap-2">
                     <button onClick={() => { onEdit(event); onClose(); }} className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] font-bold text-xs flex items-center justify-center gap-1.5 shadow hover:bg-[#b59b79] transition">編輯紀錄</button>
-                    <button onClick={() => { onDelete(event.id); onClose(); }} className="py-2.5 px-3 rounded-xl bg-red-950/60 border border-red-500/40 text-red-200 font-bold text-xs flex items-center justify-center shadow hover:bg-red-900/60 transition" title="刪除紀錄"><i data-lucide="trash-2" className="w-4 h-4 text-red-200"></i></button>
-                    <button onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-white/5 border border-[#C5AB89]/30 text-[#EFF0EA] font-bold text-xs hover:bg-white/10 transition">關閉</button>
+                    
+                    <button onClick={() => { onDelete(event.id); onClose(); }} className="py-2.5 px-3 rounded-xl bg-red-950/60 border border-red-500/40 text-red-200 font-bold text-xs flex items-center justify-center shadow hover:bg-red-900/60 transition" title="刪除紀錄">
+                    <i data-lucide="trash-2" className="w-4 h-4 text-red-200"></i></button>
+
+                    <button onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-white/5 border border-[#C5AB89]/40 text-[#EFF0EA] font-bold text-xs hover:bg-white/10 transition">關閉</button>
                 </div>
             </div>
         </div>
+     </div>    
     );
 }
 

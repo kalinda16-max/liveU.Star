@@ -1791,8 +1791,8 @@ return (
                 }, [year, month, allEvents]);
 
 return (
-    <div className="space-y-4 p-4 pb-12">
-        <div className="relative w-full">
+    <div className="space-y-1 p-1 pb-12">
+        <div className="relative w-full min-w-0">
             <div className="relative">
                 <i data-lucide="search" className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#C5AB89]"></i>
                 <input 
@@ -1802,8 +1802,8 @@ return (
                 placeholder="搜尋名稱、場館、藝人..." 
                 className="w-full bg-white/5 backdrop-blur-md text-[#EFFOEA] placeholder-[#A3ADA5] pl-9 pr-8 py-2 rounded-xl text-xs border border-[rgba(197,171,137,0.45)] shadow-[0_0_5px_rgba(197,171,137,0.20)] focus:outline-none focus:border-[#C5AB89] focus:ring-0 focus:ring-[#C5AB89]/50 transition-colors"/>
             </div>
-            <div className="relative w-full">
-                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-2">
+            <div className="relative w-full min-w-0">
+                <div className="flex items-center gap-4 overflow-x-auto no-scrollbar py-2 w-full min-w-0 px-2">
 
                     <button onClick={() => setSelectedCategory('all')} 
                     className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 backdrop-blur-md transition-all ${selectedCategory === 'all' ? 

@@ -1800,7 +1800,7 @@ return (
                 value={searchQuery} 
                 onChange={(e) => setSearchQuery(e.target.value)} 
                 placeholder="搜尋名稱、場館、藝人..." 
-                className="w-full bg-white/10 backdrop-blur-md text-[#EFFOEA] placeholder-[#A3ADA5] pl-9 pr-8 py-2 rounded-xl text-xs border border-[C5AB89]/30 shadow-[0_0_15px_rgba(197,171,137,0.15)] focus:outline-none focus:border-[#C5AB89] focus:ring-2 focus:ring-[#C5AB89]/50 transition-colors"/>
+                className="w-full bg-white/5 backdrop-blur-md text-[#EFFOEA] placeholder-[#A3ADA5] pl-9 pr-8 py-2 rounded-xl text-xs border border-[rgba(197,171,137,0.45)] shadow-[0_0_5px_rgba(197,171,137,0.20)] focus:outline-none focus:border-[#C5AB89] focus:ring-0 focus:ring-[#C5AB89]/50 transition-colors"/>
             </div>
             <div className="categories-fade-container overflow-x-hidden w-full">
                 <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 px-4 -mx-4">
@@ -1850,17 +1850,17 @@ return (
                     events.map((evt) => {
                         const cat = CATEGORIES[evt.type] || CATEGORIES.concert;
                         return (
-                            <div key={evt.id} onClick={() => setDetailEvent(evt)} className="my-4 relative drop-shadow-[0_0_8px_rgba(197,171,137,0.3)] cursor-pointer hover:scale-[1.01] transition-all">
+                            <div key={evt.id} onClick={() => setDetailEvent(evt)} className="my-4 relative drop-shadow-[0_0_5px_rgba(197,171,137,0.40)] cursor-pointer hover:scale-[1.01] transition-all">
                                 <div className="relative bg-[#232B25]/90 backdrop-blur-xl text-[#161D15] rounded-2xl flex overflow-hidden border border-[#C5AB89]/50 shadow-[inset_0_0_15px_rgba(255,255,255,0.03)]"
                                     style={{
                                         maskImage: `
-                                            radial-gradient(circle 10px at 0% 50%, transparent 0, transparent 10px, black 10px),
-                                            radial-gradient(circle 10px at 100% 50%, transparent 0, transparent 10px, black 10px)
+                                            radial-gradient(circle 12px at 0% 50%, transparent 0, transparent 12px, black 12px),
+                                            radial-gradient(circle 12px at 100% 50%, transparent 0, transparent 12px, black 12px)
                                         `,
                                         maskComposite: 'intersect',
                                         WebkitMaskImage: `
-                                            radial-gradient(circle 10px at 0% 50%, transparent 0, transparent 10px, black 10px),
-                                            radial-gradient(circle 10px at 100% 50%, transparent 0, transparent 10px, black 10px)
+                                            radial-gradient(circle 12px at 0% 50%, transparent 0, transparent 12px, black 12px),
+                                            radial-gradient(circle 12px at 100% 50%, transparent 0, transparent 12px, black 12px)
                                         `,
                                         WebkitMaskComposite: 'source-in'
                                     }}

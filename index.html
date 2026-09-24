@@ -1850,7 +1850,7 @@ return (
                     events.map((evt) => {
                         const cat = CATEGORIES[evt.type] || CATEGORIES.concert;
                         return (
-                            <div key={evt.id} onClick={() => setDetailEvent(evt)} className="my-4 relative drop-shadow-[0_0_5px_rgba(197,171,137,0.40)] cursor-pointer hover:scale-[1.01] transition-all">
+                            <div key={evt.id} onClick={() => setDetailEvent(evt)} className="my-4 m-2 relative drop-shadow-[0_0_5px_rgba(197,171,137,0.40)] cursor-pointer hover:scale-[1.01] transition-all">
                                 <div className="relative bg-[#232B25]/90 backdrop-blur-xl text-[#161D15] rounded-2xl flex overflow-hidden border border-[#C5AB89]/50 shadow-[inset_0_0_15px_rgba(255,255,255,0.03)]"
                                     style={{
                                         maskImage: `

@@ -1991,11 +1991,11 @@ return (
                                             </div>
                                             
                                             <div className="flex items-center justify-between mt-1 pr-1">
-                                                <div className="flex items-center gap-0.5" title={`評分：${evt.rating || 5} 顆星`}>
+                                                <div className="flex items-center gap-0.25" title={`評分：${evt.rating || 5} 顆星`}>
                                                     {[1, 2, 3, 4, 5].map((star) => (
                                                         <svg
                                                             key={star}
-                                                            className={`w-3 h-3 ${
+                                                            className={`w-2.5 h-2.5 ${
                                                                 star <= (evt.rating || 5) 
                                                                     ? 'text-[#C5AB89] fill-[#C5AB89]' 
                                                                     : 'text-white/20 fill-white/10'

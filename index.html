@@ -252,15 +252,56 @@
                 'United Kingdom': '英國', 'GB': '英國', 'UK': '英國',
                 'Thailand': '泰國', 'TH': '泰國',
                 'China': '中國', 'CN': '中國',
-                'Hong Kong': '香港', 'HK': '香港'
+                'Hong Kong': '香港', 'HK': '香港',
+                'Singapore': '新加坡', 'SG': '新加坡',
+                'Malaysia': '馬來西亞', 'MY': '馬來西亞'
             };
+
+            const COUNTRY_CODE_BY_NAME = {
+                '台灣': 'TW', 'Taiwan': 'TW', 'TW': 'TW',
+                '日本': 'JP', 'Japan': 'JP', 'JP': 'JP',
+                '南韓': 'KR', 'South Korea': 'KR', 'Korea': 'KR', 'KR': 'KR',
+                '美國': 'US', 'United States': 'US', 'US': 'US', 'USA': 'US',
+                '澳大利亞': 'AU', 'Australia': 'AU', 'AU': 'AU',
+                '英國': 'GB', 'United Kingdom': 'GB', 'GB': 'GB', 'UK': 'GB',
+                '泰國': 'TH', 'Thailand': 'TH', 'TH': 'TH',
+                '中國': 'CN', 'China': 'CN', 'CN': 'CN',
+                '香港': 'HK', 'Hong Kong': 'HK', 'HK': 'HK',
+                '新加坡': 'SG', 'Singapore': 'SG', 'SG': 'SG',
+                '馬來西亞': 'MY', 'Malaysia': 'MY', 'MY': 'MY'
+            };
+
+            function getCountryCode(name, fallbackCode = '') {
+                const raw = (name || '').trim();
+                return COUNTRY_CODE_BY_NAME[raw] ||
+                    COUNTRY_CODE_BY_NAME[COUNTRY_NAME_MAPPING[raw]] ||
+                    fallbackCode ||
+                    raw.toLowerCase();
+            }
+
+            function getGeoCountryInfo(feature) {
+                const p = feature?.properties || {};
+                const rawName = p.ADMIN || p.NAME || p.name || p.SOVEREIGNT || '';
+                const displayName = COUNTRY_NAME_MAPPING[rawName] || rawName || '區域';
+                const code = getCountryCode(
+                    displayName,
+                    p.ISO_A2 && p.ISO_A2 !== '-99' ? p.ISO_A2 : (p.ISO_A2_EH || '')
+                );
+                return { rawName, displayName, code };
+            }
+
+            function countryNamesMatch(a, b) {
+                return getCountryCode(a) === getCountryCode(b);
+            }
 
             function resolveCountryInfo(countryInput) {
                 const clean = (countryInput || '').trim().toLowerCase();
                 if (clean.includes('台') || clean.includes('tw') || clean.includes('taiwan')) return { code: 'TW', name: '台灣', lat: 25.033, lng: 121.565 };
                 if (clean.includes('日') || clean.includes('jp') || clean.includes('japan')) return { code: 'JP', name: '日本', lat: 35.676, lng: 139.650 };
                 if (clean.includes('韓') || clean.includes('kr') || clean.includes('korea')) return { code: 'KR', name: '南韓', lat: 37.566, lng: 126.978 };
-                if (clean.includes('美') || clean.includes('us') || clean.includes('america')) return { code: 'US', name: '美國', lat: 40.712, lng: -74.006 };
+                if (clean.includes('美') || clean === 'us' || clean.includes('america')) return { code: 'US', name: '美國', lat: 40.712, lng: -74.006 };
+                if (clean.includes('新加坡') || clean === 'sg' || clean.includes('singapore')) return { code: 'SG', name: '新加坡', lat: 1.3521, lng: 103.8198 };
+                if (clean.includes('馬來西亞') || clean === 'my' || clean.includes('malaysia')) return { code: 'MY', name: '馬來西亞', lat: 3.139, lng: 101.6869 };
                 return { code: 'OTHER', name: countryInput || '台灣', lat: 25.033, lng: 121.565 };
             }
 
@@ -865,14 +906,15 @@ function BackupModal({ events, schedules, userProfile, onClose, onImport, showAl
                 }, [events, selectedCategory, searchQuery]);
 
                 const stats = useMemo(() => {
-                    const attended = events.filter(e => e.status === 'attended' || !e.status);
+                    const activeEvents = events.filter(e => e.status !== 'cancelled');
+                    const attended = activeEvents.filter(e => e.status === 'attended' || !e.status);
                     const currentYear = new Date().getFullYear();
-                    
+
                     const yearlyMap = {};
                     let currentYearCost = 0;
                     let currentYearCount = 0;
 
-                    events.forEach(e => {
+                    activeEvents.forEach(e => {
                         const year = e.date ? parseInt(e.date.split('-')[0], 10) || currentYear : currentYear;
                         const cost = Number(e.cost) || 0;
                         if (!yearlyMap[year]) {
@@ -888,17 +930,17 @@ function BackupModal({ events, schedules, userProfile, onClose, onImport, showAl
                     });
 
                     const yearlyList = Object.values(yearlyMap).sort((a, b) => b.year - a.year);
-                    const totalCost = events.reduce((sum, e) => sum + (Number(e.cost) || 0), 0);
+                    const totalCost = activeEvents.reduce((sum, e) => sum + (Number(e.cost) || 0), 0);
                     const categoryCounts = {
-                        concert: events.filter(e => e.type === 'concert').length,
-                        exhibition: events.filter(e => e.type === 'exhibition').length,
-                        movie: events.filter(e => e.type === 'movie').length,
-                        book: events.filter(e => e.type === 'book').length,
-                        drama: events.filter(e => e.type === 'drama').length,
+                        concert: activeEvents.filter(e => e.type === 'concert').length,
+                        exhibition: activeEvents.filter(e => e.type === 'exhibition').length,
+                        movie: activeEvents.filter(e => e.type === 'movie').length,
+                        book: activeEvents.filter(e => e.type === 'book').length,
+                        drama: activeEvents.filter(e => e.type === 'drama').length,
                     };
-                    const uniqueArtistsCount = new Set(events.map(e => e.artist).filter(Boolean)).size;
+                    const uniqueArtistsCount = new Set(activeEvents.map(e => e.artist).filter(Boolean)).size;
                     return {
-                        totalEvents: events.length,
+                        totalEvents: activeEvents.length,
                         attendedCount: attended.length,
                         totalCost,
                         currentYear,
@@ -1146,8 +1188,8 @@ function AddEventModal({ initialData, onSave, onClose }) {
                 const [coverImg, setCoverImg] = useState(initialData?.coverImg || '');
                 const [extraImgs, setExtraImgs] = useState(initialData?.extraImgs || []);
                 
-                const [status, setStatus] = useState('attended'); // 'attended' 代表已參加，'cancelled' 代表取消
-                const [rating, setRating] = useState(5);         // 預設評分 5 顆星
+                const [status, setStatus] = useState(initialData?.status || 'attended'); // 'attended' 代表已參加，'cancelled' 代表取消
+                const [rating, setRating] = useState(initialData?.rating || 5); // 預設評分 5 顆星
 
                 const [cropSource, setCropSource] = useState(null);
                 const [cropTarget, setCropTarget] = useState('cover');
@@ -1620,7 +1662,7 @@ return (
                 const countryMap = useMemo(() => {
                     const m = {};
                     events.forEach(e => {
-                        if (e.status === 'wishlist') return;
+                        if (e.status === 'wishlist' || e.status === 'cancelled') return;
                         const c = e.countryName || '台灣';
                         if (!m[c]) m[c] = { name: c, events: [], venues: new Set() };
                         m[c].events.push(e);
@@ -1633,6 +1675,7 @@ return (
                 const venueCounts = useMemo(() => {
                     const counts = {};
                     events.forEach(e => {
+                        if (e.status === 'cancelled') return;
                         if (e.venue) {
                             counts[e.venue] = (counts[e.venue] || 0) + 1;
                         }
@@ -1664,35 +1707,58 @@ return (
                         markersLayerRef.current.addTo(map);
                         mapInst.current = map;
 
-                        fetch('https://raw.githubusercontent.com/datasets/geo-boundaries-world-110m/master/countries.geojson')
+                        fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_countries.geojson')
                             .then(res => res.json())
                             .then(data => {
+                                const normalStyle = (feature) => {
+                                    const info = getGeoCountryInfo(feature);
+                                    const isV = visited.some(v => countryNamesMatch(v, info.displayName));
+                                    return {
+                                        fillColor: isV ? '#C2A175' : '#1A2218',
+                                        fillOpacity: isV ? 0.45 : 0.2,
+                                        color: isV ? '#C5AB89' : '#2A3626',
+                                        weight: isV ? 1.5 : 0.8,
+                                        smoothFactor: 0
+                                    };
+                                };
+
                                 const layer = L.geoJSON(data, {
-                                    style: (feature) => {
-                                        const p = feature.properties || {};
-                                        const name = COUNTRY_NAME_MAPPING[p.name || p.ADMIN] || p.name || '';
-                                        const isV = visited.some(v => name.includes(v));
-                                        return { fillColor: isV ? '#C2A175' : '#1A2218', fillOpacity: isV ? 0.45 : 0.2, color: isV ? '#C5AB89' : '#2A3626', weight: isV ? 1.5 : 0.8 };
-                                    },
+                                    style: normalStyle,
                                     onEachFeature: (feature, layer) => {
-                                        const p = feature.properties || {};
-                                        const zh = COUNTRY_NAME_MAPPING[p.name || p.ADMIN] || p.name || '區域';
                                         layer.on({
                                             click: (e) => {
                                                 L.DomEvent.stopPropagation(e);
-                                                if (activeLayerRef.current && geoJsonLayerRef.current) {
-                                                    geoJsonLayerRef.current.resetStyle(activeLayerRef.current);
+                                                const clickedInfo = getGeoCountryInfo(feature);
+                                                const clickedCode = clickedInfo.code;
+
+                                                if (geoJsonLayerRef.current) {
+                                                    geoJsonLayerRef.current.eachLayer((countryLayer) => {
+                                                        geoJsonLayerRef.current.resetStyle(countryLayer);
+                                                        const layerInfo = getGeoCountryInfo(countryLayer.feature);
+                                                        if (layerInfo.code === clickedCode) {
+                                                            countryLayer.setStyle({
+                                                                fillColor: '#FFC800',
+                                                                fillOpacity: 0.75,
+                                                                color: '#FFFFFF',
+                                                                weight: 2.5,
+                                                                smoothFactor: 0
+                                                            });
+                                                        }
+                                                    });
                                                 }
-                                                activeLayerRef.current = e.target;
-                                                e.target.setStyle({ fillColor: '#FFC800', fillOpacity: 0.75, color: '#FFFFFF', weight: 2.5 });
-                                                const match = visited.find(v => zh.includes(v));
-                                                setSelectedCountry(match ? countryMap[match] : { name: zh, events: [], venues: new Set() });
+
+                                                activeLayerRef.current = { code: clickedCode };
+                                                const match = visited.find(v => countryNamesMatch(v, clickedInfo.displayName));
+                                                setSelectedCountry(match
+                                                    ? countryMap[match]
+                                                    : { name: clickedInfo.displayName, events: [], venues: new Set() });
                                             }
                                         });
                                     }
                                 }).addTo(map);
                                 geoJsonLayerRef.current = layer;
-                            }).catch(() => {});
+                            })
+                            .catch(() => {});
                     }
 
                     const timer = requestAnimationFrame(() => {
@@ -1709,6 +1775,7 @@ return (
                     markersLayerRef.current.clearLayers();
 
                     events.forEach((evt) => {
+                            if (evt.status === 'cancelled') return;
                         const latVal = parseFloat(evt.lat);
                         const lngVal = parseFloat(evt.lng);
 
@@ -1730,10 +1797,12 @@ return (
                 }, [events, venueCounts]);
 
                 const handleCloseCountryModal = () => {
-                    if (activeLayerRef.current && geoJsonLayerRef.current) {
-                        geoJsonLayerRef.current.resetStyle(activeLayerRef.current);
-                        activeLayerRef.current = null;
+                    if (geoJsonLayerRef.current) {
+                        geoJsonLayerRef.current.eachLayer((countryLayer) => {
+                            geoJsonLayerRef.current.resetStyle(countryLayer);
+                        });
                     }
+                    activeLayerRef.current = null;
                     setSelectedCountry(null);
                 };
 
@@ -2190,6 +2259,7 @@ schedules.map(sch => {
                     const counts = {};
                     const avatarMap = {};
                     events.forEach(e => {
+                        if (e.status === 'cancelled') return;
                         if (e.artist) {
                             counts[e.artist] = (counts[e.artist] || 0) + 1;
                             if (e.coverImg && !avatarMap[e.artist]) {
@@ -2216,6 +2286,7 @@ schedules.map(sch => {
                 const venueRankings = useMemo(() => {
                     const counts = {};
                     events.forEach(e => {
+                        if (e.status === 'cancelled') return;
                         if (e.venue) {
                             counts[e.venue] = (counts[e.venue] || 0) + 1;
                         }

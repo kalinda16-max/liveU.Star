@@ -1524,16 +1524,16 @@ return (
                     background: rgba(197, 171, 137, 0.7);
                 }
             `}</style>
-                <div className="w-full max-w-sm my-auto rounded-3xl shadow-[0_5px_10px_rgba(0,0,0,0.8),0_0_15px_rgba(197,171,137,0.80)]">
+                <div className="w-full max-w-sm my-auto rounded-3xl shadow-[0_5px_10px_rgba(0,0,0,0.8),0_0_13px_rgba(197,171,137,0.80)]">
 
                 <div className="bg-[#161D15]/70 backdrop-blur-2xl text-[#EFF0EA] w-full rounded-3xl overflow-hidden border border-[#C5AB89] flex flex-col max-h-[75vh] transform-gpu">
 
-                <div className="relative h-48 bg-[#1A1A1A]/30 shrink-0 overflow-hidden flex items-center justify-center border-b border-[#C5AB89]/30">
+                <div className="relative h-48 bg-[#1A1A1A]/20 shrink-0 overflow-hidden flex items-center justify-center border-b border-[#C5AB89]/30">
                     
                     {event.coverImg ? (
                         <img src={event.coverImg} alt={event.title} className="w-full h-full object-cover" />
                     ) : (
-                        <div className="w-full h-full bg-[#1A1A1A]/50" />
+                        <div className="w-full h-full bg-[#1A1A1A]/20" />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-[#161D15]/95 via-[#161D15]/30 to-transparent flex items-end p-4 pointer-events-none">
                         <div>
@@ -1913,7 +1913,7 @@ return (
         </div>
 
         {viewMode === 'calendar' ? (
-            <div className="bg-[#232B25]/80 backdrop-blur-xl text-[#EFF0EA] p-4 rounded-3xl shadow-[0_0_25px_rgba(197,171,137,0.25)] border border-[#C5AB89]/40 space-y-4">
+            <div className="bg-[#232B25]/80 backdrop-blur-xl text-[#EFF0EA] p-4 rounded-3xl shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40 space-y-4">
                 <div className="flex items-center justify-between">
                     <h3 className="font-extrabold text-sm text-[#C5AB89]">{year} 年 {month + 1} 月</h3>
                     <div className="flex gap-1">
@@ -1926,7 +1926,7 @@ return (
                 </div>
                 <div className="grid grid-cols-7 gap-1 text-center font-bold text-[10px] text-[#A3ADA5]"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
                 <div className="grid grid-cols-7 gap-1">
-                {calendarDays.map((item, idx) => !item ? <div key={idx} className="h-10"></div> : <div key={idx} onClick={() => { if(item.events.length) setDetailEvent(item.events[0]); }} className={`h-10 rounded-xl flex flex-col items-center justify-center transition-all ${item.events.length ? 'bg-[#C5AB89] text-[#161D15] font-black cursor-pointer shadow-[0_0_10px_rgba(197,171,137,0.5)]' : 'bg-white/5 text-[#EFF0EA] border border-white/5'}`}><span>{item.day}</span></div>)}</div>
+                {calendarDays.map((item, idx) => !item ? <div key={idx} className="h-10"></div> : <div key={idx} onClick={() => { if(item.events.length) setDetailEvent(item.events[0]); }} className={`h-10 rounded-xl flex flex-col items-center justify-center transition-all ${item.events.length ? 'bg-[#C5AB89] text-[#161D15] font-black cursor-pointer shadow-[0_0_9px_rgba(197,171,137,0.50)]' : 'bg-white/5 text-[#EFF0EA] border border-white/5'}`}><span>{item.day}</span></div>)}</div>
             </div>
         ) : (
             <div className="space-y-3">

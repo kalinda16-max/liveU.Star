@@ -1001,11 +1001,11 @@ function BackupModal({ events, schedules, userProfile, onClose, onImport, showAl
                         <header className="app-header px-4 py-2 flex items-center justify-between shrink-0">
                             <button onClick={() => setIsEditProfileOpen(true)} className="flex items-center gap-2.5 text-left group p-1 -ml-1 rounded-xl hover:bg-[#D2CABF]/10">
                                 {userProfile.avatarUrl ? (
-                                    <div className="w-8 h-8 rounded-lg overflow-hidden border border-[#C5AB89] relative bg-[#EBEBE9] flex items-center justify-center">
+                                    <div className="w-9 h-9 rounded-lg overflow-hidden border border-[#C5AB89] relative bg-[#EBEBE9] flex items-center justify-center">
                                         <img src={userProfile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                                     </div>
                                 ) : (
-                                    <div className="w-8 h-8 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center font-black text-xs">{userProfile.initials || 'LU'}</div>
+                                    <div className="w-9 h-9 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center font-black text-xs">{userProfile.initials || 'LU'}</div>
                                 )}
                                 <div>
                                     <h1 className="font-extrabold text-sm text-[#EFF0EA]">{userProfile.name}</h1>
@@ -1019,11 +1019,11 @@ function BackupModal({ events, schedules, userProfile, onClose, onImport, showAl
                                             <button onClick={() => setViewMode('list')} className={`px-2.5 py-1 rounded-md text-[11px] ${viewMode === 'list' ? 'bg-[#C5AB89] text-[#161D15] font-bold' : 'text-[#D2CABF]'}`}>條列</button>
                                             <button onClick={() => setViewMode('calendar')} className={`px-2.5 py-1 rounded-md text-[11px] ${viewMode === 'calendar' ? 'bg-[#C5AB89] text-[#161D15] font-bold' : 'text-[#D2CABF]'}`}>月曆</button>
                                         </div>
-                                        <button onClick={() => setIsAddModalOpen(true)} className="w-8 h-8 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow"><i data-lucide="plus" className="w-4 h-4 font-black"></i></button>
+                                        <button onClick={() => setIsAddModalOpen(true)} className="w-7 h-7 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow"><i data-lucide="plus" className="w-3.5 h-3.5 font-black"></i></button>
                                     </>
                                 )}
                                 {activeTab === 'schedule' && (
-                                    <button onClick={() => setIsAddScheduleModalOpen(true)} className="w-8 h-8 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow"><i data-lucide="plus" className="w-4 h-4 font-black"></i></button>
+                                    <button onClick={() => setIsAddScheduleModalOpen(true)} className="w-7 h-7 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow"><i data-lucide="plus" className="w-3.5 h-3.5 font-black"></i></button>
                                 )}
                                 {activeTab === 'stats' && (
                                     <button onClick={() => setIsBackupModalOpen(true)} className="w-8 h-8 rounded-lg bg-[#737C75]/40 text-[#EFF0EA] flex items-center justify-center shadow hover:bg-[#737C75]/60 transition-colors" title="備份資料">

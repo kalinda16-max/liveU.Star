@@ -2539,12 +2539,12 @@ const triggerFireworks = (e) => {
                         <div className="grid grid-cols-2 gap-3">
                             <div className="bg-[#232B25]/90 backdrop-blur-2xl text-[#EFF0EA] rounded-3xl p-4 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40 space-y-1">
                                 <div className="text-[10px] font-extrabold text-[#C5AB89]"><GreyFourPointStar className="w-4 h-4" /> 總藝文紀錄</div>
-                                <div className="font-mono text-2xl font-black text-[A3ADA5]">{stats.attendedCount} <span className="text-xs font-normal">場</span></div>
-                                <div className="text-[9px] text-[#737C75]">今年度：{stats.currentYearCount} 場</div>
+                                <div className="font-mono text-2xl font-black text-[#EFF0EA]">{stats.attendedCount} <span className="text-xs font-normal">場</span></div>
+                                <div className="text-[9px] text-[#A3ADA5]">今年度：{stats.currentYearCount} 場</div>
                             </div>
                             <div className="bg-[#232B25]/90 backdrop-blur-2xl text-[#EFF0EA] rounded-3xl p-4 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40 space-y-1">
-                                <div className="text-[10px] font-extrabold text-[#C5AB89]"><GreyFourPointStar className="w-4 h-4 text-[#C5AB89]" /> 總累積花費</div>
-                                <div className="font-mono text-xl font-black text-[#EFF0EA] truncate mt-1">NT$ {stats.totalCost.toLocaleString()}</div>
+                                <div className="text-[10px] font-extrabold text-[#C5AB89]"><GreyFourPointStar className="w-4 h-4" /> 總累積花費</div>
+                                <div className="font-mono text-2xl font-black text-[#EFF0EA]">NT$ {stats.totalCost.toLocaleString()}</div>
                                 <div className="text-[9px] text-[#A3ADA5]">今年度：NT$ {stats.currentYearCost.toLocaleString()}</div>
                             </div>
                         </div>

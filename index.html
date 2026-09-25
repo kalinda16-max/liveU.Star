@@ -1777,7 +1777,7 @@ return (
 
     return (
         <div className="absolute bottom-4 left-4 right-4 z-[1000]">
-            <div className="bg-[#232B25]/90 backdrop-blur-2xl text-[#EFF0EA] rounded-3xl px-4 pt-3 py-4 shadow-[0_0_15px_rgba(197,171,137,0.30)] border border-[#C5AB89]/25 space-y-3 relative">
+            <div className="bg-[#232B25]/90 backdrop-blur-2xl text-[#EFF0EA] rounded-3xl px-4 pt-3 py-4 shadow-[0_0_5px_rgba(197,171,137,0.70)] border border-[#C5AB89]/45 space-y-3 relative">
                 
                 {/* 上半部：左右並排設計 */}
                 <div className="flex items-center justify-between gap-2 px-0.5 pt-0.5 translate-y-1">
@@ -1827,7 +1827,12 @@ return (
                         </div>
 
                         {/* 活動清單本體（可捲動） */}
-                        <div className="space-y-1.5 max-h-36 overflow-y-auto no-scrollbar pt-1">
+                        <div className="space-y-1.5 max-h-36 overflow-y-auto no-scrollbar pt-1 pb-2"
+                            style={{
+                              maskImage: 'linear-gradient(to bottom, transparent 0%, black 5px, black 90%, transparent 100%)',
+                            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 5px, black 90%, transparent 100%)'
+                        }}
+                     >
                             {selectedCountry.events.map(e => (
                                 <div key={e.id} className="bg-white/5 backdrop-blur-md border border-[#C5AB89]/30 p-2.5 rounded-2xl flex items-center justify-between text-xs shadow-sm">
                                     <div className="min-w-0 flex-1 pr-2">

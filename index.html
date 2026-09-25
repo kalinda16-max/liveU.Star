@@ -1609,133 +1609,153 @@ return (
     );
 }
 
-            function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }) {
-                const mapRef = useRef(null);
-                const mapInst = useRef(null);
-                const markersLayerRef = useRef(L.layerGroup());
-                const activeLayerRef = useRef(null);
-                const geoJsonLayerRef = useRef(null);
-                const [selectedCountry, setSelectedCountry] = useState(null);
+function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }) {
+    const mapRef = useRef(null);
+    const mapInst = useRef(null);
+    const markersLayerRef = useRef(L.layerGroup());
+    const activeLayerRef = useRef(null);
+    const geoJsonLayerRef = useRef(null);
+    const [selectedCountry, setSelectedCountry] = useState(null);
 
-                const countryMap = useMemo(() => {
-                    const m = {};
-                    events.forEach(e => {
-                        if (e.status === 'wishlist') return;
-                        const c = e.countryName || '台灣';
-                        if (!m[c]) m[c] = { name: c, events: [], venues: new Set() };
-                        m[c].events.push(e);
-                        if (e.venue) m[c].venues.add(e.venue);
-                    });
-                    return m;
-                }, [events]);
+    const countryMap = useMemo(() => {
+        const m = {};
+        events.forEach(e => {
+            // 【修改 1】同時排除 wishlist 與 cancelled
+            if (e.status === 'wishlist' || e.status === 'cancelled') return;
+            const c = e.countryName || '台灣';
+            if (!m[c]) m[c] = { name: c, events: [], venues: new Set() };
+            m[c].events.push(e);
+            if (e.venue) m[c].venues.add(e.venue);
+        });
+        return m;
+    }, [events]);
 
-                const visited = useMemo(() => Object.keys(countryMap), [countryMap]);
-                const venueCounts = useMemo(() => {
-                    const counts = {};
-                    events.forEach(e => {
-                        if (e.venue) {
-                            counts[e.venue] = (counts[e.venue] || 0) + 1;
-                        }
-                    });
-                    return counts;
-                }, [events]);
+    const visited = useMemo(() => Object.keys(countryMap), [countryMap]);
+    
+    const venueCounts = useMemo(() => {
+        const counts = {};
+        events.forEach(e => {
+            // 【修改 2】計算場館次數時也排除已取消與願望清單
+            if (e.status === 'wishlist' || e.status === 'cancelled') return;
+            if (e.venue) {
+                counts[e.venue] = (counts[e.venue] || 0) + 1;
+            }
+        });
+        return counts;
+    }, [events]);
 
-                useEffect(() => {
-                    if (!mapRef.current) return;
-                    if (!mapInst.current) {
-                        const southWest = L.latLng(-85, -180);
-                        const northEast = L.latLng(85, 180);
-                        const bounds = L.latLngBounds(southWest, northEast);
+    useEffect(() => {
+        if (!mapRef.current) return;
+        if (!mapInst.current) {
+            const southWest = L.latLng(-85, -180);
+            const northEast = L.latLng(85, 180);
+            const bounds = L.latLngBounds(southWest, northEast);
 
-                        const map = L.map(mapRef.current, { 
-                            zoomControl: false, 
-                            attributionControl: false, 
-                            minZoom: 2,
-                            maxBounds: bounds,
-                            maxBoundsViscosity: 1.0
-                        }).setView([25.033, 121.565], 3);
+            const map = L.map(mapRef.current, { 
+                zoomControl: false, 
+                attributionControl: false, 
+                minZoom: 2,
+                maxBounds: bounds,
+                maxBoundsViscosity: 1.0
+            }).setView([25.033, 121.565], 3);
 
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
-                            maxZoom: 19, 
-                            noWrap: true,
-                            bounds: bounds
-                        }).addTo(map);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+                maxZoom: 19, 
+                noWrap: true,
+                bounds: bounds
+            }).addTo(map);
 
-                        markersLayerRef.current.addTo(map);
-                        mapInst.current = map;
+            markersLayerRef.current.addTo(map);
+            mapInst.current = map;
 
-                        fetch('https://raw.githubusercontent.com/datasets/geo-boundaries-world-110m/master/countries.geojson')
-                            .then(res => res.json())
-                            .then(data => {
-                                const layer = L.geoJSON(data, {
-                                    style: (feature) => {
-                                        const p = feature.properties || {};
-                                        const name = COUNTRY_NAME_MAPPING[p.name || p.ADMIN] || p.name || '';
-                                        const isV = visited.some(v => name.includes(v));
-                                        return { fillColor: isV ? '#C2A175' : '#1A2218', fillOpacity: isV ? 0.45 : 0.2, color: isV ? '#C5AB89' : '#2A3626', weight: isV ? 1.5 : 0.8 };
-                                    },
-                                    onEachFeature: (feature, layer) => {
-                                        const p = feature.properties || {};
-                                        const zh = COUNTRY_NAME_MAPPING[p.name || p.ADMIN] || p.name || '區域';
-                                        layer.on({
-                                            click: (e) => {
-                                                L.DomEvent.stopPropagation(e);
-                                                if (activeLayerRef.current && geoJsonLayerRef.current) {
-                                                    geoJsonLayerRef.current.resetStyle(activeLayerRef.current);
-                                                }
-                                                activeLayerRef.current = e.target;
-                                                e.target.setStyle({ fillColor: '#FFC800', fillOpacity: 0.75, color: '#FFFFFF', weight: 2.5 });
-                                                const match = visited.find(v => zh.includes(v));
-                                                setSelectedCountry(match ? countryMap[match] : { name: zh, events: [], venues: new Set() });
-                                            }
-                                        });
+            // 【修改 3】將 110m 改為 50m 高解析度圖資（讓新加坡可以獨立顯示）
+            fetch('https://raw.githubusercontent.com/datasets/geo-boundaries-world-50m/master/countries.geojson')
+                .then(res => res.json())
+                .then(data => {
+                    const layer = L.geoJSON(data, {
+                        style: (feature) => {
+                            const p = feature.properties || {};
+                            const name = COUNTRY_NAME_MAPPING[p.name || p.ADMIN] || p.name || '';
+                            const isV = visited.some(v => name.includes(v));
+                            return { fillColor: isV ? '#C2A175' : '#1A2218', fillOpacity: isV ? 0.45 : 0.2, color: isV ? '#C5AB89' : '#2A3626', weight: isV ? 1.5 : 0.8 };
+                        },
+                        onEachFeature: (feature, layer) => {
+                            const p = feature.properties || {};
+                            const zh = COUNTRY_NAME_MAPPING[p.name || p.ADMIN] || p.name || '區域';
+                            layer.on({
+                                click: (e) => {
+                                    L.DomEvent.stopPropagation(e);
+                                    
+                                    // 【修改 4】重置全部圖層，並透過 eachLayer 讓同國家的所有小島一起高亮、白框置頂
+                                    if (geoJsonLayerRef.current) {
+                                        geoJsonLayerRef.current.resetStyle();
                                     }
-                                }).addTo(map);
-                                geoJsonLayerRef.current = layer;
-                            }).catch(() => {});
-                    }
+                                    
+                                    const clickedFeatureName = zh;
+                                    geoJsonLayerRef.current.eachLayer(subLayer => {
+                                        const sp = subLayer.feature.properties || {};
+                                        const subName = COUNTRY_NAME_MAPPING[sp.name || sp.ADMIN] || sp.name || '';
+                                        if (subName.includes(clickedFeatureName)) {
+                                            subLayer.setStyle({ fillColor: '#FFC800', fillOpacity: 0.75, color: '#FFFFFF', weight: 2.5 });
+                                            subLayer.bringToFront(); // 確保白框與圖層在最上層
+                                        }
+                                    });
 
-                    const timer = requestAnimationFrame(() => {
-                        if (mapInst.current) mapInst.current.invalidateSize();
-                    });
+                                    activeLayerRef.current = e.target;
+                                    const match = visited.find(v => zh.includes(v));
+                                    setSelectedCountry(match ? countryMap[match] : { name: zh, events: [], venues: new Set() });
+                                }
+                            });
+                        }
+                    }).addTo(map);
+                    geoJsonLayerRef.current = layer;
+                }).catch(() => {});
+        }
 
-                    return () => { 
-                        cancelAnimationFrame(timer);
-                    };
-                }, []);
+        const timer = requestAnimationFrame(() => {
+            if (mapInst.current) mapInst.current.invalidateSize();
+        });
 
-                useEffect(() => {
-                    if (!mapInst.current) return;
-                    markersLayerRef.current.clearLayers();
+        return () => { 
+            cancelAnimationFrame(timer);
+        };
+    }, [visited, countryMap]);
 
-                    events.forEach((evt) => {
-                        const latVal = parseFloat(evt.lat);
-                        const lngVal = parseFloat(evt.lng);
+    useEffect(() => {
+        if (!mapInst.current) return;
+        markersLayerRef.current.clearLayers();
 
-                        if (isNaN(latVal) || isNaN(lngVal)) return;
+        events.forEach((evt) => {
+            // 【修改 5】地圖上的標記點也排除已取消與願望清單
+            if (evt.status === 'wishlist' || evt.status === 'cancelled') return;
+            
+            const latVal = parseFloat(evt.lat);
+            const lngVal = parseFloat(evt.lng);
+
+            if (isNaN(latVal) || isNaN(lngVal)) return;
  
-                        const visitCount = evt.venue ? (venueCounts[evt.venue] || 1) : 1;
+            const visitCount = evt.venue ? (venueCounts[evt.venue] || 1) : 1;
 
-                        const marker = L.marker([latVal, lngVal], {
-                            icon: L.divIcon({ 
-                                className: 'custom-div-icon', 
-                                html: `<div class="custom-numeric-marker w-7 h-7 flex items-center justify-center">${visitCount}</div>`, 
-                                iconSize: [28, 28], 
-                                iconAnchor: [14, 14] 
-                            })
-                        });
-                        
-                        markersLayerRef.current.addLayer(marker);
-                    });
-                }, [events, venueCounts]);
+            const marker = L.marker([latVal, lngVal], {
+                icon: L.divIcon({ 
+                    className: 'custom-div-icon', 
+                    html: `<div class="custom-numeric-marker w-7 h-7 flex items-center justify-center">${visitCount}</div>`, 
+                    iconSize: [28, 28], 
+                    iconAnchor: [14, 14] 
+                })
+            });
+            
+            markersLayerRef.current.addLayer(marker);
+        });
+    }, [events, venueCounts]);
 
-                const handleCloseCountryModal = () => {
-                    if (activeLayerRef.current && geoJsonLayerRef.current) {
-                        geoJsonLayerRef.current.resetStyle(activeLayerRef.current);
-                        activeLayerRef.current = null;
-                    }
-                    setSelectedCountry(null);
-                };
+    const handleCloseCountryModal = () => {
+        if (activeLayerRef.current && geoJsonLayerRef.current) {
+            geoJsonLayerRef.current.resetStyle(activeLayerRef.current);
+            activeLayerRef.current = null;
+        }
+        setSelectedCountry(null);
+    };
 
                 return (
                     <div id="map-wrapper" className="relative flex-1 w-full flex flex-col bg-[#000000] overflow-hidden">

@@ -1715,7 +1715,7 @@ return (
                                     const isV = visited.some(v => countryNamesMatch(v, info.displayName));
                                     return {
                                         fillColor: isV ? '#C2A175' : '#1A2218',
-                                        fillOpacity: isV ? 0.45 : 0.2,
+                                        fillOpacity: isV ? 0.70 : 0.82,
                                         color: isV ? '#C5AB89' : '#2A3626',
                                         weight: isV ? 1.5 : 0.8,
                                         smoothFactor: 0
@@ -1756,6 +1756,16 @@ return (
                                         });
                                     }
                                 }).addTo(map);
+
+                                // 台灣離島（包含連江縣馬祖）可能被鄰近國家的圖層蓋住，
+                                // 將所有 TW 圖層移到最上層，確保離島可以直接點選。
+                                layer.eachLayer((countryLayer) => {
+                                    const info = getGeoCountryInfo(countryLayer.feature);
+                                    if (info.code === 'TW') {
+                                        countryLayer.bringToFront();
+                                    }
+                                });
+
                                 geoJsonLayerRef.current = layer;
                             })
                             .catch(() => {});

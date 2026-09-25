@@ -1714,9 +1714,9 @@ return (
                                     const info = getGeoCountryInfo(feature);
                                     const isV = visited.some(v => countryNamesMatch(v, info.displayName));
                                     return {
-                                        fillColor: isV ? '#C2A175' : '#1A2218',
+                                        fillColor: isV ? '#C2A175' : '#1e1e1e',
                                         fillOpacity: isV ? 0.70 : 0.82,
-                                        color: isV ? '#C5AB89' : '#2A3626',
+                                        color: isV ? '#C5AB89' : '#2a2a2a',
                                         weight: isV ? 1.5 : 0.8,
                                         smoothFactor: 0
                                     };
@@ -1737,10 +1737,10 @@ return (
                                                         const layerInfo = getGeoCountryInfo(countryLayer.feature);
                                                         if (layerInfo.code === clickedCode) {
                                                             countryLayer.setStyle({
-                                                                fillColor: '#FFC800',
-                                                                fillOpacity: 0.75,
+                                                                fillColor: '#60b0e6',
+                                                                fillOpacity: 0.50,
                                                                 color: '#FFFFFF',
-                                                                weight: 2.5,
+                                                                weight: 1.5,
                                                                 smoothFactor: 0
                                                             });
                                                         }

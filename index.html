@@ -2260,91 +2260,172 @@ schedules.map(sch => {
    );
  }
 
-            function StatsSection({ stats, events }) {
-                const [imgError, setImgError] = useState(false);
-                const [isCardActive, setIsCardActive] = useState(false);
+function StatsSection({ stats, events }) {
+    const [imgError, setImgError] = useState(false);
+    const [isCardActive, setIsCardActive] = useState(false);
 
-                // 動態取得裝置目前的年份
-                const currentYear = new Date().getFullYear().toString();
+    // 互動模式狀態：'smart' (智慧推薦/釘選), 'blindbox' (隨機盲盒), 'carousel' (集郵冊輪播)
+    const [viewMode, setViewMode] = useState('smart'); 
+    const [pinnedArtist, setPinnedArtist] = useState(null); // 手動釘選/金馬獎模式
+    const [carouselIndex, setCarouselIndex] = useState(0);   // 集郵冊輪播當前索引
 
-                // 計算藝人排名 (Top Artists)
-                const artistRankings = useMemo(() => {
-                    const counts = {};
-                    const avatarMap = {};
-                    events.forEach(e => {
-                        if (e.status === 'cancelled') return;
-                        if (e.artist) {
-                            counts[e.artist] = (counts[e.artist] || 0) + 1;
-                            if (e.coverImg && !avatarMap[e.artist]) {
-                                avatarMap[e.artist] = e.coverImg;
-                            }
-                        }
-                    });
-                    return Object.entries(counts)
-                        .map(([artist, count]) => ({ 
-                            artist, 
-                            count, 
-                            avatar: avatarMap[artist] || null 
-                        }))
-                        .sort((a, b) => b.count - a.count);
-                }, [events]);
+    // 動態取得裝置目前的年份
+    const currentYear = new Date().getFullYear().toString();
 
-                // 專門計算「當年度」的藝人排名（僅供年度藝人卡片使用）
-                const currentYearArtistRankings = useMemo(() => {
-                const counts = {};
-                const avatarMap = {};
-                events.forEach(e => {
-                       if (e.status === 'cancelled') return;
-            
-                // 嚴格檢查活動日期是否屬於當前年份
-                const eventYear = e.date ? e.date.slice(0, 4) : '';
-                       if (eventYear === currentYear) {
-                       if (e.artist) {
+    // ==========================================
+    // 1. 全體藝人次數排名 (Top Artists - 歷史總計)
+    // ==========================================
+    const artistRankings = useMemo(() => {
+        const counts = {};
+        const avatarMap = {};
+        events.forEach(e => {
+            if (e.status === 'cancelled') return;
+            if (e.artist) {
                 counts[e.artist] = (counts[e.artist] || 0) + 1;
-                       if (e.coverImg && !avatarMap[e.artist]) {
-                           avatarMap[e.artist] = e.coverImg;
-                    }
+                if (e.coverImg && !avatarMap[e.artist]) {
+                    avatarMap[e.artist] = e.coverImg;
                 }
             }
         });
-
-                return Object.entries(counts)
-                      .map(([artist, count]) => ({ 
-                      artist, 
-                      count, 
-                      avatar: avatarMap[artist] || null 
+        return Object.entries(counts)
+            .map(([artist, count]) => ({ 
+                artist, 
+                count, 
+                avatar: avatarMap[artist] || null 
             }))
-                      .sort((a, b) => b.count - a.count);
-                }, [events, currentYear]);
+            .sort((a, b) => b.count - a.count);
+    }, [events]);
 
-                // 設定排排名判斷邏輯
-                const isArtistOfTheYearVisible = useMemo(() => {
-                   const topArtist = currentYearArtistRankings[0]; 
-                   return topArtist && topArtist.count >= 3;
-                }, [currentYearArtistRankings]);
+    // ==========================================
+    // 2. 當年度藝人多維度智慧引擎（含平手突破與加權）
+    // ==========================================
+    const currentYearArtistRankings = useMemo(() => {
+        const artistDataMap = {};
 
-                // 計算場館排名 (Top Venues)
-                const venueRankings = useMemo(() => {
-                    const counts = {};
-                    events.forEach(e => {
-                        if (e.status === 'cancelled') return;
-                        if (e.venue) {
-                            counts[e.venue] = (counts[e.venue] || 0) + 1;
-                        }
-                    });
-                    return Object.entries(counts)
-                        .map(([venue, count]) => ({ venue, count }))
-                        .sort((a, b) => b.count - a.count);
-                }, [events]);
+        events.forEach(e => {
+            if (e.status === 'cancelled') return;
+            
+            const eventYear = e.date ? e.date.slice(0, 4) : '';
+            if (eventYear === currentYear && e.artist) {
+                const artist = e.artist;
+                
+                if (!artistDataMap[artist]) {
+                    artistDataMap[artist] = {
+                        artist,
+                        count: 0,
+                        avatar: e.coverImg || null,
+                        latestDate: e.date || '',
+                        oldestDate: e.date || '',
+                        score: 0,
+                        tags: []
+                    };
+                }
 
-                // 計算最高次數場館，供長條圖比例計算
-                const maxVenueCount = useMemo(() => {
-                    if (venueRankings.length === 0) return 1;
-                    return Math.max(...venueRankings.map(v => v.count), 1);
-                }, [venueRankings]);
+                const item = artistDataMap[artist];
+                item.count += 1;
+                if (!item.avatar && e.coverImg) item.avatar = e.coverImg;
 
-                // 年度藝人數據
-                const topArtistObj = currentYearArtistRankings[0] || null;
+                if (e.date > item.latestDate) item.latestDate = e.date;
+                if (e.date < item.oldestDate) item.oldestDate = e.date;
+
+                let baseScore = 10;
+                let tagList = [];
+                const venueStr = (e.venue || '').toLowerCase();
+                const titleStr = (e.title || '').toLowerCase();
+
+                if (titleStr.includes('專場') || titleStr.includes('tour') || titleStr.includes('演唱會')) {
+                    baseScore += 5;
+                    tagList.push('1場專場');
+                } else {
+                    tagList.push('音樂祭/綜合');
+                }
+
+                if (venueStr.includes('tokyo') || venueStr.includes('dome') || venueStr.includes('seoul') || venueStr.includes('大阪') || venueStr.includes('首爾') || venueStr.includes('東京')) {
+                    baseScore += 15;
+                    tagList.unshift('極限遠征');
+                }
+
+                if (titleStr.includes('週年') || titleStr.includes('20') || titleStr.includes('25') || titleStr.includes('anniversary')) {
+                    baseScore += 10;
+                    tagList.push('週年紀念');
+                }
+
+                item.score += baseScore;
+                item.tags = Array.from(new Set(tagList));
+            }
+        });
+
+        return Object.values(artistDataMap).sort((a, b) => {
+            if (b.score !== a.score) return b.score - a.score;
+            if (b.count !== a.count) return b.count - a.count;
+            return b.latestDate.localeCompare(a.latestDate);
+        });
+    }, [events, currentYear]);
+
+    const isArtistOfTheYearVisible = useMemo(() => {
+       return currentYearArtistRankings.length > 0;
+    }, [currentYearArtistRankings]);
+
+    const activeArtistObj = useMemo(() => {
+        if (currentYearArtistRankings.length === 0) return null;
+        if (pinnedArtist) {
+            const found = currentYearArtistRankings.find(item => item.artist === pinnedArtist);
+            if (found) return found;
+        }
+        if (viewMode === 'carousel') {
+            const index = carouselIndex % currentYearArtistRankings.length;
+            return currentYearArtistRankings[index];
+        }
+        if (viewMode === 'blindbox') {
+            const randomIndex = Math.floor(Math.random() * currentYearArtistRankings.length);
+            return currentYearArtistRankings[randomIndex];
+        }
+        return currentYearArtistRankings[0];
+    }, [currentYearArtistRankings, pinnedArtist, viewMode, carouselIndex]);
+
+    // ==========================================
+    // 3. 場館次數排名 (Top Venues)
+    // ==========================================
+    const venueRankings = useMemo(() => {
+        const counts = {};
+        events.forEach(e => {
+            if (e.status === 'cancelled') return;
+            if (e.venue) {
+                counts[e.venue] = (counts[e.venue] || 0) + 1;
+            }
+        });
+        return Object.entries(counts)
+            .map(([venue, count]) => ({ venue, count }))
+            .sort((a, b) => b.count - a.count);
+    }, [events]);
+
+    const maxVenueCount = useMemo(() => {
+        if (venueRankings.length === 0) return 1;
+        return Math.max(...venueRankings.map(v => v.count), 1);
+    }, [venueRankings]);
+
+    // 互動切換按鈕
+    const handleToggleMode = (e) => {
+        e.stopPropagation();
+        if (viewMode === 'smart') {
+            setViewMode('blindbox');
+        } else if (viewMode === 'blindbox') {
+            setViewMode('carousel');
+            setCarouselIndex(0);
+        } else {
+            setViewMode('smart');
+            setPinnedArtist(null);
+        }
+    };
+
+    const handleTogglePin = (e) => {
+        e.stopPropagation();
+        if (pinnedArtist) {
+            setPinnedArtist(null);
+        } else if (activeArtistObj) {
+            setPinnedArtist(activeArtistObj.artist);
+        }
+    };
 
                 // 觸發三段式奢華煙火特效與卡片點擊反饋
                 const triggerFireworks = (e) => {
@@ -2421,11 +2502,31 @@ schedules.map(sch => {
                     <div className="p-4 pb-12 space-y-4 text-[#EFF0EA]">
                         {isArtistOfTheYearVisible && (
                             <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="font-extrabold text-sm text-[#C5AB89] inline-flex items-center gap-1.5 leading-none pl-4">
+                                <div className="flex items-center justify-between px-1">
+                                    <h3 className="font-extrabold text-sm text-[#C5AB89] inline-flex items-center gap-1.5 leading-none pl-2">
                                         <img src="image/icons/crown.png" alt="icon" className="w-5 h-5 object-contain filter invert brightness-200 sepia self-center -translate-y-[1px]" />
-                                        <span>{currentYear} 年度藝人</span>
-                                </h3>
+                                        <span>{currentYear} 年度藝人焦點</span>
+                      </h3>
+
+                      <div className="flex items-center gap-1.5">
+                            <button 
+                                onClick={handleTogglePin}
+                                className={`px-2.5 py-1 rounded-full text-[10px] font-black border transition-all ${
+                                    pinnedArtist ? 'bg-[#C5AB89] text-[#161D15] border-[#C5AB89]' : 'bg-[#161D15]/60 text-[#C5AB89] border-[#C5AB89]/40 hover:bg-[#C5AB89]/20'
+                                }`}
+                            >
+                                {pinnedArtist ? '📌 已手動鎖定' : '📍 智慧推薦'}
+                            </button>
+
+                            <button 
+                                onClick={handleToggleMode}
+                                className="px-2.5 py-1 rounded-full text-[10px] font-black bg-[#161D15]/60 text-[#EFF0EA] border border-[#C5AB89]/40 hover:bg-[#C5AB89]/20 transition-all"
+                            >
+                                {viewMode === 'smart' && '🎲 模式: 智慧'}
+                                {viewMode === 'blindbox' && '🎁 模式: 盲盒'}
+                                {viewMode === 'carousel' && `📖 模式: 集郵 (${carouselIndex + 1}/${currentYearArtistRankings.length})`}
+                            </button>
+                          </div>
                         </div>
 
                             <div 
@@ -2443,47 +2544,58 @@ schedules.map(sch => {
 
                                 {/* 拍立得 1:1 照片相框 */}
                                 <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-white/5 backdrop-blur-md border border-[#C5AB89]/35 shadow-inner flex items-center justify-center">
-                                    {!imgError ? (
+                                    {!imgError && activeArtistObj ? (
                                         <img 
                                             src="./images/artists/artist-of-the-year.jpg" 
-                                            alt={topArtistObj ? topArtistObj.artist : "年度藝人"}
+                                            alt={activeArtistObj.artist}
                                             onError={() => setImgError(true)}
                                             className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                                         />
-                                    ) : topArtistObj && topArtistObj.avatar ? (
+                                    ) : activeArtistObj && activeArtistObj.avatar ? (
                                         <img 
-                                            src={topArtistObj.avatar} 
-                                            alt={topArtistObj.artist}
+                                            src={activeArtistObj.avatar} 
+                                            alt={activeArtistObj.artist}
                                             className="w-full h-full object-cover"
                                         />
                                     ) : (
                                         <div className="flex flex-col items-center justify-center p-4 text-center space-y-2">
                                             <div className="w-16 h-16 rounded-full bg-[#C5AB89]/20 flex items-center justify-center text-[#C5AB89] font-black text-xl border border-[#C5AB89]/40">
-                                                {topArtistObj ? topArtistObj.artist.slice(0, 1) : "🌟"}
+                                                {activeArtistObj ? activeArtistObj.artist.slice(0, 1) : "🌟"}
                                             </div>
                                             <span className="text-xs font-bold text-[#EFF0EA]">
-                                                {topArtistObj ? topArtistObj.artist : "尚無年度藝人紀錄"}
+                                                {activeArtistObj ? activeArtistObj.artist : "尚無年度藝人紀錄"}
                                             </span>
-                                            <span className="text-[9px] text-[#A3ADA5]">放置 artist-of-the-year.jpg 於相對路徑資料夾</span>
                                         </div>
                                     )}
 
                                     {/* 相片內右上角標籤 */}
                                     <div className="absolute top-3 right-3 bg-[#161D15]/80 backdrop-blur-md px-2.5 py-1 rounded-full border border-[#C5AB89]/40 text-[10px] font-black text-[#C5AB89] shadow-md">
-                                        {currentYear} TOP 1
+                                        {viewMode === 'carousel' ? `輪播 #${carouselIndex + 1}` : `${currentYear} TOP 1`}
                                     </div>
-                                </div>
+
+                                    {activeArtistObj && activeArtistObj.tags && activeArtistObj.tags.length > 0 && (
+                                    <div className="absolute top-3 left-3 flex flex-wrap gap-1">
+                                        {activeArtistObj.tags.map((tag, idx) => (
+                                            <span key={idx} className="bg-[#C5AB89]/90 text-[#161D15] px-2 py-0.5 rounded-md text-[9px] font-black shadow">
+                                                {tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
 
                                 {/* 卡片下半部文字資訊 */}
                                 <div className="mt-3.5 flex items-center justify-between px-1">
                                     <div className="min-w-0 flex-1 pr-2">
-                                        <div className="text-[10px] font-extrabold text-[#C5AB89] tracking-wider uppercase">Most Played Artist</div>
+                                        <div className="text-[10px] font-extrabold text-[#C5AB89] tracking-wider uppercase flex items-center gap-1">
+                                        <span>Most Played Artist</span>
+                                    </div>
                                         <h2 className="text-base font-black text-[#EFF0EA] truncate mt-0.5">
-                                            {topArtistObj ? topArtistObj.artist : "尚未產生"}
+                                            {activeArtistObj ? `♦ ${activeArtistObj.artist}` : "尚未產生"}
                                         </h2>
                                     </div>
                                     <div className="bg-[#C5AB89] text-[#161D15] px-3 py-1.5 rounded-2xl font-black text-xs shrink-0 shadow-md shadow-[0_0_10px_rgba(197,171,137,0.4)]">
-                                        {topArtistObj ? `${topArtistObj.count} 場演唱會` : "0 場"}
+                                        {activeArtistObj ? `${activeArtistObj.count} 場演唱會` : "0 場"}
                                     </div>
                                 </div>
                             </div>

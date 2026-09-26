@@ -1253,7 +1253,7 @@ function AddEventModal({ initialData, onSave, onClose }) {
 
                     onSave({
                         id: initialData?.id || null, title, type, date, time,
-                        venue: venue || '未指定場館', venueAddress: venueAddress || venue || '台灣',
+                        venue: venue || '未指定場館', venueAddress: venueAddress || '未填寫地址',
                         artist: artist || '',
                         city: city || '台北', countryCode: resolved.code, countryName: resolved.name,
                         lat: finalLat, lng: finalLng, status, rating,

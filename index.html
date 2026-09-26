@@ -2264,6 +2264,9 @@ schedules.map(sch => {
                 const [imgError, setImgError] = useState(false);
                 const [isCardActive, setIsCardActive] = useState(false);
 
+                // 動態取得裝置目前的年份
+                const currentYear = new Date().getFullYear().toString();
+
                 // 計算藝人排名 (Top Artists)
                 const artistRankings = useMemo(() => {
                     const counts = {};
@@ -2286,11 +2289,39 @@ schedules.map(sch => {
                         .sort((a, b) => b.count - a.count);
                 }, [events]);
 
-                // 1. 設定排排名判斷邏輯
+                // 專門計算「當年度」的藝人排名（僅供年度藝人卡片使用）
+                const currentYearArtistRankings = useMemo(() => {
+                const counts = {};
+                const avatarMap = {};
+                events.forEach(e => {
+                       if (e.status === 'cancelled') return;
+            
+                // 嚴格檢查活動日期是否屬於當前年份
+                const eventYear = e.date ? e.date.slice(0, 4) : '';
+                       if (eventYear === currentYear) {
+                       if (e.artist) {
+                counts[e.artist] = (counts[e.artist] || 0) + 1;
+                       if (e.coverImg && !avatarMap[e.artist]) {
+                           avatarMap[e.artist] = e.coverImg;
+                    }
+                }
+            }
+        });
+
+                return Object.entries(counts)
+                      .map(([artist, count]) => ({ 
+                      artist, 
+                      count, 
+                      avatar: avatarMap[artist] || null 
+            }))
+                      .sort((a, b) => b.count - a.count);
+                }, [events, currentYear]);
+
+                // 設定排排名判斷邏輯
                 const isArtistOfTheYearVisible = useMemo(() => {
-                   const topArtist = artistRankings[0]; 
+                   const topArtist = currentYearArtistRankings[0]; 
                    return topArtist && topArtist.count >= 3;
-                }, [artistRankings]);
+                }, [currentYearArtistRankings]);
 
                 // 計算場館排名 (Top Venues)
                 const venueRankings = useMemo(() => {
@@ -2313,79 +2344,79 @@ schedules.map(sch => {
                 }, [venueRankings]);
 
                 // 年度藝人數據
-                const topArtistObj = artistRankings[0] || null;
+                const topArtistObj = currentYearArtistRankings[0] || null;
 
                 // 觸發三段式奢華煙火特效與卡片點擊反饋
-const triggerFireworks = (e) => {
-    setIsCardActive(true);
-    setTimeout(() => setIsCardActive(false), 200);
+                const triggerFireworks = (e) => {
+                   setIsCardActive(true);
+                   setTimeout(() => setIsCardActive(false), 200);
 
-    if (typeof window.confetti === 'function') {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const x = (rect.left + rect.width / 2) / window.innerWidth;
-        const y = (rect.top + rect.height / 2) / window.innerHeight;
+                   if (typeof window.confetti === 'function') {
+                       const rect = e.currentTarget.getBoundingClientRect();
+                       const x = (rect.left + rect.width / 2) / window.innerWidth;
+                       const y = (rect.top + rect.height / 2) / window.innerHeight;
 
-        // 1. 第一波：強力核心大爆發（高初速、廣範圍、混搭圓形與方形增加質感）
-        window.confetti({
-            particleCount: 60,
-            spread: 120,
-            startVelocity: 35, // 增加爆發力道
-            origin: { x, y },
-            colors: ['#FF4500', '#FFA500', '#FFD700', '#FFFFFF'],
-            shapes: ['circle'], // 形狀交錯更有層次
-            scalar: 0.8,
-            gravity: 0.35,
-            ticks: 350,
-            zIndex: 9999
-        });
+                       // 1. 第一波：強力核心大爆發（高初速、廣範圍、混搭圓形與方形增加質感）
+                       window.confetti({
+                          particleCount: 60,
+                          spread: 120,
+                          startVelocity: 35, // 增加爆發力道
+                          origin: { x, y },
+                          colors: ['#FF4500', '#FFA500', '#FFD700', '#FFFFFF'],
+                          shapes: ['circle'], // 形狀交錯更有層次
+                          scalar: 0.8,
+                          gravity: 0.35,
+                          ticks: 350,
+                          zIndex: 9999
+                        });
 
-        // 2. 第二波：左右側翼夾擊（製造向外擴散的大型煙火感）
-        setTimeout(() => {
-            // 左側噴發
-            window.confetti({
-                particleCount: 35,
-                angle: 60,
-                spread: 60,
-                startVelocity: 28,
-                origin: { x: x - 0.05, y },
-                colors: ['#FF4500', '#FFA500', '#FFD700', '#FFFFFF'],
-                shapes: ['circle'],
-                scalar: 0.9,
-                ticks: 180,
-                zIndex: 9999
-            });
-            // 右側噴發
-            window.confetti({
-                particleCount: 35,
-                angle: 120,
-                spread: 60,
-                startVelocity: 18,
-                origin: { x: x + 0.05, y },
-                colors: ['#FFFFFF', '#FFC800', '#EFF0EA'],
-                shapes: ['circle'],
-                scalar: 0.5,
-                ticks: 180,
-                zIndex: 9999
-            });
-        }, 80);
+                        // 2. 第二波：左右側翼夾擊（製造向外擴散的大型煙火感）
+                        setTimeout(() => {
+                           // 左側噴發
+                           window.confetti({
+                              particleCount: 35,
+                              angle: 60,
+                              spread: 60,
+                              startVelocity: 28,
+                              origin: { x: x - 0.05, y },
+                              colors: ['#FF4500', '#FFA500', '#FFD700', '#FFFFFF'],
+                              shapes: ['circle'],
+                              scalar: 0.9,
+                              ticks: 180,
+                              zIndex: 9999
+                            });
+                            // 右側噴發
+                            window.confetti({
+                               particleCount: 35,
+                               angle: 120,
+                               spread: 60,
+                               startVelocity: 18,
+                               origin: { x: x + 0.05, y },
+                               colors: ['#FFFFFF', '#FFC800', '#EFF0EA'],
+                               shapes: ['circle'],
+                               scalar: 0.5,
+                               ticks: 180,
+                               zIndex: 9999
+                            });
+                        }, 80);
 
-        // 3. 第三波：延遲 200ms 的高級金色粉塵雨（輕盈飄落）
-        setTimeout(() => {
-            window.confetti({
-                particleCount: 50,
-                spread: 130,
-                startVelocity: 15,
-                origin: { x, y: y - 0.08 },
-                colors: ['#FFFFFF', '#FFD700', '#D2CABF'],
-                scalar: 0.6,
-                gravity: 0.4,  // 重力減半，飄得更慢更優雅
-                drift: 0.2,    // 帶有一點微風飄移
-                ticks: 300,
-                zIndex: 9999
-            });
-        }, 200);
-    }
-};
+                        // 3. 第三波：延遲 200ms 的高級金色粉塵雨（輕盈飄落）
+                        setTimeout(() => {
+                        window.confetti({
+                           particleCount: 50,
+                           spread: 130,
+                           startVelocity: 15,
+                           origin: { x, y: y - 0.08 },
+                           colors: ['#FFFFFF', '#FFD700', '#D2CABF'],
+                           scalar: 0.6,
+                           gravity: 0.4,  // 重力減半，飄得更慢更優雅
+                           drift: 0.2,    // 帶有一點微風飄移
+                           ticks: 300,
+                           zIndex: 9999
+                        });
+                    }, 200);
+               }                  
+         };
                 return (
                     <div className="p-4 pb-12 space-y-4 text-[#EFF0EA]">
                         {isArtistOfTheYearVisible && (
@@ -2393,7 +2424,7 @@ const triggerFireworks = (e) => {
                                 <div className="flex items-center justify-between">
                                     <h3 className="font-extrabold text-sm text-[#C5AB89] inline-flex items-center gap-1.5 leading-none pl-4">
                                         <img src="image/icons/crown.png" alt="icon" className="w-5 h-5 object-contain filter invert brightness-200 sepia self-center -translate-y-[1px]" />
-                                        <span>2026 年度藝人</span>
+                                        <span>{currentYear} 年度藝人</span>
                                 </h3>
                         </div>
 
@@ -2439,7 +2470,7 @@ const triggerFireworks = (e) => {
 
                                     {/* 相片內右上角標籤 */}
                                     <div className="absolute top-3 right-3 bg-[#161D15]/80 backdrop-blur-md px-2.5 py-1 rounded-full border border-[#C5AB89]/40 text-[10px] font-black text-[#C5AB89] shadow-md">
-                                        2026 TOP 1
+                                        {currentYear} TOP 1
                                     </div>
                                 </div>
 

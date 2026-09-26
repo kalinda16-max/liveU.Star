@@ -686,7 +686,7 @@
                 );
             }
 
-function BackupModal({ events, schedules, userProfile, onClose, onImport, showAlert }) {
+function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose, onImport, showAlert }) {
     const fileInputRef = useRef(null);
 
     // 1. 修正匯出：使用 Blob 避免 Data URI 長度限制
@@ -697,6 +697,7 @@ function BackupModal({ events, schedules, userProfile, onClose, onImport, showAl
                 exportDate: new Date().toISOString(),
                 events: events || [],
                 schedules: schedules || [],
+                merchandiseLogs: merchandiseLogs || [],
                 userProfile: userProfile || {}
             };
             
@@ -736,10 +737,11 @@ function BackupModal({ events, schedules, userProfile, onClose, onImport, showAl
                     const cleanData = {
                         events: Array.isArray(importedData.events) ? importedData.events : null,
                         schedules: Array.isArray(importedData.schedules) ? importedData.schedules : null,
+                        merchandiseLogs: Array.isArray(importedData.merchandiseLogs) ? importedData.merchandiseLogs : null,
                         userProfile: (importedData.userProfile && typeof importedData.userProfile === 'object') ? importedData.userProfile : null
                     };
 
-                    if (cleanData.events || cleanData.schedules || cleanData.userProfile) {
+                    if (cleanData.events || cleanData.schedules || cleanData.merchandiseLogs || cleanData.userProfile) {
                         onImport(cleanData);
                         showAlert('資料備份匯入成功');
                         onClose();
@@ -771,7 +773,7 @@ function BackupModal({ events, schedules, userProfile, onClose, onImport, showAl
                     <button onClick={onClose}><i data-lucide="x" className="w-5 h-5"></i></button>
                 </div>
                 <p className="text-xs text-[#737C75] leading-relaxed">
-                    您可以將所有藝文紀錄、演出排程及個人設定導出為備份 JSON 檔案，或從先前備份的檔案恢復資料。
+                    您可以將所有藝文紀錄、Live應援及個人設定導出為備份 JSON 檔案，或從先前備份的檔案恢復資料。
                 </p>
                 <div className="space-y-2 pt-2">
                     <button 
@@ -809,6 +811,7 @@ function BackupModal({ events, schedules, userProfile, onClose, onImport, showAl
 // 1. 資料 State（改為預設空值/預設物件，準備從 IndexedDB 載入）
                 const [events, setEvents] = useState([]);
                 const [schedules, setSchedules] = useState([]);
+                const [merchandiseLogs, setMerchandiseLogs] = useState([]);
                 const [userProfile, setUserProfile] = useState({ name: 'LiveU', subtitle: 'say something', avatarUrl: '', initials: 'LU' });
                 const [isDataLoaded, setIsDataLoaded] = useState(false);
 
@@ -821,9 +824,11 @@ function BackupModal({ events, schedules, userProfile, onClose, onImport, showAl
                 const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
                 const [isAddModalOpen, setIsAddModalOpen] = useState(false);
                 const [isAddScheduleModalOpen, setIsAddScheduleModalOpen] = useState(false);
+                const [isAddMerchModalOpen, setIsAddMerchModalOpen] = useState(false);
                 const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
                 const [editingEvent, setEditingEvent] = useState(null);
                 const [editingSchedule, setEditingSchedule] = useState(null);
+                const [editingMerchandise, setEditingMerchandise] = useState(null);
                 const [alertMsg, setAlertMsg] = useState(null);
 
                 // 3. 頁面載入時：從 IndexedDB 讀取資料（會自動向後相容去抓舊的 localStorage 資料）
@@ -832,6 +837,7 @@ function BackupModal({ events, schedules, userProfile, onClose, onImport, showAl
                         try {
                             const savedEvents = await getFromIDB('events');
                             const savedSchedules = await getFromIDB('schedules');
+                            const savedMerchandiseLogs = await getFromIDB('merchandiseLogs');
                             const savedProfile = await getFromIDB('userProfile');
 
                             if (savedEvents) {
@@ -846,6 +852,10 @@ function BackupModal({ events, schedules, userProfile, onClose, onImport, showAl
                             } else {
                                 const legacySchedules = localStorage.getItem('liveecho_schedules_v12');
                                 if (legacySchedules) setSchedules(JSON.parse(legacySchedules));
+                            }
+
+                            if (savedMerchandiseLogs) {
+                                setMerchandiseLogs(savedMerchandiseLogs);
                             }
 
                             if (savedProfile) {
@@ -876,6 +886,11 @@ function BackupModal({ events, schedules, userProfile, onClose, onImport, showAl
 
                 useEffect(() => {
                     if (!isDataLoaded) return;
+                    saveToIDB('merchandiseLogs', merchandiseLogs).catch(e => console.error('儲存 merchandiseLogs 失敗', e));
+                }, [merchandiseLogs, isDataLoaded]);
+
+                useEffect(() => {
+                    if (!isDataLoaded) return;
                     saveToIDB('userProfile', userProfile).catch(e => console.error('儲存 userProfile 失敗', e));
                 }, [userProfile, isDataLoaded]);
                 
@@ -891,6 +906,7 @@ function BackupModal({ events, schedules, userProfile, onClose, onImport, showAl
                 const handleImportData = (data) => {
                     if (data.events && Array.isArray(data.events)) setEvents(data.events);
                     if (data.schedules && Array.isArray(data.schedules)) setSchedules(data.schedules);
+                    if (data.merchandiseLogs && Array.isArray(data.merchandiseLogs)) setMerchandiseLogs(data.merchandiseLogs);
                     if (data.userProfile && typeof data.userProfile === 'object') setUserProfile(data.userProfile);
                 };
 
@@ -987,11 +1003,28 @@ function BackupModal({ events, schedules, userProfile, onClose, onImport, showAl
                     
                 };
 
+                const handleSaveMerchandise = (data) => {
+                    if (data.id) {
+                        setMerchandiseLogs(merchandiseLogs.map(item => item.id === data.id ? data : item));
+                    } else {
+                        setMerchandiseLogs([{ ...data, id: 'merch-' + Date.now(), checked: data.checked ?? true }, ...merchandiseLogs]);
+                    }
+                    setEditingMerchandise(null);
+                };
+
+                const handleDeleteMerchandise = (id) => {
+                    setMerchandiseLogs(merchandiseLogs.filter(item => item.id !== id));
+                };
+
+                const handleToggleMerchandise = (id) => {
+                    setMerchandiseLogs(merchandiseLogs.map(item => item.id === id ? { ...item, checked: !item.checked } : item));
+                };
+
                 const getGoogleMapsUrl = (venue, address) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${venue} ${address || ''}`)}`;
 
                 const NAV_ITEMS = [
                     { id: 'archive', label: '藝文紀錄', icon: 'library' },
-                    { id: 'schedule', label: '演出排程', icon: 'calendar-days' },
+                    { id: 'schedule', label: 'Live應援', icon: 'calendar-days' },
                     { id: 'map', label: '星跡map', icon: 'map-pin' },
                     { id: 'stats', label: '浩瀚星辰', icon: 'trophy' }
                 ];
@@ -1037,7 +1070,7 @@ function BackupModal({ events, schedules, userProfile, onClose, onImport, showAl
 
                         <main className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
                             {activeTab === 'archive' && <ArchiveSection events={filteredEvents} allEvents={events} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} searchQuery={searchQuery} setSearchQuery={setSearchQuery} viewMode={viewMode} onDelete={handleDeleteEvent} onEdit={(evt) => setEditingEvent(evt)} getGoogleMapsUrl={getGoogleMapsUrl} onOpenAddModal={() => setIsAddModalOpen(true)} />}
-                            {activeTab === 'schedule' && <ScheduleSection schedules={schedules} onDelete={handleDeleteSchedule} onEdit={(sch) => setEditingSchedule(sch)} onSaveSchedule={handleSaveSchedule} getGoogleMapsUrl={getGoogleMapsUrl} onOpenAddModal={() => setIsAddScheduleModalOpen(true)} />}
+                            {activeTab === 'schedule' && <ScheduleSection schedules={schedules} merchandiseLogs={merchandiseLogs} onDelete={handleDeleteSchedule} onEdit={(sch) => setEditingSchedule(sch)} onSaveSchedule={handleSaveSchedule} onToggleMerchandise={handleToggleMerchandise} onDeleteMerchandise={handleDeleteMerchandise} onEditMerchandise={(item) => setEditingMerchandise(item)} onOpenAddModal={() => setIsAddScheduleModalOpen(true)} onOpenMerchandiseModal={() => setIsAddMerchModalOpen(true)} />}
                             {activeTab === 'map' && <LeafletMapSection events={events} stats={stats} getGoogleMapsUrl={getGoogleMapsUrl} onDelete={handleDeleteEvent} onEdit={(evt) => setEditingEvent(evt)} />}
                             {activeTab === 'stats' && <StatsSection stats={stats} events={events} />}
                         </main>
@@ -1064,10 +1097,11 @@ function BackupModal({ events, schedules, userProfile, onClose, onImport, showAl
                             </div>
                         </nav>
 
-                        {isBackupModalOpen && <BackupModal events={events} schedules={schedules} userProfile={userProfile} onClose={() => setIsBackupModalOpen(false)} onImport={handleImportData} showAlert={showAlert} />}
+                        {isBackupModalOpen && <BackupModal events={events} schedules={schedules} merchandiseLogs={merchandiseLogs} userProfile={userProfile} onClose={() => setIsBackupModalOpen(false)} onImport={handleImportData} showAlert={showAlert} />}
                         {isEditProfileOpen && <EditProfileModal userProfile={userProfile} setUserProfile={setUserProfile} onClose={() => setIsEditProfileOpen(false)} showAlert={showAlert} />}
                         {(isAddModalOpen || editingEvent) && <AddEventModal initialData={editingEvent} onSave={handleSaveEvent} onClose={() => { setIsAddModalOpen(false); setEditingEvent(null); }} />}
                         {(isAddScheduleModalOpen || editingSchedule) && <AddScheduleModal initialData={editingSchedule} onSave={handleSaveSchedule} onDelete={handleDeleteSchedule} onClose={() => { setIsAddScheduleModalOpen(false); setEditingSchedule(null); }} />}
+                        {(isAddMerchModalOpen || editingMerchandise) && <MerchandiseModal initialData={editingMerchandise} onSave={handleSaveMerchandise} onDelete={handleDeleteMerchandise} onClose={() => { setIsAddMerchModalOpen(false); setEditingMerchandise(null); }} />}
                     </div>
                 );
             }
@@ -1478,15 +1512,15 @@ return (
 
                 return (
                     <div className="modal-overlay bg-black/85 flex items-center justify-center p-4 pt-14 pb-20">
-                        <div className="bg-[#232B25]/90 backdrop-blur-2xl text-[#EFF0EA] w-full max-w-sm rounded-3xl p-4 shadow-[0_0_30px_rgba(197,171,137,0.2)] border border-[#C5AB89]/40 space-y-3 max-h-[75vh] flex flex-col">
+                        <div className="bg-[#232B25]/90 backdrop-blur-2xl text-[#EFF0EA] w-full max-w-sm rounded-3xl p-4 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40 space-y-3 max-h-[75vh] flex flex-col">
                             <div className="flex items-center justify-between pb-1 shrink-0">
                                 <h3 className="font-extrabold text-sm text-[#C5AB89] flex items-center gap-1.5">
-                                <i data-lucide="calendar-plus" className="w-4 h-4 inline"></i> {initialData ? '編輯演出排程' : '新增演出排程'}</h3>
+                                <i data-lucide="calendar-plus" className="w-4 h-4 inline"></i> {initialData ? '編輯搶票行程' : '新增搶票行程'}</h3>
 
                             </div>
                             <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar">
                                 <div className="space-y-1">
-                                <label className="text-[11px] font-bold text-[#737C75]">活動名稱</label><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full bg-white/5 backdrop-blur-md text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2 rounded-xl text-xs border border-[rgba(197,171,137,0.4)] shadow-[0_0_5px_rgba(197,171,137,0.1)] focus:outline-none focus:border-[#C5AB89] transition-colors" /></div>
+                                <label className="text-[11px] font-bold text-[#C5AB89]">名稱</label><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full bg-white/5 backdrop-blur-md text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2 rounded-xl text-xs border border-[rgba(197,171,137,0.4)] shadow-[0_0_5px_rgba(197,171,137,0.1)] focus:outline-none focus:border-[#C5AB89] transition-colors" /></div>
                                 <div className="grid grid-cols-2 gap-2">
                                     <div className="space-y-1">
                                     <label className="text-[11px] font-bold text-[#C5AB89]">主辦單位</label>
@@ -1508,7 +1542,7 @@ return (
                                                 key={st}
                                                 type="button"
                                                 onClick={() => setStatus(st)}
-                                                className={`flex-1 py-2 rounded-xl font-bold text-[11px] transition-all border ${status === st ? 'bbg-[#C5AB89] text-[#EFF0EA] border-[#C5AB89] shadow-[0_0_8px_rgba(197,171,137,0.4)] font-black' : 'bg-white/10 text-[#EFF0EA] border border-white/10 hover:bg-white/20 backdrop-blur-md'}`}
+                                                className={`flex-1 py-2 rounded-xl font-bold text-[11px] transition-all border ${status === st ? 'bg-[#C5AB89] text-[#161D15] border-[#C5AB89] shadow-[0_0_8px_rgba(197,171,137,0.4)] font-black' : 'bg-white/10 text-[#EFF0EA] border border-white/10 hover:bg-white/20 backdrop-blur-md'}`}
                                             >
                                                 {st}
                                             </button>
@@ -2125,7 +2159,84 @@ return (
 );
 }
 
-            function ScheduleSection({ schedules, onDelete, onEdit, onSaveSchedule, getGoogleMapsUrl, onOpenAddModal }) {
+
+            function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
+                const [item, setItem] = useState(initialData?.item || '');
+                const [amount, setAmount] = useState(initialData?.amount ?? '');
+                const [image, setImage] = useState(initialData?.image || '');
+                const [checked, setChecked] = useState(initialData?.checked ?? true);
+                const fileRef = useRef(null);
+
+                const handleFileChange = (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (evt) => setImage(evt.target.result);
+                    reader.readAsDataURL(file);
+                    e.target.value = '';
+                };
+
+                const handleSubmit = (e) => {
+                    e.preventDefault();
+                    onSave({
+                        id: initialData?.id || null,
+                        item: item.trim() || '未命名周邊',
+                        amount: Math.max(0, Number(amount) || 0),
+                        image,
+                        checked
+                    });
+                    onClose();
+                };
+
+                return (
+                    <div className="modal-overlay bg-black/85 flex items-center justify-center p-4 pt-14 pb-20 z-[999999]">
+                        <div className="bg-[#232B25]/90 backdrop-blur-2xl text-[#EFF0EA] w-full max-w-sm rounded-3xl p-4 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40 space-y-3 max-h-[75vh] flex flex-col">
+                            <div className="flex items-center justify-between pb-1 shrink-0">
+                                <h3 className="font-extrabold text-sm text-[#C5AB89] flex items-center gap-1.5">
+                                    <i data-lucide="shopping-bag" className="w-4 h-4 inline"></i> {initialData ? '編輯周邊紀錄' : '新增周邊紀錄'}
+                                </h3>
+                                <button type="button" onClick={onClose} className="w-7 h-7 rounded-xl bg-white/5 flex items-center justify-center"><i data-lucide="x" className="w-4 h-4"></i></button>
+                            </div>
+
+                            <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar">
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-[#C5AB89]">周邊圖</label>
+                                    <button type="button" onClick={() => fileRef.current?.click()} className="w-full h-44 rounded-2xl overflow-hidden border border-[#C5AB89]/40 bg-white/5 flex items-center justify-center">
+                                        {image ? <img src={image} alt="周邊預覽" className="w-full h-full object-cover" /> : <div className="flex flex-col items-center gap-2 text-[#A3ADA5]"><i data-lucide="image-plus" className="w-8 h-8 text-[#C5AB89]"></i><span className="text-[10px] font-bold">點擊選擇圖片</span></div>}
+                                    </button>
+                                    <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-[#C5AB89]">項目</label>
+                                    <input type="text" value={item} onChange={(e) => setItem(e.target.value)} required className="w-full bg-white/5 backdrop-blur-md text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2.5 rounded-xl text-xs border border-[rgba(197,171,137,0.4)] shadow-[0_0_5px_rgba(197,171,137,0.1)] focus:outline-none focus:border-[#C5AB89] transition-colors" placeholder="例如：應援毛巾" />
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-[#C5AB89]">金額</label>
+                                    <input type="number" min="0" step="1" value={amount} onChange={(e) => setAmount(e.target.value)} required className="w-full bg-white/5 backdrop-blur-md text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2.5 rounded-xl text-xs border border-[rgba(197,171,137,0.4)] shadow-[0_0_5px_rgba(197,171,137,0.1)] focus:outline-none focus:border-[#C5AB89] transition-colors" placeholder="0" />
+                                </div>
+
+                                <label className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 cursor-pointer">
+                                    <input type="checkbox" checked={checked} onChange={(e) => setChecked(e.target.checked)} className="w-4 h-4 accent-[#C5AB89]" />
+                                    <span className="text-[11px] font-bold text-[#EFF0EA]">項目已購買，計入總金額</span>
+                                </label>
+
+                                <div className="flex gap-2 pt-2">
+                                    {initialData && (
+                                        <button type="button" onClick={() => { onDelete(initialData.id); onClose(); }} className="py-2.5 px-3 rounded-xl bg-red-600/90 text-white font-bold text-xs shadow hover:bg-red-700 transition-colors">刪除</button>
+                                    )}
+                                    <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-[#EFF0EA] text-xs font-bold border border-white/10 backdrop-blur-md transition-all">取消</button>
+                                    <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-black hover:bg-[#b59b77] transition-all">{initialData ? '儲存修改' : '確認新增'}</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                );
+            }
+
+            function ScheduleSection({ schedules, merchandiseLogs, onDelete, onEdit, onSaveSchedule, onToggleMerchandise, onDeleteMerchandise, onEditMerchandise, onOpenAddModal, onOpenMerchandiseModal }) {
+                const [activePanel, setActivePanel] = useState('tickets');
                 const STATUS_CYCLE = ['即將開賣', '售票中', '已完售'];
 
                 const handleCycleStatus = (sch, e) => {
@@ -2135,130 +2246,180 @@ return (
                     onSaveSchedule({ ...sch, status: nextStatus });
                 };
 
+                const selectedMerchandiseTotal = useMemo(
+                    () => merchandiseLogs.filter(item => item.checked).reduce((sum, item) => sum + (Number(item.amount) || 0), 0),
+                    [merchandiseLogs]
+                );
+
+                const formatMoney = (value) => `NT$ ${Number(value || 0).toLocaleString()}`;
+
                 return (
                     <div className="p-4 pb-12 space-y-4">
-                        <div className="space-y-3.5">
-                            {schedules.length === 0 ? (
-                                <div className="text-center py-16 bg-[#EFF0EA]/5 border border-dashed border-[#737C75]/40 rounded-3xl p-6">
-                                    <p className="text-xs text-[#EFF0EA] font-extrabold mb-2">暫無演出排程</p>
-                                    <button onClick={onOpenAddModal} className="px-4 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-xs">新增演出排程</button>
-                                </div>
-                            ) : (
-schedules.map(sch => {
-  return (
-    <div
-    key={sch.id}
-    className="mt-1 mb-4 relative drop-shadow-[0_0_5px_rgba(197,171,137,0.40)]"
->
-    <div
-        className="relative bg-[#232B25] text-[#EFF0EA] rounded-2xl flex overflow-hidden border border-[#C5AB89]/40"
-        style={{
-            maskImage: `
-                radial-gradient(
-                    circle 12px at 0% 50%,
-                    transparent 0,
-                    transparent 12px,
-                    black 12px
-                ),
-                radial-gradient(
-                    circle 12px at 100% 50%,
-                    transparent 0,
-                    transparent 12px,
-                    black 12px
-                )
-            `,
-            maskComposite: 'intersect',
-            WebkitMaskImage: `
-                radial-gradient(
-                    circle 12px at 0% 50%,
-                    transparent 0,
-                    transparent 12px,
-                    black 12px
-                ),
-                radial-gradient(
-                    circle 12px at 100% 50%,
-                    transparent 0,
-                    transparent 12px,
-                    black 12px
-                )
-            `,
-            WebkitMaskComposite: 'source-in'
-        }}
-    >
-        <div className="flex w-full">
-
-            {/* 左側內容 */}
-            <div className="flex-1 p-3.5 pl-5 flex flex-col justify-between min-w-0 pr-3 overflow-hidden space-y-2">
-
-                    <div className="flex items-center justify-between">
-                        <span className="font-mono text-[11px] font-extrabold text-[#A3ADA5]">
-                            {sch.date}
-                        </span>
-
+                        <div className="bg-[#232B25]/90 backdrop-blur-2xl rounded-3xl p-1.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40 flex gap-1">
                             <button
-                                onClick={(e) => handleCycleStatus(sch, e)}
-                                className={`px-2.5 py-1 rounded-xl font-bold text-[10px] border transition-all cursor-pointer ${
-                                    sch.status === '已完售'
-                                        ? 'bg-red-500/20 text-red-300 border-red-500/30'
-                                        : sch.status === '售票中'
-                                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                                        : 'bg-white/10 text-[#CCB9AA] border-white/20'
-                                }`}
-                                title="點擊切換狀態"
+                                type="button"
+                                onClick={() => setActivePanel('tickets')}
+                                className={`flex-1 py-2.5 rounded-2xl text-xs font-extrabold transition-all ${activePanel === 'tickets' ? 'bg-[#C5AB89] text-[#161D15] shadow-[0_0_8px_rgba(197,171,137,0.35)]' : 'text-[#D2CABF] hover:bg-white/5'}`}
                             >
-                                {sch.status || '即將開賣'}
+                                <span className="flex items-center justify-center gap-1.5"><i data-lucide="ticket" className="w-4 h-4"></i>搶票行程</span>
                             </button>
+                            <button
+                                type="button"
+                                onClick={() => setActivePanel('merchandise')}
+                                className={`flex-1 py-2.5 rounded-2xl text-xs font-extrabold transition-all ${activePanel === 'merchandise' ? 'bg-[#C5AB89] text-[#161D15] shadow-[0_0_8px_rgba(197,171,137,0.35)]' : 'text-[#D2CABF] hover:bg-white/5'}`}
+                            >
+                                <span className="flex items-center justify-center gap-1.5"><i data-lucide="shopping-bag" className="w-4 h-4"></i>周邊紀錄</span>
+                            </button>
+                        </div>
+
+                        {activePanel === 'tickets' && (
+                            <div className="space-y-3.5">
+                                <div className="bg-[#232B25]/90 backdrop-blur-2xl rounded-3xl p-4 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div>
+                                            <h2 className="text-sm font-black text-[#EFF0EA] flex items-center gap-1.5"><i data-lucide="ticket" className="w-4 h-4 text-[#C5AB89]"></i>搶票行程</h2>
+                                            <p className="text-[10px] text-[#A3ADA5] mt-1">集中整理場次、售票狀態與票價資訊</p>
+                                        </div>
+                                        <button type="button" onClick={onOpenAddModal} className="shrink-0 px-3 py-2 rounded-xl bg-[#C5AB89] text-[#161D15] text-[10px] font-black shadow-[0_0_8px_rgba(197,171,137,0.25)] flex items-center gap-1">
+                                            <i data-lucide="plus" className="w-3.5 h-3.5"></i>新增
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {schedules.length === 0 ? (
+                                    <div className="bg-[#232B25]/90 backdrop-blur-2xl rounded-3xl p-6 text-center shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
+                                        <div className="w-12 h-12 rounded-2xl bg-[#C5AB89]/10 mx-auto flex items-center justify-center mb-3">
+                                            <i data-lucide="calendar-plus" className="w-6 h-6 text-[#C5AB89]"></i>
+                                        </div>
+                                        <p className="text-xs text-[#EFF0EA] font-extrabold mb-2">尚無搶票行程</p>
+                                        <button onClick={onOpenAddModal} className="px-4 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-xs">新增搶票行程</button>
+                                    </div>
+                                ) : (
+                                    schedules.map(sch => (
+                                        <div key={sch.id} className="bg-[#232B25]/90 backdrop-blur-2xl rounded-3xl p-4 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40 space-y-3">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="min-w-0">
+                                                    <div className="text-[10px] text-[#C5AB89] font-bold mb-1">名稱</div>
+                                                    <h3 className="text-sm font-black text-[#EFF0EA] leading-snug break-words">{sch.title || '未命名'}</h3>
+                                                </div>
+                                                <div className="flex items-center gap-1 shrink-0">
+                                                    <button
+                                                        onClick={() => onEdit(sch)}
+                                                        className="w-7 h-7 rounded-xl bg-white/5 text-[#EFF0EA] flex items-center justify-center border border-white/10 hover:bg-white/10"
+                                                        title="編輯搶票行程"
+                                                    ><i data-lucide="pencil" className="w-3.5 h-3.5"></i></button>
+                                                    <button
+                                                        onClick={() => onDelete(sch.id)}
+                                                        className="w-7 h-7 rounded-xl bg-red-500/10 text-red-300 flex items-center justify-center border border-red-500/20 hover:bg-red-500/20"
+                                                        title="刪除搶票行程"
+                                                    ><i data-lucide="trash-2" className="w-3.5 h-3.5"></i></button>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div className="rounded-2xl bg-white/5 border border-white/10 p-3 min-w-0">
+                                                    <div className="text-[10px] text-[#C5AB89] font-bold mb-1">主辦單位</div>
+                                                    <div className="text-[11px] text-[#EFF0EA] font-bold break-words">{sch.organizer || '—'}</div>
+                                                </div>
+                                                <div className="rounded-2xl bg-white/5 border border-white/10 p-3 min-w-0">
+                                                    <div className="text-[10px] text-[#C5AB89] font-bold mb-1">日期</div>
+                                                    <div className="text-[11px] text-[#EFF0EA] font-mono font-bold break-words">{sch.date || '—'}</div>
+                                                </div>
+                                                <div className="rounded-2xl bg-white/5 border border-white/10 p-3 min-w-0 col-span-2">
+                                                    <div className="text-[10px] text-[#C5AB89] font-bold mb-1">場館名稱</div>
+                                                    <div className="text-[11px] text-[#EFF0EA] font-bold break-words">{sch.venue || '—'}</div>
+                                                </div>
+                                                <div className="rounded-2xl bg-white/5 border border-white/10 p-3 min-w-0">
+                                                    <div className="text-[10px] text-[#C5AB89] font-bold mb-1">售票狀態</div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => handleCycleStatus(sch, e)}
+                                                        className={`px-2.5 py-1.5 rounded-xl font-bold text-[10px] border transition-all ${sch.status === '已完售' ? 'bg-red-500/15 text-red-300 border-red-500/25' : sch.status === '售票中' ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25' : 'bg-[#C5AB89]/10 text-[#D2CABF] border-[#C5AB89]/25'}`}
+                                                    >{sch.status || '即將開賣'}</button>
+                                                </div>
+                                                <div className="rounded-2xl bg-white/5 border border-white/10 p-3 min-w-0">
+                                                    <div className="text-[10px] text-[#C5AB89] font-bold mb-1">票價範圍</div>
+                                                    <div className="text-[11px] text-[#EFF0EA] font-mono font-bold break-words">{sch.priceRange || '免費觀賞'}</div>
+                                                </div>
+                                            </div>
+
+                                            <div className="rounded-2xl bg-white/5 border border-white/10 p-3">
+                                                <div className="text-[10px] text-[#C5AB89] font-bold mb-1">售票連結</div>
+                                                {sch.ticketLink ? (
+                                                    <a href={sch.ticketLink} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between gap-2 text-[11px] text-[#EFF0EA] font-bold">
+                                                        <span className="truncate">{sch.ticketLink}</span>
+                                                        <i data-lucide="external-link" className="w-3.5 h-3.5 shrink-0 text-[#C5AB89]"></i>
+                                                    </a>
+                                                ) : <span className="text-[11px] text-[#A3ADA5]">尚未設定</span>}
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        )}
+
+                        {activePanel === 'merchandise' && (
+                            <div className="space-y-3.5">
+                                <div className="bg-[#232B25]/90 backdrop-blur-2xl rounded-3xl p-4 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="min-w-0">
+                                            <h2 className="text-sm font-black text-[#EFF0EA] flex items-center gap-1.5"><i data-lucide="shopping-bag" className="w-4 h-4 text-[#C5AB89]"></i>周邊紀錄</h2>
+                                            <p className="text-[10px] text-[#A3ADA5] mt-1">勾選已購買項目，總金額會自動統計</p>
+                                        </div>
+                                        <button type="button" onClick={onOpenMerchandiseModal} className="shrink-0 px-3 py-2 rounded-xl bg-[#C5AB89] text-[#161D15] text-[10px] font-black shadow-[0_0_8px_rgba(197,171,137,0.25)] flex items-center gap-1">
+                                            <i data-lucide="plus" className="w-3.5 h-3.5"></i>新增
+                                        </button>
+                                    </div>
+                                    <div className="mt-3 pt-3 border-t border-[#C5AB89]/20 flex items-center justify-between">
+                                        <span className="text-[10px] text-[#A3ADA5] font-bold">已勾選總金額</span>
+                                        <span className="text-base text-[#C5AB89] font-black font-mono">{formatMoney(selectedMerchandiseTotal)}</span>
+                                    </div>
+                                </div>
+
+                                {merchandiseLogs.length === 0 ? (
+                                    <div className="bg-[#232B25]/90 backdrop-blur-2xl rounded-3xl p-6 text-center shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
+                                        <div className="w-12 h-12 rounded-2xl bg-[#C5AB89]/10 mx-auto flex items-center justify-center mb-3">
+                                            <i data-lucide="image-plus" className="w-6 h-6 text-[#C5AB89]"></i>
+                                        </div>
+                                        <p className="text-xs text-[#EFF0EA] font-extrabold mb-2">尚無周邊紀錄</p>
+                                        <button onClick={onOpenMerchandiseModal} className="px-4 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-xs">新增周邊</button>
+                                    </div>
+                                ) : (
+                                    merchandiseLogs.map(item => (
+                                        <div key={item.id} className="bg-[#232B25]/90 backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-20 h-20 rounded-2xl overflow-hidden bg-white/5 border border-white/10 shrink-0 flex items-center justify-center">
+                                                    {item.image ? <img src={item.image} alt={item.item || '周邊圖'} className="w-full h-full object-cover" /> : <i data-lucide="image" className="w-6 h-6 text-[#737C75]"></i>}
+                                                </div>
+                                                <label className="flex items-start gap-2 min-w-0 flex-1 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={!!item.checked}
+                                                        onChange={() => onToggleMerchandise(item.id)}
+                                                        className="mt-0.5 w-4 h-4 accent-[#C5AB89] shrink-0"
+                                                    />
+                                                    <span className="min-w-0">
+                                                        <span className={`block text-[11px] font-extrabold break-words ${item.checked ? 'text-[#EFF0EA]' : 'text-[#A3ADA5] line-through'}`}>{item.item || '未命名周邊'}</span>
+                                                        <span className="block text-[10px] text-[#A3ADA5] mt-1">項目（可勾選）</span>
+                                                    </span>
+                                                </label>
+                                                <div className="text-right shrink-0">
+                                                    <div className="text-[10px] text-[#C5AB89] font-bold mb-1">金額</div>
+                                                    <div className="text-sm text-[#EFF0EA] font-black font-mono">{formatMoney(item.amount)}</div>
+                                                </div>
+                                                <div className="flex flex-col gap-1 shrink-0">
+                                                    <button onClick={() => onEditMerchandise(item)} className="w-7 h-7 rounded-xl bg-white/5 text-[#EFF0EA] flex items-center justify-center border border-white/10 hover:bg-white/10" title="編輯周邊"><i data-lucide="pencil" className="w-3.5 h-3.5"></i></button>
+                                                    <button onClick={() => onDeleteMerchandise(item.id)} className="w-7 h-7 rounded-xl bg-red-500/10 text-red-300 flex items-center justify-center border border-red-500/20 hover:bg-red-500/20" title="刪除周邊"><i data-lucide="trash-2" className="w-3.5 h-3.5"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        )}
                     </div>
-
-                    <div className="min-w-0 overflow-hidden">
-                        <h3 className="font-black text-sm text-[#EFF0EA] leading-snug break-words whitespace-normal max-w-full">
-                            {sch.title}
-                        </h3>
-                    </div>
-                    <div className="flex items-center justify-between gap-2 pt-1">
-                        <div className="flex items-center text-[10px] text-[#A3ADA5] font-medium min-w-0 flex-1 truncate">
-                        <span className="truncate mr-2.5">{sch.organizer}</span>
-                        <img src="./image/icons/favourite.png" alt="icon" className="w-3 h-3 object-contain shrink-0 mr-1" />
-                        <span className="truncate">{sch.venue}</span>
-                    </div>
-                    <button
-                        onClick={() => onEdit(sch)}
-                        className="w-6 h-6 rounded-full bg-white/10 text-[#EFF0EA] flex items-center justify-center hover:bg-white/20 transition-colors shadow-sm border border-white/10 shrink-0"
-                        title="編輯排程"
-                             >
-                        <i data-lucide="pencil" className="w-3 h-3"></i>
-                     </button>
-                </div>
-            </div>
-
-            {/* 中間虛線 */}
-            <div className="relative w-0 border-r border-dashed border-white/20 my-2 z-10"></div>
-
-            {/* 右側票價 */}
-            <div className="w-[110px] bg-white/[0.08] border-1 border-white/5 p-3 flex flex-col justify-between items-start text-left shrink-0 shadow-[inset_1px_0_0_rgba(255,255,255,0.05)]">
-                <div className="font-mono text-[11px] font-black leading-tight tracking-tight text-[#EFF0EA] w-full text-left flex flex-col items-start justify-center">
-                    {sch.priceRange || '免費觀賞'}
-                </div>
-
-                <a
-                    href={sch.ticketLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full py-1.5 bg-[#739c99]/75 hover:bg-[#739c99]/90 text-[#161D15] rounded-lg text-[10px] font-bold text-center block mt-2 transition-colors"
-                >售票連結
-                </a>
-            </div>
-
-        </div>
-    </div>
-</div>
-                       );
-                    })
-                )}
-            </div>
-     </div>
-   );
- }
+                );
+            }
 
 function StatsSection({ stats, events }) {
     const [imgError, setImgError] = useState(false);

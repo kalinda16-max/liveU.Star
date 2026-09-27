@@ -180,6 +180,52 @@
         .glow-gold {
             box-shadow: 0 0 25px rgba(197, 171, 137, 0.35);
         }
+
+        /* 周邊翻轉卡片：正反面維持相同尺寸 */
+        .merch-flip-card {
+            perspective: 1200px;
+            width: 100%;
+            min-height: 196px;
+            cursor: pointer;
+        }
+        .merch-flip-inner {
+            position: relative;
+            width: 100%;
+            min-height: 196px;
+            transform-style: preserve-3d;
+            transition: transform 0.55s cubic-bezier(.2,.75,.25,1);
+        }
+        .merch-flip-card.is-flipped .merch-flip-inner {
+            transform: rotateY(180deg);
+        }
+        .merch-flip-face {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            min-height: 196px;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .merch-flip-back {
+            transform: rotateY(180deg);
+        }
+        .merch-crop-preview {
+            aspect-ratio: 1 / 1;
+            width: 108px;
+            height: 108px;
+        }
+        .merch-crop-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .merch-crop-stage {
+            width: 108px;
+            height: 108px;
+            aspect-ratio: 1 / 1;
+            flex: 0 0 auto;
+        }
+
     </style>
 </head>
 <body class="bg-[#161D15] text-[#EFF0EA] font-sans antialiased h-full select-none overflow-hidden max-w-[100vw]">
@@ -386,7 +432,7 @@
                 );
             }
 
-            function ImageCropperModal({ imageSrc, initialAspectRatio = 1, onConfirm, onCancel }) {
+            function ImageCropperModal({ imageSrc, initialAspectRatio = 1, onConfirm, onCancel, fixedCropSize = null }) {
                 const imageRef = useRef(null);
                 const cropperRef = useRef(null);
                 const containerRef = useRef(null);
@@ -472,6 +518,14 @@
                                 ready() {
                                     if (cropperRef.current) {
                                         cropperRef.current.resize();
+                                        if (fixedCropSize) {
+                                            try {
+                                                cropperRef.current.setCropBoxData({
+                                                    width: fixedCropSize,
+                                                    height: fixedCropSize
+                                                });
+                                            } catch (e) {}
+                                        }
                                     }
                                 }
                             });
@@ -856,7 +910,7 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                             }
 
                             if (savedMerchandiseLogs) {
-                                setMerchandiseLogs(savedMerchandiseLogs);
+                                setMerchandiseLogs(normalizeMerchandiseLogs(savedMerchandiseLogs));
                             }
 
                             if (savedProfile) {
@@ -907,7 +961,7 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                 const handleImportData = (data) => {
                     if (data.events && Array.isArray(data.events)) setEvents(data.events);
                     if (data.schedules && Array.isArray(data.schedules)) setSchedules(data.schedules);
-                    if (data.merchandiseLogs && Array.isArray(data.merchandiseLogs)) setMerchandiseLogs(data.merchandiseLogs);
+                    if (data.merchandiseLogs && Array.isArray(data.merchandiseLogs)) setMerchandiseLogs(normalizeMerchandiseLogs(data.merchandiseLogs));
                     if (data.userProfile && typeof data.userProfile === 'object') setUserProfile(data.userProfile);
                 };
 
@@ -1004,21 +1058,117 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                     
                 };
 
+                const normalizeMerchandiseLogs = (raw) => {
+                    if (!Array.isArray(raw)) return [];
+                    return raw.map((entry, index) => {
+                        if (Array.isArray(entry.items)) {
+                            return {
+                                ...entry,
+                                id: entry.id || `merch-${Date.now()}-${index}`,
+                                purchaseDate: entry.purchaseDate || entry.date || '',
+                                items: entry.items.map((it, itemIndex) => ({
+                                    ...it,
+                                    id: it.id || `${entry.id}-item-${itemIndex}`,
+                                    item: it.item || '未命名周邊',
+                                    amount: Math.max(0, Number(it.amount) || 0),
+                                    checked: it.checked !== false
+                                }))
+                            };
+                        }
+                        const cardId = entry.id || `merch-${Date.now()}-${index}`;
+                        return {
+                            id: cardId,
+                            purchaseDate: entry.purchaseDate || entry.date || '',
+                            image: entry.image || '',
+                            items: [{
+                                id: entry.itemId || entry.id || `${cardId}-item`,
+                                item: entry.item || '未命名周邊',
+                                amount: Math.max(0, Number(entry.amount) || 0),
+                                checked: entry.checked !== false
+                            }]
+                        };
+                    });
+                };
+
                 const handleSaveMerchandise = (data) => {
-                    if (data.id) {
-                        setMerchandiseLogs(merchandiseLogs.map(item => item.id === data.id ? data : item));
+                    if (data.cardId) {
+                        setMerchandiseLogs(merchandiseLogs.map(card => {
+                            if (card.id !== data.cardId) return card;
+                            const exists = card.items.some(it => it.id === data.itemId);
+                            const nextItems = exists
+                                ? card.items.map(it => it.id === data.itemId ? {
+                                    ...it,
+                                    item: data.item,
+                                    amount: data.amount,
+                                    checked: data.checked
+                                } : it)
+                                : [...card.items, {
+                                    id: data.itemId || `item-${Date.now()}`,
+                                    item: data.item,
+                                    amount: data.amount,
+                                    checked: data.checked
+                                }];
+                            return {
+                                ...card,
+                                image: data.image || card.image || '',
+                                purchaseDate: data.purchaseDate || card.purchaseDate || '',
+                                items: nextItems
+                            };
+                        }));
+                    } else if (data.id) {
+                        setMerchandiseLogs(merchandiseLogs.map(card => card.id === data.id ? {
+                            ...card,
+                            image: data.image || '',
+                            purchaseDate: data.purchaseDate || '',
+                            items: card.items?.map(it => it.id === data.itemId ? {
+                                ...it,
+                                item: data.item,
+                                amount: data.amount,
+                                checked: data.checked
+                            } : it) || [{
+                                id: data.itemId || `item-${Date.now()}`,
+                                item: data.item,
+                                amount: data.amount,
+                                checked: data.checked
+                            }]
+                        } : card));
                     } else {
-                        setMerchandiseLogs([{ ...data, id: 'merch-' + Date.now(), checked: data.checked ?? true }, ...merchandiseLogs]);
+                        const cardId = `merch-${Date.now()}`;
+                        setMerchandiseLogs([{
+                            id: cardId,
+                            purchaseDate: data.purchaseDate || '',
+                            image: data.image || '',
+                            items: [{
+                                id: data.itemId || `${cardId}-item`,
+                                item: data.item,
+                                amount: data.amount,
+                                checked: data.checked
+                            }]
+                        }, ...merchandiseLogs]);
                     }
                     setEditingMerchandise(null);
                 };
 
                 const handleDeleteMerchandise = (id) => {
-                    setMerchandiseLogs(merchandiseLogs.filter(item => item.id !== id));
+                    // id 可以是卡片 id，也可以是卡片背面的項目 id
+                    const hasCard = merchandiseLogs.some(card => card.id === id);
+                    if (hasCard) {
+                        setMerchandiseLogs(merchandiseLogs.filter(card => card.id !== id));
+                        return;
+                    }
+                    setMerchandiseLogs(
+                        merchandiseLogs
+                            .map(card => ({ ...card, items: card.items.filter(it => it.id !== id) }))
+                            .filter(card => card.items.length > 0)
+                    );
                 };
 
-                const handleToggleMerchandise = (id) => {
-                    setMerchandiseLogs(merchandiseLogs.map(item => item.id === id ? { ...item, checked: !item.checked } : item));
+                const handleToggleMerchandise = (cardId, itemId) => {
+                    setMerchandiseLogs(merchandiseLogs.map(card =>
+                        card.id === cardId
+                            ? { ...card, items: card.items.map(it => it.id === itemId ? { ...it, checked: !it.checked } : it) }
+                            : card
+                    ));
                 };
 
                 const getGoogleMapsUrl = (venue, address) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${venue} ${address || ''}`)}`;
@@ -1121,7 +1271,7 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                         {isEditProfileOpen && <EditProfileModal userProfile={userProfile} setUserProfile={setUserProfile} onClose={() => setIsEditProfileOpen(false)} showAlert={showAlert} />}
                         {(isAddModalOpen || editingEvent) && <AddEventModal initialData={editingEvent} onSave={handleSaveEvent} onClose={() => { setIsAddModalOpen(false); setEditingEvent(null); }} />}
                         {(isAddScheduleModalOpen || editingSchedule) && <AddScheduleModal initialData={editingSchedule} onSave={handleSaveSchedule} onDelete={handleDeleteSchedule} onClose={() => { setIsAddScheduleModalOpen(false); setEditingSchedule(null); }} />}
-                        {(isAddMerchModalOpen || editingMerchandise) && <MerchandiseModal initialData={editingMerchandise} onSave={handleSaveMerchandise} onDelete={handleDeleteMerchandise} onClose={() => { setIsAddMerchModalOpen(false); setEditingMerchandise(null); }} />}
+                        {(isAddMerchModalOpen || editingMerchandise) && <MerchandiseModal initialData={editingMerchandise || { isNewCard: true }} onSave={handleSaveMerchandise} onDelete={handleDeleteMerchandise} onClose={() => { setIsAddMerchModalOpen(false); setEditingMerchandise(null); }} />}
                     </div>
                 );
             }
@@ -2181,17 +2331,23 @@ return (
 
 
             function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
+                const isEditing = !!initialData?.id;
+                const isAddingItemToCard = !!initialData?.cardId && !initialData?.isNewCard;
                 const [item, setItem] = useState(initialData?.item || '');
                 const [amount, setAmount] = useState(initialData?.amount ?? '');
                 const [image, setImage] = useState(initialData?.image || '');
+                const [purchaseDate, setPurchaseDate] = useState(
+                    initialData?.purchaseDate || initialData?.date || new Date().toISOString().slice(0, 10)
+                );
                 const [checked, setChecked] = useState(initialData?.checked ?? true);
+                const [cropSource, setCropSource] = useState(null);
                 const fileRef = useRef(null);
 
                 const handleFileChange = (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
                     const reader = new FileReader();
-                    reader.onload = (evt) => setImage(evt.target.result);
+                    reader.onload = (evt) => setCropSource(evt.target.result);
                     reader.readAsDataURL(file);
                     e.target.value = '';
                 };
@@ -2200,56 +2356,243 @@ return (
                     e.preventDefault();
                     onSave({
                         id: initialData?.id || null,
+                        cardId: initialData?.cardId || null,
+                        itemId: initialData?.itemId || initialData?.id || null,
                         item: item.trim() || '未命名周邊',
                         amount: Math.max(0, Number(amount) || 0),
                         image,
+                        purchaseDate,
                         checked
                     });
                     onClose();
                 };
 
                 return (
-                    <div className="modal-overlay bg-black/85 flex items-center justify-center p-4 pt-14 pb-20 z-[999999]">
-                        <div className="bg-[#232B25]/90 backdrop-blur-2xl text-[#EFF0EA] w-full max-w-sm rounded-3xl p-4 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40 space-y-3 max-h-[75vh] flex flex-col">
-                            <div className="flex items-center justify-between pb-1 shrink-0">
-                                <h3 className="font-extrabold text-sm text-[#C5AB89] flex items-center gap-1.5">
-                                    <i data-lucide="shopping-bag" className="w-4 h-4 inline"></i> {initialData ? '編輯周邊紀錄' : '新增周邊紀錄'}
-                                </h3>
-                                <button type="button" onClick={onClose} className="w-7 h-7 rounded-xl bg-white/5 flex items-center justify-center"><i data-lucide="x" className="w-4 h-4"></i></button>
+                    <>
+                        <div className="modal-overlay bg-black/85 flex items-center justify-center p-4 pt-14 pb-20 z-[999999]">
+                            <div className="bg-[#232B25]/90 backdrop-blur-2xl text-[#EFF0EA] w-full max-w-sm rounded-3xl p-4 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40 space-y-3 max-h-[82vh] flex flex-col">
+                                <div className="flex items-center justify-between pb-1 shrink-0">
+                                    <h3 className="font-extrabold text-sm text-[#C5AB89] flex items-center gap-1.5">
+                                        <i data-lucide="shopping-bag" className="w-4 h-4 inline"></i>
+                                        {isAddingItemToCard ? '新增周邊項目' : isEditing ? '編輯周邊項目' : '新增周邊紀錄'}
+                                    </h3>
+                                    <button type="button" onClick={onClose} className="w-7 h-7 rounded-xl bg-white/5 flex items-center justify-center">
+                                        <i data-lucide="x" className="w-4 h-4"></i>
+                                    </button>
+                                </div>
+
+                                <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar">
+                                    {!isAddingItemToCard && (
+                                        <div className="space-y-1">
+                                            <label className="text-[11px] font-bold text-[#C5AB89]">周邊圖</label>
+                                            <button
+                                                type="button"
+                                                onClick={() => fileRef.current?.click()}
+                                                className="w-full h-36 rounded-2xl overflow-hidden shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40 bg-white/5 flex items-center justify-center"
+                                            >
+                                                {image ? (
+                                                    <img src={image} alt="周邊預覽" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="flex flex-col items-center gap-2 text-[#A3ADA5]">
+                                                        <i data-lucide="image-plus" className="w-8 h-8 text-[#C5AB89]"></i>
+                                                        <span className="text-[10px] font-bold">點擊選擇圖片並裁切</span>
+                                                    </div>
+                                                )}
+                                            </button>
+                                            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                                            <p className="text-[9px] text-[#A3ADA5]">裁切框為 1:1，會與卡片正面的小圖比例完全一致</p>
+                                        </div>
+                                    )}
+
+                                    {!isAddingItemToCard && (
+                                        <div className="space-y-1">
+                                            <label className="text-[11px] font-bold text-[#C5AB89]">周邊購買日期</label>
+                                            <input
+                                                type="date"
+                                                value={purchaseDate}
+                                                onChange={(e) => setPurchaseDate(e.target.value)}
+                                                className="w-full bg-white/5 backdrop-blur-md text-[#EFF0EA] px-3 py-2.5 rounded-xl text-xs border border-[rgba(197,171,137,0.4)] shadow-[0_0_5px_rgba(197,171,137,0.1)] focus:outline-none focus:border-[#C5AB89]"
+                                            />
+                                        </div>
+                                    )}
+
+                                    <div className="space-y-1">
+                                        <label className="text-[11px] font-bold text-[#C5AB89]">項目</label>
+                                        <input
+                                            type="text"
+                                            value={item}
+                                            onChange={(e) => setItem(e.target.value)}
+                                            required
+                                            className="w-full bg-white/5 backdrop-blur-md text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2.5 rounded-xl text-xs border border-[rgba(197,171,137,0.4)] shadow-[0_0_5px_rgba(197,171,137,0.1)] focus:outline-none focus:border-[#C5AB89]"
+                                            placeholder="例如：應援毛巾"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-[11px] font-bold text-[#C5AB89]">金額</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            value={amount}
+                                            onChange={(e) => setAmount(e.target.value)}
+                                            required
+                                            className="w-full bg-white/5 backdrop-blur-md text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2.5 rounded-xl text-xs border border-[rgba(197,171,137,0.4)] shadow-[0_0_5px_rgba(197,171,137,0.1)] focus:outline-none focus:border-[#C5AB89]"
+                                            placeholder="0"
+                                        />
+                                    </div>
+
+                                    <label className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={checked}
+                                            onChange={(e) => setChecked(e.target.checked)}
+                                            className="w-4 h-4 accent-[#C5AB89]"
+                                        />
+                                        <span className="text-[11px] font-bold text-[#EFF0EA]">項目已購買，計入正面總金額</span>
+                                    </label>
+
+                                    <div className="flex gap-2 pt-2">
+                                        {isEditing && !isAddingItemToCard && (
+                                            <button
+                                                type="button"
+                                                onClick={() => { onDelete(initialData.id); onClose(); }}
+                                                className="py-2.5 px-3 rounded-xl bg-red-600/90 text-white font-bold text-xs shadow hover:bg-red-700 transition-colors"
+                                            >刪除</button>
+                                        )}
+                                        <button
+                                            type="button"
+                                            onClick={onClose}
+                                            className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-[#EFF0EA] text-xs font-bold border border-white/10"
+                                        >取消</button>
+                                        <button
+                                            type="submit"
+                                            className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-black hover:bg-[#b59b77] transition-all"
+                                        >{isAddingItemToCard ? '加入項目' : isEditing ? '儲存修改' : '確認新增'}</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        {cropSource && (
+                            <ImageCropperModal
+                                imageSrc={cropSource}
+                                initialAspectRatio={1}
+                                fixedCropSize={108}
+                                onConfirm={(croppedUrl) => {
+                                    setImage(croppedUrl);
+                                    setCropSource(null);
+                                }}
+                                onCancel={() => setCropSource(null)}
+                            />
+                        )}
+                    </>
+                );
+            }
+
+            function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onToggle, onDelete, onEdit, onAddItem }) {
+                const [flipped, setFlipped] = useState(false);
+                const image = card.image || '';
+
+                return (
+                    <div
+                        className={`merch-flip-card ${flipped ? 'is-flipped' : ''}`}
+                        onClick={() => setFlipped(v => !v)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                setFlipped(v => !v);
+                            }
+                        }}
+                    >
+                        <div className="merch-flip-inner">
+                            {/* 正面：周邊圖／購買日期／花費總金額 */}
+                            <div className="merch-flip-face bg-[#232B25]/90 backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
+                                <div className="flex items-center gap-3 h-full min-h-[168px]">
+                                    <div className="merch-crop-preview rounded-2xl overflow-hidden bg-white/5 shrink-0 flex items-center justify-center border border-[#C5AB89]/30">
+                                        {image
+                                            ? <img src={image} alt="周邊圖" />
+                                            : <i data-lucide="image" className="w-7 h-7 text-[#737C75]"></i>
+                                        }
+                                    </div>
+                                    <div className="min-w-0 flex-1 self-stretch flex flex-col justify-between py-1">
+                                        <div>
+                                            <div className="text-[9px] text-[#A3ADA5] font-bold tracking-wider">周邊購買日期</div>
+                                            <div className="mt-1 text-sm text-[#EFF0EA] font-black">{dateText}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-[9px] text-[#A3ADA5] font-bold tracking-wider">花費總金額</div>
+                                            <div className="mt-1 text-xl text-[#C5AB89] font-black font-mono">{formatMoney(total)}</div>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 text-[9px] text-[#A3ADA5]">
+                                            <i data-lucide="rotate-3d" className="w-3.5 h-3.5 text-[#C5AB89]"></i>
+                                            <span>點擊翻面查看項目</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                            <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar">
-                                <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#C5AB89]">周邊圖</label>
-                                    <button type="button" onClick={() => fileRef.current?.click()} className="w-full h-44 rounded-2xl overflow-hidden border border-[#C5AB89]/40 bg-white/5 flex items-center justify-center">
-                                        {image ? <img src={image} alt="周邊預覽" className="w-full h-full object-cover" /> : <div className="flex flex-col items-center gap-2 text-[#A3ADA5]"><i data-lucide="image-plus" className="w-8 h-8 text-[#C5AB89]"></i><span className="text-[10px] font-bold">點擊選擇圖片</span></div>}
+                            {/* 背面：多項目、勾選、金額、編輯、刪除 */}
+                            <div
+                                className="merch-flip-face merch-flip-back bg-[#232B25]/95 backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40"
+                            >
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="min-w-0">
+                                        <div className="text-[9px] text-[#A3ADA5] font-bold">周邊項目</div>
+                                        <div className="text-xs text-[#EFF0EA] font-black truncate">{dateText}</div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); onAddItem(card); }}
+                                        className="px-2.5 py-1.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-[9px] font-black flex items-center gap-1"
+                                    >
+                                        <i data-lucide="plus" className="w-3 h-3"></i>新增項目
                                     </button>
-                                    <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
                                 </div>
 
-                                <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#C5AB89]">項目</label>
-                                    <input type="text" value={item} onChange={(e) => setItem(e.target.value)} required className="w-full bg-white/5 backdrop-blur-md text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2.5 rounded-xl text-xs border border-[rgba(197,171,137,0.4)] shadow-[0_0_5px_rgba(197,171,137,0.1)] focus:outline-none focus:border-[#C5AB89] transition-colors" placeholder="例如：應援毛巾" />
+                                <div className="space-y-1.5 max-h-[128px] overflow-y-auto no-scrollbar">
+                                    {items.map(item => (
+                                        <div key={item.id} className="flex items-center gap-2 px-2.5 py-2 rounded-xl bg-white/[0.045] border border-white/10">
+                                            <input
+                                                type="checkbox"
+                                                checked={!!item.checked}
+                                                onChange={(e) => { e.stopPropagation(); onToggle(card.id, item.id); }}
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="w-4 h-4 accent-[#C5AB89] shrink-0"
+                                            />
+                                            <div className="min-w-0 flex-1">
+                                                <div className={`text-[10px] font-extrabold truncate ${item.checked ? 'text-[#EFF0EA]' : 'text-[#A3ADA5] line-through'}`}>
+                                                    {item.item || '未命名周邊'}
+                                                </div>
+                                            </div>
+                                            <div className="text-[10px] text-[#C5AB89] font-black font-mono shrink-0">{formatMoney(item.amount)}</div>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => { e.stopPropagation(); onEdit({ ...item, cardId: card.id, image: card.image || '', purchaseDate: card.purchaseDate || '' }); }}
+                                                className="w-6 h-6 rounded-lg bg-white/5 text-[#EFF0EA] flex items-center justify-center border border-white/10 shrink-0"
+                                                title="編輯"
+                                            >
+                                                <i data-lucide="pencil" className="w-3 h-3"></i>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
+                                                className="w-6 h-6 rounded-lg bg-red-500/10 text-red-300 flex items-center justify-center border border-red-500/20 shrink-0"
+                                                title="刪除"
+                                            >
+                                                <i data-lucide="trash-2" className="w-3 h-3"></i>
+                                            </button>
+                                        </div>
+                                    ))}
                                 </div>
 
-                                <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#C5AB89]">金額</label>
-                                    <input type="number" min="0" step="1" value={amount} onChange={(e) => setAmount(e.target.value)} required className="w-full bg-white/5 backdrop-blur-md text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2.5 rounded-xl text-xs border border-[rgba(197,171,137,0.4)] shadow-[0_0_5px_rgba(197,171,137,0.1)] focus:outline-none focus:border-[#C5AB89] transition-colors" placeholder="0" />
+                                <div className="mt-2 pt-2 border-t border-[#C5AB89]/20 flex items-center justify-between">
+                                    <span className="text-[9px] text-[#A3ADA5] font-bold">已勾選合計</span>
+                                    <span className="text-sm text-[#C5AB89] font-black font-mono">{formatMoney(total)}</span>
                                 </div>
-
-                                <label className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 cursor-pointer">
-                                    <input type="checkbox" checked={checked} onChange={(e) => setChecked(e.target.checked)} className="w-4 h-4 accent-[#C5AB89]" />
-                                    <span className="text-[11px] font-bold text-[#EFF0EA]">項目已購買，計入總金額</span>
-                                </label>
-
-                                <div className="flex gap-2 pt-2">
-                                    {initialData && (
-                                        <button type="button" onClick={() => { onDelete(initialData.id); onClose(); }} className="py-2.5 px-3 rounded-xl bg-red-600/90 text-white font-bold text-xs shadow hover:bg-red-700 transition-colors">刪除</button>
-                                    )}
-                                    <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-[#EFF0EA] text-xs font-bold border border-white/10 backdrop-blur-md transition-all">取消</button>
-                                    <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-black hover:bg-[#b59b77] transition-all">{initialData ? '儲存修改' : '確認新增'}</button>
-                                </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 );
@@ -2398,12 +2741,21 @@ return (
             <div className="space-y-3.5">
                 <div className="bg-[#232B25]/90 backdrop-blur-2xl rounded-3xl p-4 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
                     <div className="min-w-0">
-                        <h2 className="text-sm font-black text-[#EFF0EA] flex items-center gap-1.5"><i data-lucide="shopping-bag" className="w-4 h-4 text-[#C5AB89]"></i>周邊紀錄</h2>
-                        <p className="text-[10px] text-[#A3ADA5] mt-1">勾選已購買項目，總金額會自動統計</p>
+                        <h2 className="text-sm font-black text-[#EFF0EA] flex items-center gap-1.5">
+                            <i data-lucide="shopping-bag" className="w-4 h-4 text-[#C5AB89]"></i>周邊紀錄
+                        </h2>
+                        <p className="text-[10px] text-[#A3ADA5] mt-1">點擊卡片翻面查看明細，可勾選多項目並編輯或刪除</p>
                     </div>
                     <div className="mt-3 pt-3 border-t border-[#C5AB89]/20 flex items-center justify-between">
-                        <span className="text-[10px] text-[#A3ADA5] font-bold">已勾選總金額</span>
-                        <span className="text-base text-[#C5AB89] font-black font-mono">{formatMoney(selectedMerchandiseTotal)}</span>
+                        <span className="text-[10px] text-[#A3ADA5] font-bold">全部已勾選總金額</span>
+                        <span className="text-base text-[#C5AB89] font-black font-mono">
+                            {formatMoney(
+                                merchandiseLogs.reduce(
+                                    (sum, card) => sum + (card.items || []).filter(item => item.checked).reduce((s, item) => s + (Number(item.amount) || 0), 0),
+                                    0
+                                )
+                            )}
+                        </span>
                     </div>
                 </div>
 
@@ -2416,35 +2768,35 @@ return (
                         <button onClick={onOpenMerchandiseModal} className="px-4 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-xs">新增周邊</button>
                     </div>
                 ) : (
-                    merchandiseLogs.map(item => (
-                        <div key={item.id} className="bg-[#232B25]/90 backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
-                            <div className="flex items-center gap-3">
-                                <div className="w-20 h-20 rounded-2xl overflow-hidden bg-white/5 border border-white/10 shrink-0 flex items-center justify-center">
-                                    {item.image ? <img src={item.image} alt={item.item || '周邊圖'} className="w-full h-full object-cover" /> : <i data-lucide="image" className="w-6 h-6 text-[#737C75]"></i>}
-                                </div>
-                                <label className="flex items-start gap-2 min-w-0 flex-1 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={!!item.checked}
-                                        onChange={() => onToggleMerchandise(item.id)}
-                                        className="mt-0.5 w-4 h-4 accent-[#C5AB89] shrink-0"
-                                    />
-                                    <span className="min-w-0">
-                                        <span className={`block text-[11px] font-extrabold break-words ${item.checked ? 'text-[#EFF0EA]' : 'text-[#A3ADA5] line-through'}`}>{item.item || '未命名周邊'}</span>
-                                        <span className="block text-[10px] text-[#A3ADA5] mt-1">項目（可勾選）</span>
-                                    </span>
-                                </label>
-                                <div className="text-right shrink-0">
-                                    <div className="text-[10px] text-[#C5AB89] font-bold mb-1">金額</div>
-                                    <div className="text-sm text-[#EFF0EA] font-black font-mono">{formatMoney(item.amount)}</div>
-                                </div>
-                                <div className="flex flex-col gap-1 shrink-0">
-                                    <button onClick={() => onEditMerchandise(item)} className="w-7 h-7 rounded-xl bg-white/5 text-[#EFF0EA] flex items-center justify-center border border-white/10 hover:bg-white/10" title="編輯周邊"><i data-lucide="pencil" className="w-3.5 h-3.5"></i></button>
-                                    <button onClick={() => onDeleteMerchandise(item.id)} className="w-7 h-7 rounded-xl bg-red-500/10 text-red-300 flex items-center justify-center border border-red-500/20 hover:bg-red-500/20" title="刪除周邊"><i data-lucide="trash-2" className="w-3.5 h-3.5"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                    ))
+                    merchandiseLogs.map(card => {
+                        const items = card.items || [];
+                        const total = items.filter(item => item.checked).reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+                        const dateText = card.purchaseDate || '未設定日期';
+                        return (
+                            <MerchandiseFlipCard
+                                key={card.id}
+                                card={card}
+                                items={items}
+                                total={total}
+                                dateText={dateText}
+                                formatMoney={formatMoney}
+                                onToggle={onToggleMerchandise}
+                                onDelete={onDeleteMerchandise}
+                                onEdit={onEditMerchandise}
+                                onAddItem={() => onEditMerchandise({
+                                    cardId: card.id,
+                                    itemId: `item-${Date.now()}`,
+                                    item: '',
+                                    amount: '',
+                                    image: card.image || '',
+                                    purchaseDate: card.purchaseDate || '',
+                                    checked: true,
+                                    isNewCard: false
+                                })}
+                                onOpenAddModal={onOpenMerchandiseModal}
+                            />
+                        );
+                    })
                 )}
             </div>
         )}

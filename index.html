@@ -2385,7 +2385,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                 category: initialData.category || '其他'
             }];
         }
-        return [{ id: Date.now(), item: '', amount: '', category: 'other' }];
+        return [{ id: Date.now(), item: '', amount: '', category: '其他' }];
     });
 
     const [cropSource, setCropSource] = useState(null);
@@ -2471,22 +2471,16 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                     <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
                                 </div>
 
-                                {/* 購買日期與購買通路（強制大小嚴格一致） */}
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div className="space-y-1 min-w-0">
+                                {/* 購買日期與購買通路（改為皆為 text 輸入框，嚴格等寬、防壓疊） */}
+                                <div className="flex gap-2 w-full">
+                                    <div className="flex-1 min-w-0 space-y-1">
                                         <label className="text-[10px] font-bold text-[#C5AB89]">購買日期</label>
-                                        <input type="date" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} className="w-full h-9 bg-white/5 text-[#EFF0EA] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none box-border [color-scheme:dark]" />
+                                        <input type="text" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} placeholder="例如：2026/09/28" className="w-full h-9 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none box-border" />
                                     </div>
-                                    <div className="space-y-1 min-w-0">
+                                    <div className="flex-1 min-w-0 space-y-1">
                                         <label className="text-[10px] font-bold text-[#C5AB89]">購買通路</label>
                                         <input type="text" value={purchaseChannel} onChange={e => setPurchaseChannel(e.target.value)} placeholder="例如：官方網站" className="w-full h-9 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none box-border" />
                                     </div>
-                                </div>
-
-                                {/* 短語紀念 (移至列表上方) */}
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-[#C5AB89]">短語紀念</label>
-                                    <input type="text" value={memorialPhrase} onChange={e => setMemorialPhrase(e.target.value)} placeholder="留下這次購買的紀念短語" className="w-full h-9 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none box-border" />
                                 </div>
                             </>
                         )}
@@ -2504,7 +2498,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                         <div className="w-9 h-9 rounded-xl bg-white/5 border border-[#C5AB89]/30 flex items-center justify-center shrink-0">
                                             <img src={getCategoryIcon(itemCategory)} alt="分類" className="w-5 h-5 object-contain" />
                                         </div>
-                                        <input type="text" value={itemCategory} onChange={e => setItemCategory(e.target.value)} placeholder="例如：服飾、應援、小卡" className="flex-1 h-9 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none box-border" />
+                                        <input type="text" value={itemCategory} onChange={e => setItemCategory(e.target.value)} placeholder="例如：服飾、應援、小卡" className="flex-1 min-w-0 h-9 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none box-border" />
                                     </div>
                                 </div>
                                 <div className="space-y-1">
@@ -2514,14 +2508,14 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                             </>
                         )}
 
-                        {/* 如果是新增或整場編輯，顯示多筆項目列表管理 (移至短語紀念下方) */}
+                        {/* 如果是新增或整場編輯，顯示多筆項目列表管理 */}
                         {!isItemEdit && (
                             <div className="space-y-1.5 pt-0.5">
                                 <div className="flex items-center justify-between">
                                     <label className="text-[10px] font-bold text-[#C5AB89]">周邊項目與分類列表</label>
                                     <button 
                                         type="button" 
-                                        onClick={() => setFormItems([...formItems, { id: Date.now(), item: '', amount: '', category: 'other' }])}
+                                        onClick={() => setFormItems([...formItems, { id: Date.now(), item: '', amount: '', category: '其他' }])}
                                         className="text-[#C5AB89] hover:opacity-80 p-1 flex items-center justify-center transition-opacity"
                                         title="新增一項"
                                     >
@@ -2531,9 +2525,9 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
 
                                 <div className="space-y-2 max-h-36 overflow-y-auto no-scrollbar">
                                     {formItems.map((fi, index) => (
-                                        <div key={fi.id} className="bg-white/5 p-2 rounded-xl border border-[#C5AB89]/30 space-y-1.5">
+                                        <div key={fi.id} className="bg-white/5 p-2 rounded-xl border border-[#C5AB89]/30 space-y-1.5 min-w-0">
                                             {/* 第一行：項目名稱在左，分類在右 */}
-                                            <div className="flex items-center gap-1.5">
+                                            <div className="flex items-center gap-1.5 min-w-0">
                                                 <input 
                                                     type="text" 
                                                     value={fi.item} 
@@ -2543,7 +2537,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                                         setFormItems(updated);
                                                     }} 
                                                     placeholder="項目名稱 (例如：應援毛巾)" 
-                                                    className="flex-1 bg-transparent text-[#EFF0EA] placeholder-[#A3ADA5] text-xs focus:outline-none px-1 box-border" 
+                                                    className="flex-1 min-w-0 bg-transparent text-[#EFF0EA] placeholder-[#A3ADA5] text-xs focus:outline-none px-1 box-border" 
                                                     required 
                                                 />
                                                 <div className="w-6 h-6 rounded-lg bg-white/5 border border-[#C5AB89]/30 flex items-center justify-center shrink-0">
@@ -2558,7 +2552,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                                         setFormItems(updated);
                                                     }} 
                                                     placeholder="分類" 
-                                                    className="w-18 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2 py-1 rounded-lg text-xs border border-[#C5AB89]/30 focus:outline-none box-border" 
+                                                    className="w-16 shrink-0 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2 py-1 rounded-lg text-xs border border-[#C5AB89]/30 focus:outline-none box-border" 
                                                 />
                                                 {formItems.length > 1 && (
                                                     <button 
@@ -2567,13 +2561,13 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                                         className="w-6 h-6 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center shrink-0"
                                                         title="移除此項"
                                                     >
-                                                        <i data-lucide="x" className="w-3 h-3"></i>
+                                                        <i data-lucide="x" className="w-3.5 h-3.5"></i>
                                                     </button>
                                                 )}
                                             </div>
                                             {/* 第二行：金額手動輸入 */}
-                                            <div className="flex items-center gap-1.5 pt-0.5">
-                                                <span className="text-[10px] font-bold text-[#C5AB89]">金額：</span>
+                                            <div className="flex items-center gap-1.5 pt-0.5 min-w-0">
+                                                <span className="text-[10px] font-bold text-[#C5AB89] shrink-0">金額：</span>
                                                 <input 
                                                     type="number" 
                                                     min="0" 
@@ -2585,13 +2579,21 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                                         setFormItems(updated);
                                                     }} 
                                                     placeholder="0" 
-                                                    className="flex-1 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2 py-0.5 rounded-lg text-xs border border-[#C5AB89]/30 focus:outline-none font-mono box-border [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                                                    className="flex-1 min-w-0 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2 py-0.5 rounded-lg text-xs border border-[#C5AB89]/30 focus:outline-none font-mono box-border [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
                                                     required 
                                                 />
                                             </div>
                                         </div>
                                     ))}
                                 </div>
+                            </div>
+                        )}
+
+                        {/* 短語紀念 (位於列表下方、按鈕上方) */}
+                        {!isItemEdit && (
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-[#C5AB89]">短語紀念</label>
+                                <input type="text" value={memorialPhrase} onChange={e => setMemorialPhrase(e.target.value)} placeholder="留下這次購買的紀念短語" className="w-full h-9 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none box-border" />
                             </div>
                         )}
 

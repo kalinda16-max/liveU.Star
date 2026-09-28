@@ -227,6 +227,18 @@
         }
 
     </style>
+<style id="merchandise-v2-adjustments">
+/* 僅周邊翻頁卡片：正面資訊縮在周邊圖同高範圍 */
+.merch-flip-face.merch-v2-front > .merch-front-row{height:132px;min-height:132px;max-height:132px;align-items:stretch;}
+.merch-flip-face.merch-v2-front .merch-crop-preview{width:132px;height:132px;}
+.merch-flip-face.merch-v2-front .merch-front-info{height:132px;min-height:132px;max-height:132px;overflow:hidden;}
+.merch-flip-face.merch-v2-front .merch-memory-phrase{font-style:normal !important;font-weight:800 !important;}
+.merch-flip-face.merch-v2-front .merch-memory-phrase::before,.merch-flip-face.merch-v2-front .merch-memory-phrase::after{content:none !important;}
+/* 背面：隱藏標題與合計，分類統計和編輯 icon 同列於左下／右下 */
+.merch-flip-face.merch-v2-back .merch-back-title{display:none !important;}
+.merch-flip-face.merch-v2-back .merch-back-total-row{display:none !important;}
+.merch-flip-face.merch-v2-back .merch-category-footer{position:absolute;left:14px;bottom:12px;right:14px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+</style>
 </head>
 <body class="bg-[#161D15] text-[#EFF0EA] font-sans antialiased h-full select-none overflow-hidden max-w-[100vw]">
     <div id="root" class="h-full"></div>
@@ -2514,12 +2526,12 @@ return (
                                 </div>
                             </div>
 
-                            <div className="merch-flip-face merch-flip-back bg-[#232B25]/95 backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
-                                <div className="flex items-start justify-between mb-2"><div><div className="text-[9px] text-[#A3ADA5] font-bold">周邊項目</div><div className="text-xs text-[#EFF0EA] font-black">{card.category || '其他'} ・ {items.length} 項</div></div></div>
+                            <div className="merch-flip-face merch-v2-back merch-flip-back bg-[#232B25]/95 backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
+                                <div className="hidden"></div>
                                 <div className="space-y-1.5 max-h-[150px] overflow-y-auto no-scrollbar">
                                     {items.map(item => <div key={item.id} className="flex items-center gap-2 px-2.5 py-2 rounded-xl bg-white/[0.045] border border-white/10"><input type="checkbox" checked={!!item.checked} onChange={e => { e.stopPropagation(); onToggle(card.id, item.id); }} onClick={stop} className="w-4 h-4 accent-[#C5AB89] shrink-0" /><div className="min-w-0 flex-1"><div className={`text-[10px] font-extrabold truncate ${item.checked ? 'text-[#EFF0EA]' : 'text-[#A3ADA5] line-through'}`}>{item.item || '未命名周邊'}</div></div><div className="text-[10px] text-[#C5AB89] font-black font-mono">{formatMoney(item.amount)}</div></div>)}
                                 </div>
-                                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between border-t border-[#C5AB89]/20 pt-2"><span className="text-[9px] text-[#A3ADA5] font-bold">已勾選合計</span><div className="flex items-center gap-2"><span className="text-sm text-[#C5AB89] font-black font-mono">{formatMoney(total)}</span><button type="button" onClick={e => { stop(e); onOpenItemsEditor(card); }} className="w-8 h-8 rounded-full bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow-lg" title="編輯全部周邊"><i data-lucide="pencil" className="w-4 h-4"></i></button></div></div>
+                                <div className="merch-category-footer"><div className="merch-category-summary text-[9px] text-[#A3ADA5] font-bold">品項分類統計：{card.category || '其他'} ・ {items.length} 項</div><button type="button" onClick={e => { stop(e); onOpenItemsEditor(card); }} className="w-8 h-8 rounded-full bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow-lg shrink-0" title="編輯全部周邊"><i data-lucide="pencil" className="w-4 h-4"></i></button></div>
                             </div>
                         </div>
                     </div>

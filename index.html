@@ -192,6 +192,7 @@
             position: relative;
             width: 100%;
             min-height: 160px;
+            height: 160px;
             transform-style: preserve-3d;
             transition: transform 0.55s cubic-bezier(.2,.75,.25,1);
         }
@@ -203,12 +204,26 @@
             inset: 0;
             width: 100%;
             min-height: 160px;
+            height: 160px;
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
         }
         .merch-flip-back {
             transform: rotateY(180deg);
+            overflow: hidden;
         }
+        .merch-back-items-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px;
+            height: 118px;
+            max-height: 118px;
+            overflow-y: auto;
+            padding-right: 2px;
+            align-content: start;
+        }
+        .merch-back-items-grid::-webkit-scrollbar { width: 4px; }
+        .merch-back-items-grid::-webkit-scrollbar-thumb { background: rgba(197,171,137,.45); border-radius: 999px; }
         .merch-crop-preview {
             aspect-ratio: 1 / 1;
             width: 132px;
@@ -907,7 +922,6 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                 const [editingEvent, setEditingEvent] = useState(null);
                 const [editingSchedule, setEditingSchedule] = useState(null);
                 const [editingMerchandise, setEditingMerchandise] = useState(null);
-                const [editingMerchandiseItems, setEditingMerchandiseItems] = useState(null);
                 const [alertMsg, setAlertMsg] = useState(null);
 
                 // 3. 頁面載入時：從 IndexedDB 讀取資料（會自動向後相容去抓舊的 localStorage 資料）
@@ -1105,7 +1119,7 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                                 ...it,
                                 id: it.id || `${cardId}-item-${itemIndex}`,
                                 item: it.item || '未命名周邊',
-                                amount: Math.max(0, Number(it.amount) || 0),
+                                amount: parseMerchAmount(it.amount),
                                 checked: it.checked !== false
                             }))
                         };
@@ -1121,7 +1135,16 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                             purchaseChannel: data.purchaseChannel !== undefined ? data.purchaseChannel : card.purchaseChannel || '',
                             category: data.category !== undefined ? data.category : card.category || '其他',
                             categoryIcon: data.categoryIcon !== undefined ? data.categoryIcon : card.categoryIcon || './image/icons/crown.png',
-                            memorialPhrase: data.memorialPhrase !== undefined ? data.memorialPhrase : card.memorialPhrase || ''
+                            memorialPhrase: data.memorialPhrase !== undefined ? data.memorialPhrase : card.memorialPhrase || '',
+                            items: Array.isArray(data.items) ? data.items.map((it, idx) => ({
+                                ...it,
+                                id: it.id || `${card.id}-item-${idx}`,
+                                item: it.item || '未命名周邊',
+                                amount: parseMerchAmount(it.amount),
+                                category: it.category || '其他',
+                                categoryIcon: it.categoryIcon || './image/icons/crown.png',
+                                checked: it.checked !== false
+                            })) : card.items
                         } : card));
                     } else if (data.cardId) {
                         setMerchandiseLogs(prev => prev.map(card => {
@@ -1133,7 +1156,7 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                                 const nextItem = {
                                     id: data.itemId || `item-${Date.now()}`,
                                     item: data.item?.trim() || '未命名周邊',
-                                    amount: Math.max(0, Number(data.amount) || 0),
+                                    amount: parseMerchAmount(data.amount),
                                     checked: data.checked !== false
                                 };
                                 const exists = items.some(it => it.id === nextItem.id);
@@ -1163,7 +1186,7 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                             items: [{
                                 id: data.itemId || `${cardId}-item`,
                                 item: data.item?.trim() || '未命名周邊',
-                                amount: Math.max(0, Number(data.amount) || 0),
+                                amount: parseMerchAmount(data.amount),
                                 checked: data.checked !== false
                             }]
                         }, ...prev]);
@@ -1261,7 +1284,7 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
 
                         <main className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
                             {activeTab === 'archive' && <ArchiveSection events={filteredEvents} allEvents={events} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} searchQuery={searchQuery} setSearchQuery={setSearchQuery} viewMode={viewMode} onDelete={handleDeleteEvent} onEdit={(evt) => setEditingEvent(evt)} getGoogleMapsUrl={getGoogleMapsUrl} onOpenAddModal={() => setIsAddModalOpen(true)} />}
-                            {activeTab === 'schedule' && <ScheduleSection activePanel={schedulePanel} schedules={schedules} merchandiseLogs={merchandiseLogs} onDelete={handleDeleteSchedule} onEdit={(sch) => setEditingSchedule(sch)} onSaveSchedule={handleSaveSchedule} onToggleMerchandise={handleToggleMerchandise} onDeleteMerchandise={handleDeleteMerchandise} onEditMerchandise={(item) => setEditingMerchandise(item)} onOpenAddModal={() => setIsAddScheduleModalOpen(true)} onOpenMerchandiseModal={() => setIsAddMerchModalOpen(true)} onOpenItemsEditor={(card) => setEditingMerchandiseItems(card)} />}
+                            {activeTab === 'schedule' && <ScheduleSection activePanel={schedulePanel} schedules={schedules} merchandiseLogs={merchandiseLogs} onDelete={handleDeleteSchedule} onEdit={(sch) => setEditingSchedule(sch)} onSaveSchedule={handleSaveSchedule} onToggleMerchandise={handleToggleMerchandise} onDeleteMerchandise={handleDeleteMerchandise} onEditMerchandise={(item) => setEditingMerchandise(item)} onOpenAddModal={() => setIsAddScheduleModalOpen(true)} onOpenMerchandiseModal={() => setIsAddMerchModalOpen(true)} />}
                             {activeTab === 'map' && <LeafletMapSection events={events} stats={stats} getGoogleMapsUrl={getGoogleMapsUrl} onDelete={handleDeleteEvent} onEdit={(evt) => setEditingEvent(evt)} />}
                             {activeTab === 'stats' && <StatsSection stats={stats} events={events} />}
                         </main>
@@ -1293,7 +1316,6 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                         {(isAddModalOpen || editingEvent) && <AddEventModal initialData={editingEvent} onSave={handleSaveEvent} onClose={() => { setIsAddModalOpen(false); setEditingEvent(null); }} />}
                         {(isAddScheduleModalOpen || editingSchedule) && <AddScheduleModal initialData={editingSchedule} onSave={handleSaveSchedule} onDelete={handleDeleteSchedule} onClose={() => { setIsAddScheduleModalOpen(false); setEditingSchedule(null); }} />}
                         {(isAddMerchModalOpen || editingMerchandise) && <MerchandiseModal initialData={editingMerchandise || { isNewCard: true }} onSave={handleSaveMerchandise} onDelete={handleDeleteMerchandise} onClose={() => { setIsAddMerchModalOpen(false); setEditingMerchandise(null); }} />}
-                        {editingMerchandiseItems && <MerchandiseItemsEditModal card={editingMerchandiseItems} onClose={() => setEditingMerchandiseItems(null)} onEditItem={(item) => { setEditingMerchandiseItems(null); setEditingMerchandise(item); }} onDeleteItem={(itemId) => { handleDeleteMerchandise(itemId); setEditingMerchandiseItems(prev => prev ? { ...prev, items: (prev.items || []).filter(it => it.id !== itemId) } : null); }} onAddItem={() => { const card = editingMerchandiseItems; setEditingMerchandiseItems(null); setEditingMerchandise({ cardId: card.id, itemId: `item-${Date.now()}`, item: '', amount: '', checked: true }); }} />}
                     </div>
                 );
             }
@@ -2352,6 +2374,18 @@ return (
 }
 
 
+
+// 周邊金額統一解析：支援數字、含逗號、NT$、$ 等舊資料格式
+function parseMerchAmount(value) {
+    if (typeof value === 'number' && Number.isFinite(value)) return Math.max(0, value);
+    const cleaned = String(value ?? '')
+        .replace(/NT\s*\$?/gi, '')
+        .replace(/[$,\s]/g, '')
+        .replace(/[^0-9.\-]/g, '');
+    const parsed = Number(cleaned);
+    return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+}
+
 function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
     const isNewCard = !!initialData?.isNewCard;
     const isItemEdit = !!initialData?.cardId;
@@ -2436,7 +2470,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                 items: formItems.map(fi => ({
                     id: fi.id || Date.now(),
                     item: fi.item.trim() || '未命名周邊',
-                    amount: Math.max(0, Number(fi.amount) || 0),
+                    amount: parseMerchAmount(fi.amount),
                     category: fi.category || '其他',
                     categoryIcon: getCategoryIcon(fi.category),
                     checked: true
@@ -2462,10 +2496,10 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                             <>
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-bold text-[#C5AB89]">周邊圖</label>
-                                    <button type="button" onClick={() => fileRef.current?.click()} className="w-full h-28 rounded-xl overflow-hidden border border-[#C5AB89]/40 bg-white/5 flex items-center justify-center">
+                                    <label htmlFor="merchandise-image-upload" className="w-full h-28 rounded-xl overflow-hidden border border-[#C5AB89]/40 bg-white/5 flex items-center justify-center cursor-pointer">
                                         {image ? <img src={image} alt="周邊預覽" className="w-full h-full object-cover" /> : <div className="flex flex-col items-center gap-1 text-[#A3ADA5]"><i data-lucide="image-plus" className="w-6 h-6 text-[#C5AB89]"></i><span className="text-[10px] font-bold">點擊選擇圖片並裁切</span></div>}
-                                    </button>
-                                    <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                                    </label>
+                                    <input id="merchandise-image-upload" ref={fileRef} type="file" accept="image/*" className="sr-only" onChange={handleFileChange} />
                                 </div>
 
                                 {/* 購買日期與購買通路（皆為 text 輸入框，嚴格等寬、防壓疊） */}
@@ -2612,7 +2646,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
     );
 }
 
-function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onToggle, onDelete, onEdit, onOpenItemsEditor }) {
+function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onToggle, onDelete, onEdit }) {
     const [flipped, setFlipped] = useState(false);
     const image = card.image || '';
     const stop = e => e.stopPropagation();
@@ -2622,80 +2656,53 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
             <div className="merch-flip-inner">
                 <div className="merch-flip-face merch-v2-front bg-[#232B25]/90 backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
                     <div className="flex items-start gap-3">
-                        {/* 左側圖片 */}
                         <div className="merch-crop-preview rounded-2xl overflow-hidden bg-white/5 shrink-0 flex items-center justify-center border border-[#C5AB89]/30">
                             {image ? <img src={image} alt="周邊圖" className="w-full h-full object-cover" /> : <i data-lucide="image" className="w-8 h-8 text-[#737C75]"></i>}
                         </div>
-                        
-                        {/* 右側資訊區塊 */}
-                        <div className="flex-1 min-w-0 flex flex-col justify-between h-[132px]">
-                            {/* 第一行：左側（購買日期、通路）與 右上角（花費總金額） */}
-                            <div className="flex items-start justify-between gap-2">
-                                <div className="space-y-0.5 min-w-0">
-                                    <div><div className="text-[9px] text-[#A3ADA5] font-bold">購買日期</div><div className="text-xs font-black">{dateText}</div></div>
-                                    <div><div className="text-[9px] text-[#A3ADA5] font-bold">購買通路</div><div className="text-[11px] text-[#EFF0EA] font-bold truncate">{card.purchaseChannel || '未設定'}</div></div>
+                        <div className="merch-front-info flex-1 min-w-0 flex flex-col justify-between h-[132px] overflow-hidden">
+                            <div className="min-w-0">
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="space-y-0.5 min-w-0">
+                                        <div><div className="text-[9px] text-[#A3ADA5] font-bold">購買日期</div><div className="text-xs font-black truncate">{dateText}</div></div>
+                                        <div><div className="text-[9px] text-[#A3ADA5] font-bold">購買通路</div><div className="text-[11px] text-[#EFF0EA] font-bold truncate">{card.purchaseChannel || '未設定'}</div></div>
+                                    </div>
+                                    <div className="text-right shrink-0"><div className="text-[9px] text-[#A3ADA5] font-bold">花費總金額</div><div className="text-sm sm:text-base text-[#C5AB89] font-black font-mono leading-tight">{formatMoney(total)}</div></div>
                                 </div>
-                                <div className="text-right shrink-0">
-                                    <div className="text-[9px] text-[#A3ADA5] font-bold">花費總金額</div>
-                                    <div className="text-sm sm:text-base text-[#C5AB89] font-black font-mono leading-tight">{formatMoney(total)}</div>
-                                </div>
+                                {card.memorialPhrase && <div className="merch-memory-phrase text-[10px] text-[#CCB9AA] font-extrabold truncate my-1">{card.memorialPhrase}</div>}
                             </div>
-
-                            {/* 第二行：短語紀念（如果有填寫才顯示） */}
-                            {card.memorialPhrase && (
-                                <div className="merch-memory-phrase text-[10px] text-[#CCB9AA] italic truncate my-0.5">
-                                    {card.memorialPhrase}
-                                </div>
-                            )}
-
-                            {/* 第三行：分類標籤 與 編輯按鈕排在同一行 */}
-                            <div className="flex items-center justify-between gap-2 pt-1">
-                                <div className="min-w-0">
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#C5AB89]/15 border border-[#C5AB89]/25 text-[9px] font-bold max-w-full">
-                                        <img src={card.categoryIcon || './image/icons/crown.png'} alt="分類" className="w-3.5 h-3.5 object-contain shrink-0" />
-                                        <span className="truncate">{card.category || '其他'}</span>
-                                    </span>
-                                </div>
-                                <button type="button" onClick={editCard} className="w-7 h-7 rounded-full bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow-lg shrink-0" title="編輯周邊紀錄">
-                                    <i data-lucide="pencil" className="w-3.5 h-3.5"></i>
-                                </button>
+                            <div className="flex items-center justify-between gap-2 pt-1 min-w-0">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#C5AB89]/15 border border-[#C5AB89]/25 text-[9px] font-bold max-w-[75%] min-w-0">
+                                    <img src={card.categoryIcon || './image/icons/crown.png'} alt="分類" className="w-3.5 h-3.5 object-contain shrink-0" />
+                                    <span className="truncate">{card.category || '其他'}</span>
+                                </span>
+                                <button type="button" onClick={editCard} className="w-7 h-7 rounded-full bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow-lg shrink-0" title="編輯周邊紀錄"><i data-lucide="pencil" className="w-3.5 h-3.5"></i></button>
                             </div>
                         </div>
                     </div>
                 </div>
-
                 <div className="merch-flip-face merch-v2-back merch-flip-back bg-[#232B25]/95 backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
-                    <div className="hidden"></div>
-                    <div className="space-y-1.5 max-h-[150px] overflow-y-auto no-scrollbar">
-                        {items.map(item => <div key={item.id} className="flex items-center gap-2 px-2.5 py-2 rounded-xl bg-white/[0.045] border border-white/10"><input type="checkbox" checked={!!item.checked} onChange={e => { e.stopPropagation(); onToggle(card.id, item.id); }} onClick={stop} className="w-4 h-4 accent-[#C5AB89] shrink-0" /><div className="min-w-0 flex-1"><div className={`text-[10px] font-extrabold truncate ${item.checked ? 'text-[#EFF0EA]' : 'text-[#A3ADA5] line-through'}`}>{item.item || '未命名周邊'}</div></div><div className="text-[10px] text-[#C5AB89] font-black font-mono">{formatMoney(item.amount)}</div></div>)}
+                    <div className="merch-back-items-grid no-scrollbar">
+                        {items.map(item => (
+                            <div key={item.id} className="flex items-center gap-1.5 px-2 py-1.5 min-w-0 rounded-xl bg-white/[0.045] border border-white/10">
+                                <input type="checkbox" checked={!!item.checked} onChange={e => { e.stopPropagation(); onToggle(card.id, item.id); }} onClick={stop} className="w-3.5 h-3.5 accent-[#C5AB89] shrink-0" />
+                                <div className="min-w-0 flex-1"><div className={`text-[10px] font-extrabold truncate ${item.checked ? 'text-[#EFF0EA]' : 'text-[#A3ADA5] line-through'}`}>{item.item || '未命名周邊'}</div></div>
+                                <div className="text-[9px] text-[#C5AB89] font-black font-mono shrink-0">{formatMoney(item.amount)}</div>
+                            </div>
+                        ))}
                     </div>
-                    <div className="merch-category-footer flex items-center justify-between">
-                       <div className="merch-category-summary text-[9px] text-[#A3ADA5] font-bold flex items-center gap-1.5 min-w-0">
-                           <img 
-                              src={card.categoryIcon || './image/icons/crown.png'} 
-                              alt="分類" 
-                              className="w-3.5 h-3.5 object-contain shrink-0" 
-                            />
-                           <span className="truncate">
-                           {card.category || 'other'} {items.length} 項
-                        </span>
+                    <div className="merch-category-footer flex items-center justify-between shrink-0">
+                        <div className="merch-category-summary text-[9px] text-[#A3ADA5] font-bold flex items-center gap-1.5 min-w-0">
+                            <img src={card.categoryIcon || './image/icons/crown.png'} alt="分類" className="w-3.5 h-3.5 object-contain shrink-0" />
+                            <span className="truncate">{card.category || '其他'} {items.length} 項</span>
+                        </div>
                     </div>
-                <button 
-                    type="button" 
-                    onClick={e => { stop(e); onOpenItemsEditor(card); }} 
-                    className="w-8 h-8 rounded-full bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow-lg shrink-0" 
-                    title="編輯全部周邊"
-                >
-                    <i data-lucide="pencil" className="w-4 h-4"></i>
-                </button>
-            </div>
                 </div>
             </div>
         </div>
     );
 }
 
-            function ScheduleSection({ activePanel = 'tickets', schedules, merchandiseLogs, onDelete, onEdit, onSaveSchedule, onToggleMerchandise, onDeleteMerchandise, onEditMerchandise, onOpenAddModal, onOpenMerchandiseModal, onOpenItemsEditor }) {
+function ScheduleSection({ activePanel = 'tickets', schedules, merchandiseLogs, onDelete, onEdit, onSaveSchedule, onToggleMerchandise, onDeleteMerchandise, onEditMerchandise, onOpenAddModal, onOpenMerchandiseModal }) {
     const STATUS_CYCLE = ['即將開賣', '售票中', '已完售'];
 
     const handleCycleStatus = (sch, e) => {
@@ -2710,7 +2717,7 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
         [merchandiseLogs]
     );
 
-    const formatMoney = (value) => `NT$ ${Number(value || 0).toLocaleString()}`;
+    const formatMoney = (value) => `NT$ ${parseMerchAmount(value).toLocaleString()}`;
 
 return (
     <div className="p-4 pb-12 space-y-3.5">
@@ -2847,7 +2854,7 @@ return (
                 ) : (
                     merchandiseLogs.map(card => {
                         const items = card.items || [];
-                        const total = items.filter(item => item.checked).reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+                        const total = items.filter(item => item.checked).reduce((sum, item) => sum + parseMerchAmount(item.amount), 0);
                         const dateText = card.purchaseDate || '未設定日期';
                         return (
                             <MerchandiseFlipCard
@@ -2860,7 +2867,6 @@ return (
                                 onToggle={onToggleMerchandise}
                                 onDelete={onDeleteMerchandise}
                                 onEdit={(target) => onEditMerchandise(target)}
-                                onOpenItemsEditor={onOpenItemsEditor}
                             />
                         );
                     })

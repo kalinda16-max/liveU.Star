@@ -2352,138 +2352,265 @@ return (
 }
 
 
-            function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
-                const isNewCard = !!initialData?.isNewCard;
-                const isItemEdit = !!initialData?.cardId;
-                const isCardEdit = !!initialData?.id && !isItemEdit && !isNewCard;
-                const [item, setItem] = useState(initialData?.item || '');
-                const [amount, setAmount] = useState(initialData?.amount ?? '');
-                const [image, setImage] = useState(initialData?.image || '');
-                const [purchaseDate, setPurchaseDate] = useState(initialData?.purchaseDate || new Date().toISOString().slice(0, 10));
-                const [purchaseChannel, setPurchaseChannel] = useState(initialData?.purchaseChannel || '');
-                const [category, setCategory] = useState(initialData?.category || '其他');
-                const [memorialPhrase, setMemorialPhrase] = useState(initialData?.memorialPhrase || '');
-                const [checked, setChecked] = useState(initialData?.checked !== false);
-                const [cropSource, setCropSource] = useState(null);
-                const fileRef = useRef(null);
+function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
+    const isNewCard = !!initialData?.isNewCard;
+    const isItemEdit = !!initialData?.cardId;
+    
+    // 表單基本欄位 State
+    const [image, setImage] = useState(initialData?.image || '');
+    const [purchaseDate, setPurchaseDate] = useState(initialData?.purchaseDate || new Date().toISOString().slice(0, 10));
+    const [purchaseChannel, setPurchaseChannel] = useState(initialData?.purchaseChannel || '');
+    const [memorialPhrase, setMemorialPhrase] = useState(initialData?.memorialPhrase || '');
+    
+    // 單一項目編輯用的 State (針對 isItemEdit)
+    const [item, setItem] = useState(initialData?.item || '');
+    const [amount, setAmount] = useState(initialData?.amount ?? '');
+    const [itemCategory, setItemCategory] = useState(initialData?.category || '其他');
 
-                const handleFileChange = (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = (evt) => setCropSource(evt.target.result);
-                    reader.readAsDataURL(file);
-                    e.target.value = '';
-                };
+    // 多筆項目列表管理的 State（每個項目包含名稱、金額與獨立分類）
+    const [formItems, setFormItems] = useState(() => {
+        if (initialData?.items && initialData.items.length > 0) {
+            return initialData.items.map(i => ({ 
+                id: i.id || Date.now(), 
+                item: i.item || '', 
+                amount: i.amount ?? '',
+                category: i.category || '其他'
+            }));
+        }
+        if (initialData?.item) {
+            return [{ 
+                id: Date.now(), 
+                item: initialData.item, 
+                amount: initialData.amount ?? '',
+                category: initialData.category || '其他'
+            }];
+        }
+        return [{ id: Date.now(), item: '', amount: '', category: '其他' }];
+    });
 
-                const handleSubmit = (e) => {
-                    e.preventDefault();
-                    if (isItemEdit) {
-                        onSave({
-                            cardId: initialData.cardId,
-                            itemId: initialData.itemId || initialData.id,
-                            itemAction: 'save',
-                            item: item.trim() || '未命名周邊',
-                            amount: Math.max(0, Number(amount) || 0),
-                            checked
-                        });
-                    } else {
-                        onSave({
-                            id: initialData?.id || null,
-                            ...(isCardEdit ? {} : {
-                                itemId: initialData?.itemId || null,
-                                item: item.trim() || '未命名周邊',
-                                amount: Math.max(0, Number(amount) || 0),
-                                checked
-                            }),
-                            image,
-                            purchaseDate,
-                            purchaseChannel,
-                            category,
-                            categoryIcon: './image/icons/crown.png',
-                            memorialPhrase
-                        });
-                    }
-                    onClose();
-                };
+    const [cropSource, setCropSource] = useState(null);
+    const fileRef = useRef(null);
 
-                return (
-                    <>
-                        <div className="modal-overlay bg-black/85 flex items-center justify-center p-4 pt-14 pb-20 z-[999999]">
-                            <div className="bg-[#232B25]/95 backdrop-blur-2xl text-[#EFF0EA] w-full max-w-sm rounded-3xl p-4 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40 space-y-3 max-h-[88vh] flex flex-col">
-                                <div className="flex items-center justify-between pb-1 shrink-0">
-                                    <h3 className="font-extrabold text-sm text-[#C5AB89] flex items-center gap-1.5">
-                                        <i data-lucide="shopping-bag" className="w-4 h-4"></i>
-                                        {isItemEdit ? '編輯周邊項目' : isNewCard ? '新增周邊紀錄' : '編輯周邊紀錄'}
-                                    </h3>
-                                    <button type="button" onClick={onClose} className="w-7 h-7 rounded-xl bg-white/5 flex items-center justify-center">
-                                        <i data-lucide="x" className="w-4 h-4"></i>
+    const handleFileChange = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => setCropSource(evt.target.result);
+        reader.readAsDataURL(file);
+        e.target.value = '';
+    };
+
+    // 根據分類名稱自動對應動態 Icon 的輔助函式
+    const getCategoryIcon = (cat) => {
+        if (!cat) return './image/icons/crown.png';
+        if (cat.includes('服') || cat.includes('衣') || cat.includes('穿') || cat.includes('帽')) return './image/icons/shirt.png';
+        if (cat.includes('應援') || cat.includes('燈') || cat.includes('棒') || cat.includes('手幅')) return './image/icons/lightstick.png';
+        if (cat.includes('卡') || cat.includes('小卡') || cat.includes('照片')) return './image/icons/card.png';
+        if (cat.includes('專輯') || cat.includes('CD') || cat.includes('音樂') || cat.includes('DVD')) return './image/icons/album.png';
+        return './image/icons/crown.png';
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (isItemEdit) {
+            onSave({
+                cardId: initialData.cardId,
+                itemId: initialData.itemId || initialData.id,
+                itemAction: 'save',
+                item: item.trim() || '未命名周邊',
+                amount: Math.max(0, Number(amount) || 0),
+                category: itemCategory,
+                categoryIcon: getCategoryIcon(itemCategory)
+            });
+        } else {
+            // 以第一個項目的分類作為卡片主要代表分類
+            const firstCat = formItems[0]?.category || '其他';
+            onSave({
+                id: initialData?.id || null,
+                image,
+                purchaseDate,
+                purchaseChannel,
+                category: firstCat,
+                categoryIcon: getCategoryIcon(firstCat),
+                memorialPhrase,
+                items: formItems.map(fi => ({
+                    id: fi.id || Date.now(),
+                    item: fi.item.trim() || '未命名周邊',
+                    amount: Math.max(0, Number(fi.amount) || 0),
+                    category: fi.category || '其他',
+                    categoryIcon: getCategoryIcon(fi.category),
+                    checked: true
+                }))
+            });
+        }
+        onClose();
+    };
+
+    return (
+        <>
+            <div className="modal-overlay bg-black/85 flex items-center justify-center p-4 pt-14 pb-20 z-[999999]">
+                <div className="bg-[#232B25]/95 backdrop-blur-2xl text-[#EFF0EA] w-full max-w-sm rounded-3xl p-4 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40 space-y-3 max-h-[88vh] flex flex-col">
+                    <div className="flex items-center justify-between pb-1 shrink-0">
+                        <h3 className="font-extrabold text-sm text-[#C5AB89] flex items-center gap-1.5">
+                            <i data-lucide="shopping-bag" className="w-4 h-4"></i>
+                            {isItemEdit ? '編輯周邊項目' : isNewCard ? '新增周邊紀錄' : '編輯周邊紀錄'}
+                        </h3>
+                        <button type="button" onClick={onClose} className="w-7 h-7 rounded-xl bg-white/5 flex items-center justify-center">
+                            <i data-lucide="x" className="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar">
+                        {!isItemEdit && (
+                            <>
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-[#C5AB89]">周邊圖</label>
+                                    <button type="button" onClick={() => fileRef.current?.click()} className="w-full h-36 rounded-2xl overflow-hidden border border-[#C5AB89]/40 bg-white/5 flex items-center justify-center">
+                                        {image ? <img src={image} alt="周邊預覽" className="w-full h-full object-cover" /> : <div className="flex flex-col items-center gap-2 text-[#A3ADA5]"><i data-lucide="image-plus" className="w-8 h-8 text-[#C5AB89]"></i><span className="text-[10px] font-bold">點擊選擇圖片並裁切</span></div>}
+                                    </button>
+                                    <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                                </div>
+
+                                {/* 購買日期與購買通路（大小長寬高一致） */}
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div className="space-y-1">
+                                        <label className="text-[11px] font-bold text-[#C5AB89]">購買日期</label>
+                                        <input type="date" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} className="w-full h-10 bg-white/5 text-[#EFF0EA] px-3 py-2.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[11px] font-bold text-[#C5AB89]">購買通路</label>
+                                        <input type="text" value={purchaseChannel} onChange={e => setPurchaseChannel(e.target.value)} placeholder="例如：官方網站" className="w-full h-10 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none" />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-[#C5AB89]">短語紀念</label>
+                                    <input type="text" value={memorialPhrase} onChange={e => setMemorialPhrase(e.target.value)} placeholder="留下這次購買的紀念短語" className="w-full bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none" />
+                                </div>
+                            </>
+                        )}
+
+                        {/* 如果是單一項目編輯 (isItemEdit) */}
+                        {isItemEdit && (
+                            <>
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-[#C5AB89]">項目名稱</label>
+                                    <input type="text" value={item} onChange={e => setItem(e.target.value)} required className="w-full h-10 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none" placeholder="例如：應援毛巾" />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-[#C5AB89]">品項分類</label>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-10 h-10 rounded-xl bg-white/5 border border-[#C5AB89]/30 flex items-center justify-center shrink-0">
+                                            <img src={getCategoryIcon(itemCategory)} alt="分類" className="w-6 h-6 object-contain" />
+                                        </div>
+                                        <input type="text" value={itemCategory} onChange={e => setItemCategory(e.target.value)} placeholder="例如：服飾、應援、小卡" className="flex-1 h-10 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none" />
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-[#C5AB89]">金額</label>
+                                    <input type="number" min="0" step="1" value={amount} onChange={e => setAmount(e.target.value)} required className="w-full h-10 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" placeholder="0" />
+                                </div>
+                            </>
+                        )}
+
+                        {/* 如果是新增或整場編輯，顯示多筆項目列表管理 */}
+                        {!isItemEdit && (
+                            <div className="space-y-2 pt-1">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[11px] font-bold text-[#C5AB89]">周邊項目與分類列表</label>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setFormItems([...formItems, { id: Date.now(), item: '', amount: '', category: 'other' }])}
+                                        className="text-[#C5AB89] hover:opacity-80 p-1 flex items-center justify-center transition-opacity"
+                                        title="新增一項"
+                                    >
+                                        <i data-lucide="plus" className="w-4 h-4"></i>
                                     </button>
                                 </div>
 
-                                <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar">
-                                    {!isItemEdit && (
-                                        <>
-                                            <div className="space-y-1">
-                                                <label className="text-[11px] font-bold text-[#C5AB89]">周邊圖</label>
-                                                <button type="button" onClick={() => fileRef.current?.click()} className="w-full h-36 rounded-2xl overflow-hidden border border-[#C5AB89]/40 bg-white/5 flex items-center justify-center">
-                                                    {image ? <img src={image} alt="周邊預覽" className="w-full h-full object-cover" /> : <div className="flex flex-col items-center gap-2 text-[#A3ADA5]"><i data-lucide="image-plus" className="w-8 h-8 text-[#C5AB89]"></i><span className="text-[10px] font-bold">點擊選擇圖片並裁切</span></div>}
-                                                </button>
-                                                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <div className="space-y-1">
-                                                    <label className="text-[11px] font-bold text-[#C5AB89]">購買日期</label>
-                                                    <input type="date" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} className="w-full bg-white/5 text-[#EFF0EA] px-3 py-2.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none" />
+                                <div className="space-y-2 max-h-52 overflow-y-auto no-scrollbar">
+                                    {formItems.map((fi, index) => (
+                                        <div key={fi.id} className="bg-white/5 p-2.5 rounded-2xl border border-[#C5AB89]/30 space-y-1.5">
+                                            {/* 第一行：項目名稱在左，分類在右 */}
+                                            <div className="flex items-center gap-2">
+                                                <input 
+                                                    type="text" 
+                                                    value={fi.item} 
+                                                    onChange={e => {
+                                                        const updated = [...formItems];
+                                                        updated[index].item = e.target.value;
+                                                        setFormItems(updated);
+                                                    }} 
+                                                    placeholder="項目名稱 (例如：應援毛巾)" 
+                                                    className="flex-1 bg-transparent text-[#EFF0EA] placeholder-[#A3ADA5] text-xs focus:outline-none px-1" 
+                                                    required 
+                                                />
+                                                <div className="w-7 h-7 rounded-xl bg-white/5 border border-[#C5AB89]/30 flex items-center justify-center shrink-0">
+                                                    <img src={getCategoryIcon(fi.category)} alt="分類" className="w-3.5 h-3.5 object-contain" />
                                                 </div>
-                                                <div className="space-y-1">
-                                                    <label className="text-[11px] font-bold text-[#C5AB89]">購買通路</label>
-                                                    <input type="text" value={purchaseChannel} onChange={e => setPurchaseChannel(e.target.value)} placeholder="例如：官方網站" className="w-full bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none" />
-                                                </div>
+                                                <input 
+                                                    type="text" 
+                                                    value={fi.category} 
+                                                    onChange={e => {
+                                                        const updated = [...formItems];
+                                                        updated[index].category = e.target.value;
+                                                        setFormItems(updated);
+                                                    }} 
+                                                    placeholder="分類" 
+                                                    className="w-20 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2 py-1.5 rounded-xl text-xs border border-[#C5AB89]/30 focus:outline-none" 
+                                                />
+                                                {formItems.length > 1 && (
+                                                    <button 
+                                                        type="button" 
+                                                        onClick={() => setFormItems(formItems.filter(item => item.id !== fi.id))} 
+                                                        className="w-7 h-7 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center shrink-0"
+                                                        title="移除此項"
+                                                    >
+                                                        <i data-lucide="x" className="w-3.5 h-3.5"></i>
+                                                    </button>
+                                                )}
                                             </div>
-
-                                            <div className="space-y-1">
-                                                <label className="text-[11px] font-bold text-[#C5AB89]">品項分類</label>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-10 h-10 rounded-xl bg-white/5 border border-[#C5AB89]/30 flex items-center justify-center shrink-0"><img src="./image/icons/crown.png" alt="分類" className="w-6 h-6 object-contain" /></div>
-                                                    <input type="text" value={category} onChange={e => setCategory(e.target.value)} placeholder="例如：服飾、應援、收藏" className="flex-1 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none" />
-                                                </div>
-                                                <p className="text-[9px] text-[#A3ADA5]">分類標籤 icon：./image/icons/crown.png</p>
+                                            {/* 第二行：金額手動輸入 */}
+                                            <div className="flex items-center gap-2 pt-0.5">
+                                                <span className="text-[10px] font-bold text-[#C5AB89]">金額：</span>
+                                                <input 
+                                                    type="number" 
+                                                    min="0" 
+                                                    step="1" 
+                                                    value={fi.amount} 
+                                                    onChange={e => {
+                                                        const updated = [...formItems];
+                                                        updated[index].amount = e.target.value;
+                                                        setFormItems(updated);
+                                                    }} 
+                                                    placeholder="0" 
+                                                    className="flex-1 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1 rounded-lg text-xs border border-[#C5AB89]/30 focus:outline-none font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                                                    required 
+                                                />
                                             </div>
-
-                                            <div className="space-y-1">
-                                                <label className="text-[11px] font-bold text-[#C5AB89]">短語紀念</label>
-                                                <input type="text" value={memorialPhrase} onChange={e => setMemorialPhrase(e.target.value)} placeholder="留下這次購買的紀念短語" className="w-full bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none" />
-                                            </div>
-                                        </>
-                                    )}
-
-                                    {(isNewCard || isItemEdit) && <div className="space-y-1">
-                                        <label className="text-[11px] font-bold text-[#C5AB89]">項目</label>
-                                        <input type="text" value={item} onChange={e => setItem(e.target.value)} required className="w-full bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none" placeholder="例如：應援毛巾" />
-                                    </div>}
-                                    {(isNewCard || isItemEdit) && <div className="space-y-1">
-                                        <label className="text-[11px] font-bold text-[#C5AB89]">金額</label>
-                                        <input type="number" min="0" step="1" value={amount} onChange={e => setAmount(e.target.value)} required className="w-full bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none" placeholder="0" />
-                                    </div>}
-                                    {(isNewCard || isItemEdit) && <label className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 cursor-pointer">
-                                        <input type="checkbox" checked={checked} onChange={e => setChecked(e.target.checked)} className="w-4 h-4 accent-[#C5AB89]" />
-                                        <span className="text-[11px] font-bold text-[#EFF0EA]">項目已購買，計入正面總金額</span>
-                                    </label>}
-
-                                    <div className="flex gap-2 pt-2">
-                                        {!isNewCard && !isItemEdit && initialData?.id && <button type="button" onClick={() => { onDelete(initialData.id); onClose(); }} className="py-2.5 px-3 rounded-xl bg-red-600/90 text-white font-bold text-xs">刪除整場</button>}
-                                        <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-white/10 text-[#EFF0EA] text-xs font-bold border border-white/10">取消</button>
-                                        <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-black">{isItemEdit ? '儲存修改' : isNewCard ? '確認新增' : '儲存修改'}</button>
-                                    </div>
-                                </form>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
+                        )}
+
+                        {/* 底部按鈕順序：儲存修改、刪除整場（icon）、取消 */}
+                        <div className="flex gap-2 pt-3 items-center">
+                            <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-black">儲存修改</button>
+                            {!isNewCard && !isItemEdit && initialData?.id && (
+                                <button type="button" onClick={() => { onDelete(initialData.id); onClose(); }} className="w-10 h-10 rounded-xl bg-red-600/90 text-white flex items-center justify-center shrink-0 shadow-lg" title="刪除整場">
+                                    <i data-lucide="trash-2" className="w-4 h-4"></i>
+                                </button>
+                            )}
+                            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-white/10 text-[#EFF0EA] text-xs font-bold border border-white/10">取消</button>
                         </div>
-                        {cropSource && <ImageCropperModal imageSrc={cropSource} initialAspectRatio={1} fixedCropSize={132} onConfirm={(croppedUrl) => { setImage(croppedUrl); setCropSource(null); }} onCancel={() => setCropSource(null)} />}
-                    </>
-                );
-            }
+                    </form>
+                </div>
+            </div>
+            {cropSource && <ImageCropperModal imageSrc={cropSource} initialAspectRatio={1} fixedCropSize={132} onConfirm={(croppedUrl) => { setImage(croppedUrl); setCropSource(null); }} onCancel={() => setCropSource(null)} />}
+        </>
+    );
+}
 
             function MerchandiseItemsEditModal({ card, onClose, onEditItem, onDeleteItem, onAddItem }) {
                 const items = card.items || [];

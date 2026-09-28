@@ -185,13 +185,13 @@
         .merch-flip-card {
             perspective: 1200px;
             width: 100%;
-            min-height: 220px;
+            min-height: 160px;
             cursor: pointer;
         }
         .merch-flip-inner {
             position: relative;
             width: 100%;
-            min-height: 220px;
+            min-height: 160px;
             transform-style: preserve-3d;
             transition: transform 0.55s cubic-bezier(.2,.75,.25,1);
         }
@@ -202,7 +202,7 @@
             position: absolute;
             inset: 0;
             width: 100%;
-            min-height: 220px;
+            min-height: 160px;
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
         }
@@ -228,16 +228,27 @@
 
     </style>
 <style id="merchandise-v2-adjustments">
-/* 僅周邊翻頁卡片：正面資訊縮在周邊圖同高範圍 */
-.merch-flip-face.merch-v2-front > .merch-front-row{height:132px;min-height:132px;max-height:132px;align-items:stretch;}
-.merch-flip-face.merch-v2-front .merch-crop-preview{width:132px;height:132px;}
-.merch-flip-face.merch-v2-front .merch-front-info{height:132px;min-height:132px;max-height:132px;overflow:hidden;}
-.merch-flip-face.merch-v2-front .merch-memory-phrase{font-style:normal !important;font-weight:800 !important;}
-.merch-flip-face.merch-v2-front .merch-memory-phrase::before,.merch-flip-face.merch-v2-front .merch-memory-phrase::after{content:none !important;}
+/* 僅周邊翻頁卡片：正面資訊高度自適應，與左側周邊圖一致 */
+.merch-flip-face.merch-v2-front > .merch-front-row{display: flex; align-items: stretch; height: auto;}
+.merch-flip-face.merch-v2-front .merch-crop-preview{width: 132px; height: 132px; flex-shrink: 0;}
+
+/* 修改這裡：將 height 改為 132px（或 100%），移除 min-height */
+.merch-flip-face.merch-v2-front .merch-front-info{
+    flex: 1; 
+    height: 132px; /* 強制鎖定高度與左側相同 */
+    display: flex; 
+    flex-direction: column; 
+    justify-content: space-between; 
+    overflow: hidden;
+}
+
+.merch-flip-face.merch-v2-front .merch-memory-phrase{font-style: normal !important; font-weight: 800 !important;}
+.merch-flip-face.merch-v2-front .merch-memory-phrase::before, .merch-flip-face.merch-v2-front .merch-memory-phrase::after{content: none !important;}
+
 /* 背面：隱藏標題與合計，分類統計和編輯 icon 同列於左下／右下 */
-.merch-flip-face.merch-v2-back .merch-back-title{display:none !important;}
-.merch-flip-face.merch-v2-back .merch-back-total-row{display:none !important;}
-.merch-flip-face.merch-v2-back .merch-category-footer{position:absolute;left:14px;bottom:12px;right:14px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.merch-flip-face.merch-v2-back .merch-back-title{display: none !important;}
+.merch-flip-face.merch-v2-back .merch-back-total-row{display: none !important;}
+.merch-flip-face.merch-v2-back .merch-category-footer{position: absolute; left: 14px; bottom: 12px; right: 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px;}
 </style>
 </head>
 <body class="bg-[#161D15] text-[#EFF0EA] font-sans antialiased h-full select-none overflow-hidden max-w-[100vw]">
@@ -2500,43 +2511,88 @@ return (
                 );
             }
 
-            function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onToggle, onDelete, onEdit, onOpenItemsEditor }) {
-                const [flipped, setFlipped] = useState(false);
-                const image = card.image || '';
-                const stop = e => e.stopPropagation();
-                const editCard = (e) => { stop(e); onEdit(card); };
-                return (
-                    <div className={`merch-flip-card ${flipped ? 'is-flipped' : ''}`} onClick={() => setFlipped(v => !v)} role="button" tabIndex={0} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFlipped(v => !v); } }}>
-                        <div className="merch-flip-inner">
-                            <div className="merch-flip-face bg-[#232B25]/90 backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
-                                <div className="flex items-center gap-3 h-full min-h-[192px]">
-                                    <div className="merch-crop-preview rounded-2xl overflow-hidden bg-white/5 shrink-0 flex items-center justify-center border border-[#C5AB89]/30">
-                                        {image ? <img src={image} alt="周邊圖" /> : <i data-lucide="image" className="w-8 h-8 text-[#737C75]"></i>}
-                                    </div>
-                                    <div className="min-w-0 flex-1 self-stretch flex flex-col justify-between py-1">
-                                        <div className="space-y-1.5">
-                                            <div><div className="text-[9px] text-[#A3ADA5] font-bold">購買日期</div><div className="text-sm font-black">{dateText}</div></div>
-                                            <div><div className="text-[9px] text-[#A3ADA5] font-bold">購買通路</div><div className="text-[11px] text-[#EFF0EA] font-bold truncate">{card.purchaseChannel || '未設定'}</div></div>
-                                            <div className="flex items-center gap-1.5"><span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#C5AB89]/15 border border-[#C5AB89]/25 text-[9px] font-bold max-w-full"><img src={card.categoryIcon || './image/icons/crown.png'} alt="分類" className="w-3.5 h-3.5 object-contain" /><span className="truncate">{card.category || '其他'}</span></span></div>
-                                            {card.memorialPhrase && <div className="text-[10px] text-[#CCB9AA] italic line-clamp-2">「{card.memorialPhrase}」</div>}
-                                        </div>
-                                        <div><div className="text-[9px] text-[#A3ADA5] font-bold">花費總金額</div><div className="text-xl text-[#C5AB89] font-black font-mono">{formatMoney(total)}</div></div>
-                                    </div>
-                                    <button type="button" onClick={editCard} className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow-lg z-20" title="編輯周邊紀錄"><i data-lucide="pencil" className="w-4 h-4"></i></button>
+function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onToggle, onDelete, onEdit, onOpenItemsEditor }) {
+    const [flipped, setFlipped] = useState(false);
+    const image = card.image || '';
+    const stop = e => e.stopPropagation();
+    const editCard = (e) => { stop(e); onEdit(card); };
+    return (
+        <div className={`merch-flip-card ${flipped ? 'is-flipped' : ''}`} onClick={() => setFlipped(v => !v)} role="button" tabIndex={0} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFlipped(v => !v); } }}>
+            <div className="merch-flip-inner">
+                <div className="merch-flip-face merch-v2-front bg-[#232B25]/90 backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
+                    <div className="flex items-start gap-3">
+                        {/* 左側圖片 */}
+                        <div className="merch-crop-preview rounded-2xl overflow-hidden bg-white/5 shrink-0 flex items-center justify-center border border-[#C5AB89]/30">
+                            {image ? <img src={image} alt="周邊圖" className="w-full h-full object-cover" /> : <i data-lucide="image" className="w-8 h-8 text-[#737C75]"></i>}
+                        </div>
+                        
+                        {/* 右側資訊區塊 */}
+                        <div className="flex-1 min-w-0 flex flex-col justify-between h-[132px]">
+                            {/* 第一行：左側（購買日期、通路）與 右上角（花費總金額） */}
+                            <div className="flex items-start justify-between gap-2">
+                                <div className="space-y-0.5 min-w-0">
+                                    <div><div className="text-[9px] text-[#A3ADA5] font-bold">購買日期</div><div className="text-xs font-black">{dateText}</div></div>
+                                    <div><div className="text-[9px] text-[#A3ADA5] font-bold">購買通路</div><div className="text-[11px] text-[#EFF0EA] font-bold truncate">{card.purchaseChannel || '未設定'}</div></div>
+                                </div>
+                                <div className="text-right shrink-0">
+                                    <div className="text-[9px] text-[#A3ADA5] font-bold">花費總金額</div>
+                                    <div className="text-sm sm:text-base text-[#C5AB89] font-black font-mono leading-tight">{formatMoney(total)}</div>
                                 </div>
                             </div>
 
-                            <div className="merch-flip-face merch-v2-back merch-flip-back bg-[#232B25]/95 backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
-                                <div className="hidden"></div>
-                                <div className="space-y-1.5 max-h-[150px] overflow-y-auto no-scrollbar">
-                                    {items.map(item => <div key={item.id} className="flex items-center gap-2 px-2.5 py-2 rounded-xl bg-white/[0.045] border border-white/10"><input type="checkbox" checked={!!item.checked} onChange={e => { e.stopPropagation(); onToggle(card.id, item.id); }} onClick={stop} className="w-4 h-4 accent-[#C5AB89] shrink-0" /><div className="min-w-0 flex-1"><div className={`text-[10px] font-extrabold truncate ${item.checked ? 'text-[#EFF0EA]' : 'text-[#A3ADA5] line-through'}`}>{item.item || '未命名周邊'}</div></div><div className="text-[10px] text-[#C5AB89] font-black font-mono">{formatMoney(item.amount)}</div></div>)}
+                            {/* 第二行：短語紀念（如果有填寫才顯示） */}
+                            {card.memorialPhrase && (
+                                <div className="merch-memory-phrase text-[10px] text-[#CCB9AA] italic truncate my-0.5">
+                                    {card.memorialPhrase}
                                 </div>
-                                <div className="merch-category-footer"><div className="merch-category-summary text-[9px] text-[#A3ADA5] font-bold">品項分類統計：{card.category || '其他'} ・ {items.length} 項</div><button type="button" onClick={e => { stop(e); onOpenItemsEditor(card); }} className="w-8 h-8 rounded-full bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow-lg shrink-0" title="編輯全部周邊"><i data-lucide="pencil" className="w-4 h-4"></i></button></div>
+                            )}
+
+                            {/* 第三行：分類標籤 與 編輯按鈕排在同一行 */}
+                            <div className="flex items-center justify-between gap-2 pt-1">
+                                <div className="min-w-0">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#C5AB89]/15 border border-[#C5AB89]/25 text-[9px] font-bold max-w-full">
+                                        <img src={card.categoryIcon || './image/icons/crown.png'} alt="分類" className="w-3.5 h-3.5 object-contain shrink-0" />
+                                        <span className="truncate">{card.category || '其他'}</span>
+                                    </span>
+                                </div>
+                                <button type="button" onClick={editCard} className="w-7 h-7 rounded-full bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow-lg shrink-0" title="編輯周邊紀錄">
+                                    <i data-lucide="pencil" className="w-3.5 h-3.5"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
-                );
-            }
+                </div>
+
+                <div className="merch-flip-face merch-v2-back merch-flip-back bg-[#232B25]/95 backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
+                    <div className="hidden"></div>
+                    <div className="space-y-1.5 max-h-[150px] overflow-y-auto no-scrollbar">
+                        {items.map(item => <div key={item.id} className="flex items-center gap-2 px-2.5 py-2 rounded-xl bg-white/[0.045] border border-white/10"><input type="checkbox" checked={!!item.checked} onChange={e => { e.stopPropagation(); onToggle(card.id, item.id); }} onClick={stop} className="w-4 h-4 accent-[#C5AB89] shrink-0" /><div className="min-w-0 flex-1"><div className={`text-[10px] font-extrabold truncate ${item.checked ? 'text-[#EFF0EA]' : 'text-[#A3ADA5] line-through'}`}>{item.item || '未命名周邊'}</div></div><div className="text-[10px] text-[#C5AB89] font-black font-mono">{formatMoney(item.amount)}</div></div>)}
+                    </div>
+                    <div className="merch-category-footer flex items-center justify-between">
+                       <div className="merch-category-summary text-[9px] text-[#A3ADA5] font-bold flex items-center gap-1.5 min-w-0">
+                           <img 
+                              src={card.categoryIcon || './image/icons/crown.png'} 
+                              alt="分類" 
+                              className="w-3.5 h-3.5 object-contain shrink-0" 
+                            />
+                           <span className="truncate">
+                           {card.category || 'other'} {items.length} 項
+                        </span>
+                    </div>
+                <button 
+                    type="button" 
+                    onClick={e => { stop(e); onOpenItemsEditor(card); }} 
+                    className="w-8 h-8 rounded-full bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow-lg shrink-0" 
+                    title="編輯全部周邊"
+                >
+                    <i data-lucide="pencil" className="w-4 h-4"></i>
+                </button>
+            </div>
+                </div>
+            </div>
+        </div>
+    );
+}
 
             function ScheduleSection({ activePanel = 'tickets', schedules, merchandiseLogs, onDelete, onEdit, onSaveSchedule, onToggleMerchandise, onDeleteMerchandise, onEditMerchandise, onOpenAddModal, onOpenMerchandiseModal, onOpenItemsEditor }) {
     const STATUS_CYCLE = ['即將開賣', '售票中', '已完售'];

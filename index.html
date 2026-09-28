@@ -2450,14 +2450,11 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
         <>
             <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-3 z-[999999] overflow-hidden">
                 <div className="bg-[#232B25]/95 backdrop-blur-2xl text-[#EFF0EA] w-full max-w-sm rounded-2xl p-3.5 shadow-2xl border border-[#C5AB89]/40 space-y-2.5 max-h-[92vh] flex flex-col">
-                    <div className="flex items-center justify-between pb-0.5 shrink-0">
+                    <div className="flex items-center pb-0.5 shrink-0">
                         <h3 className="font-extrabold text-xs text-[#C5AB89] flex items-center gap-1.5">
                             <i data-lucide="shopping-bag" className="w-3.5 h-3.5"></i>
                             {isItemEdit ? '編輯周邊項目' : isNewCard ? '新增周邊紀錄' : '編輯周邊紀錄'}
                         </h3>
-                        <button type="button" onClick={onClose} className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center">
-                            <i data-lucide="x" className="w-3.5 h-3.5"></i>
-                        </button>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-2.5 overflow-y-auto px-0.5 py-1 flex-1 no-scrollbar text-xs">
@@ -2471,7 +2468,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                     <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
                                 </div>
 
-                                {/* 購買日期與購買通路（改為皆為 text 輸入框，嚴格等寬、防壓疊） */}
+                                {/* 購買日期與購買通路（皆為 text 輸入框，嚴格等寬、防壓疊） */}
                                 <div className="flex gap-2 w-full">
                                     <div className="flex-1 min-w-0 space-y-1">
                                         <label className="text-[10px] font-bold text-[#C5AB89]">購買日期</label>

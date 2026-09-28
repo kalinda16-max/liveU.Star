@@ -2739,26 +2739,6 @@ return (
 
         {activePanel === 'merchandise' && (
             <div className="space-y-3.5">
-                <div className="bg-[#232B25]/90 backdrop-blur-2xl rounded-3xl p-4 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
-                    <div className="min-w-0">
-                        <h2 className="text-sm font-black text-[#EFF0EA] flex items-center gap-1.5">
-                            <i data-lucide="shopping-bag" className="w-4 h-4 text-[#C5AB89]"></i>周邊紀錄
-                        </h2>
-                        <p className="text-[10px] text-[#A3ADA5] mt-1">點擊卡片翻面查看明細，可勾選多項目並編輯或刪除</p>
-                    </div>
-                    <div className="mt-3 pt-3 border-t border-[#C5AB89]/20 flex items-center justify-between">
-                        <span className="text-[10px] text-[#A3ADA5] font-bold">全部已勾選總金額</span>
-                        <span className="text-base text-[#C5AB89] font-black font-mono">
-                            {formatMoney(
-                                merchandiseLogs.reduce(
-                                    (sum, card) => sum + (card.items || []).filter(item => item.checked).reduce((s, item) => s + (Number(item.amount) || 0), 0),
-                                    0
-                                )
-                            )}
-                        </span>
-                    </div>
-                </div>
-
                 {merchandiseLogs.length === 0 ? (
                     <div className="bg-[#232B25]/90 backdrop-blur-2xl rounded-3xl p-6 text-center shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
                         <div className="w-12 h-12 rounded-2xl bg-[#C5AB89]/10 mx-auto flex items-center justify-center mb-3">

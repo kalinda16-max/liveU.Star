@@ -2385,7 +2385,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                 category: initialData.category || '其他'
             }];
         }
-        return [{ id: Date.now(), item: '', amount: '', category: '其他' }];
+        return [{ id: Date.now(), item: '', amount: '', category: 'other' }];
     });
 
     const [cropSource, setCropSource] = useState(null);
@@ -2448,44 +2448,45 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
 
     return (
         <>
-            <div className="modal-overlay bg-black/85 flex items-center justify-center p-4 pt-14 pb-20 z-[999999]">
-                <div className="bg-[#232B25]/95 backdrop-blur-2xl text-[#EFF0EA] w-full max-w-sm rounded-3xl p-4 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40 space-y-3 max-h-[88vh] flex flex-col">
-                    <div className="flex items-center justify-between pb-1 shrink-0">
-                        <h3 className="font-extrabold text-sm text-[#C5AB89] flex items-center gap-1.5">
-                            <i data-lucide="shopping-bag" className="w-4 h-4"></i>
+            <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-3 z-[999999] overflow-hidden">
+                <div className="bg-[#232B25]/95 backdrop-blur-2xl text-[#EFF0EA] w-full max-w-sm rounded-2xl p-3.5 shadow-2xl border border-[#C5AB89]/40 space-y-2.5 max-h-[92vh] flex flex-col">
+                    <div className="flex items-center justify-between pb-0.5 shrink-0">
+                        <h3 className="font-extrabold text-xs text-[#C5AB89] flex items-center gap-1.5">
+                            <i data-lucide="shopping-bag" className="w-3.5 h-3.5"></i>
                             {isItemEdit ? '編輯周邊項目' : isNewCard ? '新增周邊紀錄' : '編輯周邊紀錄'}
                         </h3>
-                        <button type="button" onClick={onClose} className="w-7 h-7 rounded-xl bg-white/5 flex items-center justify-center">
-                            <i data-lucide="x" className="w-4 h-4"></i>
+                        <button type="button" onClick={onClose} className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center">
+                            <i data-lucide="x" className="w-3.5 h-3.5"></i>
                         </button>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto px-1 py-1 flex-1 no-scrollbar">
+                    <form onSubmit={handleSubmit} className="space-y-2.5 overflow-y-auto px-0.5 py-1 flex-1 no-scrollbar text-xs">
                         {!isItemEdit && (
                             <>
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#C5AB89]">周邊圖</label>
-                                    <button type="button" onClick={() => fileRef.current?.click()} className="w-full h-36 rounded-2xl overflow-hidden border border-[#C5AB89]/40 bg-white/5 flex items-center justify-center">
-                                        {image ? <img src={image} alt="周邊預覽" className="w-full h-full object-cover" /> : <div className="flex flex-col items-center gap-2 text-[#A3ADA5]"><i data-lucide="image-plus" className="w-8 h-8 text-[#C5AB89]"></i><span className="text-[10px] font-bold">點擊選擇圖片並裁切</span></div>}
+                                    <label className="text-[10px] font-bold text-[#C5AB89]">周邊圖</label>
+                                    <button type="button" onClick={() => fileRef.current?.click()} className="w-full h-28 rounded-xl overflow-hidden border border-[#C5AB89]/40 bg-white/5 flex items-center justify-center">
+                                        {image ? <img src={image} alt="周邊預覽" className="w-full h-full object-cover" /> : <div className="flex flex-col items-center gap-1 text-[#A3ADA5]"><i data-lucide="image-plus" className="w-6 h-6 text-[#C5AB89]"></i><span className="text-[10px] font-bold">點擊選擇圖片並裁切</span></div>}
                                     </button>
                                     <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
                                 </div>
 
-                                {/* 購買日期與購買通路（大小長寬高一致） */}
+                                {/* 購買日期與購買通路（大小一致） */}
                                 <div className="grid grid-cols-2 gap-2">
                                     <div className="space-y-1">
-                                        <label className="text-[11px] font-bold text-[#C5AB89]">購買日期</label>
-                                        <input type="date" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} className="w-full h-10 bg-white/5 text-[#EFF0EA] px-3 py-2.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none" />
+                                        <label className="text-[10px] font-bold text-[#C5AB89]">購買日期</label>
+                                        <input type="date" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} className="w-full h-9 bg-white/5 text-[#EFF0EA] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none" />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[11px] font-bold text-[#C5AB89]">購買通路</label>
-                                        <input type="text" value={purchaseChannel} onChange={e => setPurchaseChannel(e.target.value)} placeholder="例如：官方網站" className="w-full h-10 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none" />
+                                        <label className="text-[10px] font-bold text-[#C5AB89]">購買通路</label>
+                                        <input type="text" value={purchaseChannel} onChange={e => setPurchaseChannel(e.target.value)} placeholder="例如：官方網站" className="w-full h-9 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none" />
                                     </div>
                                 </div>
 
+                                {/* 短語紀念 (移至列表上方) */}
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#C5AB89]">短語紀念</label>
-                                    <input type="text" value={memorialPhrase} onChange={e => setMemorialPhrase(e.target.value)} placeholder="留下這次購買的紀念短語" className="w-full bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none" />
+                                    <label className="text-[10px] font-bold text-[#C5AB89]">短語紀念</label>
+                                    <input type="text" value={memorialPhrase} onChange={e => setMemorialPhrase(e.target.value)} placeholder="留下這次購買的紀念短語" className="w-full h-9 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none" />
                                 </div>
                             </>
                         )}
@@ -2494,30 +2495,30 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                         {isItemEdit && (
                             <>
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#C5AB89]">項目名稱</label>
-                                    <input type="text" value={item} onChange={e => setItem(e.target.value)} required className="w-full h-10 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none" placeholder="例如：應援毛巾" />
+                                    <label className="text-[10px] font-bold text-[#C5AB89]">項目名稱</label>
+                                    <input type="text" value={item} onChange={e => setItem(e.target.value)} required className="w-full h-9 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none" placeholder="例如：應援毛巾" />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#C5AB89]">品項分類</label>
+                                    <label className="text-[10px] font-bold text-[#C5AB89]">品項分類</label>
                                     <div className="flex items-center gap-2">
-                                        <div className="w-10 h-10 rounded-xl bg-white/5 border border-[#C5AB89]/30 flex items-center justify-center shrink-0">
-                                            <img src={getCategoryIcon(itemCategory)} alt="分類" className="w-6 h-6 object-contain" />
+                                        <div className="w-9 h-9 rounded-xl bg-white/5 border border-[#C5AB89]/30 flex items-center justify-center shrink-0">
+                                            <img src={getCategoryIcon(itemCategory)} alt="分類" className="w-5 h-5 object-contain" />
                                         </div>
-                                        <input type="text" value={itemCategory} onChange={e => setItemCategory(e.target.value)} placeholder="例如：服飾、應援、小卡" className="flex-1 h-10 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none" />
+                                        <input type="text" value={itemCategory} onChange={e => setItemCategory(e.target.value)} placeholder="例如：服飾、應援、小卡" className="flex-1 h-9 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none" />
                                     </div>
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-[#C5AB89]">金額</label>
-                                    <input type="number" min="0" step="1" value={amount} onChange={e => setAmount(e.target.value)} required className="w-full h-10 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" placeholder="0" />
+                                    <label className="text-[10px] font-bold text-[#C5AB89]">金額</label>
+                                    <input type="number" min="0" step="1" value={amount} onChange={e => setAmount(e.target.value)} required className="w-full h-9 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" placeholder="0" />
                                 </div>
                             </>
                         )}
 
-                        {/* 如果是新增或整場編輯，顯示多筆項目列表管理 */}
+                        {/* 如果是新增或整場編輯，顯示多筆項目列表管理 (移至短語紀念下方) */}
                         {!isItemEdit && (
-                            <div className="space-y-2 pt-1">
+                            <div className="space-y-1.5 pt-0.5">
                                 <div className="flex items-center justify-between">
-                                    <label className="text-[11px] font-bold text-[#C5AB89]">周邊項目與分類列表</label>
+                                    <label className="text-[10px] font-bold text-[#C5AB89]">周邊項目與分類列表</label>
                                     <button 
                                         type="button" 
                                         onClick={() => setFormItems([...formItems, { id: Date.now(), item: '', amount: '', category: 'other' }])}
@@ -2528,11 +2529,11 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                     </button>
                                 </div>
 
-                                <div className="space-y-2 max-h-52 overflow-y-auto no-scrollbar">
+                                <div className="space-y-2 max-h-36 overflow-y-auto no-scrollbar">
                                     {formItems.map((fi, index) => (
-                                        <div key={fi.id} className="bg-white/5 p-2.5 rounded-2xl border border-[#C5AB89]/30 space-y-1.5">
+                                        <div key={fi.id} className="bg-white/5 p-2 rounded-xl border border-[#C5AB89]/30 space-y-1.5">
                                             {/* 第一行：項目名稱在左，分類在右 */}
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-1.5">
                                                 <input 
                                                     type="text" 
                                                     value={fi.item} 
@@ -2545,8 +2546,8 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                                     className="flex-1 bg-transparent text-[#EFF0EA] placeholder-[#A3ADA5] text-xs focus:outline-none px-1" 
                                                     required 
                                                 />
-                                                <div className="w-7 h-7 rounded-xl bg-white/5 border border-[#C5AB89]/30 flex items-center justify-center shrink-0">
-                                                    <img src={getCategoryIcon(fi.category)} alt="分類" className="w-3.5 h-3.5 object-contain" />
+                                                <div className="w-6 h-6 rounded-lg bg-white/5 border border-[#C5AB89]/30 flex items-center justify-center shrink-0">
+                                                    <img src={getCategoryIcon(fi.category)} alt="分類" className="w-3 h-3 object-contain" />
                                                 </div>
                                                 <input 
                                                     type="text" 
@@ -2557,21 +2558,21 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                                         setFormItems(updated);
                                                     }} 
                                                     placeholder="分類" 
-                                                    className="w-20 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2 py-1.5 rounded-xl text-xs border border-[#C5AB89]/30 focus:outline-none" 
+                                                    className="w-18 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2 py-1 rounded-lg text-xs border border-[#C5AB89]/30 focus:outline-none" 
                                                 />
                                                 {formItems.length > 1 && (
                                                     <button 
                                                         type="button" 
                                                         onClick={() => setFormItems(formItems.filter(item => item.id !== fi.id))} 
-                                                        className="w-7 h-7 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center shrink-0"
+                                                        className="w-6 h-6 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center shrink-0"
                                                         title="移除此項"
                                                     >
-                                                        <i data-lucide="x" className="w-3.5 h-3.5"></i>
+                                                        <i data-lucide="x" className="w-3 h-3"></i>
                                                     </button>
                                                 )}
                                             </div>
                                             {/* 第二行：金額手動輸入 */}
-                                            <div className="flex items-center gap-2 pt-0.5">
+                                            <div className="flex items-center gap-1.5 pt-0.5">
                                                 <span className="text-[10px] font-bold text-[#C5AB89]">金額：</span>
                                                 <input 
                                                     type="number" 
@@ -2584,7 +2585,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                                         setFormItems(updated);
                                                     }} 
                                                     placeholder="0" 
-                                                    className="flex-1 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1 rounded-lg text-xs border border-[#C5AB89]/30 focus:outline-none font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                                                    className="flex-1 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2 py-0.5 rounded-lg text-xs border border-[#C5AB89]/30 focus:outline-none font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
                                                     required 
                                                 />
                                             </div>
@@ -2595,14 +2596,14 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                         )}
 
                         {/* 底部按鈕順序：儲存修改、刪除整場（icon）、取消 */}
-                        <div className="flex gap-2 pt-3 items-center">
-                            <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-black">儲存修改</button>
+                        <div className="flex gap-2 pt-2 items-center">
+                            <button type="submit" className="flex-1 py-2 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-black">儲存修改</button>
                             {!isNewCard && !isItemEdit && initialData?.id && (
-                                <button type="button" onClick={() => { onDelete(initialData.id); onClose(); }} className="w-10 h-10 rounded-xl bg-red-600/90 text-white flex items-center justify-center shrink-0 shadow-lg" title="刪除整場">
-                                    <i data-lucide="trash-2" className="w-4 h-4"></i>
+                                <button type="button" onClick={() => { onDelete(initialData.id); onClose(); }} className="w-9 h-9 rounded-xl bg-red-600/90 text-white flex items-center justify-center shrink-0 shadow-lg" title="刪除整場">
+                                    <i data-lucide="trash-2" className="w-3.5 h-3.5"></i>
                                 </button>
                             )}
-                            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-white/10 text-[#EFF0EA] text-xs font-bold border border-white/10">取消</button>
+                            <button type="button" onClick={onClose} className="flex-1 py-2 rounded-xl bg-white/10 text-[#EFF0EA] text-xs font-bold border border-white/10">取消</button>
                         </div>
                     </form>
                 </div>

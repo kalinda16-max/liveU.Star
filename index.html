@@ -470,237 +470,196 @@
                 );
             }
 
-            function ImageCropperModal({ imageSrc, initialAspectRatio = 1, onConfirm, onCancel, fixedCropSize = null }) {
-                const imageRef = useRef(null);
-                const cropperRef = useRef(null);
-                const containerRef = useRef(null);
+function ImageCropperModal({ imageSrc, initialAspectRatio = 1, onConfirm, onCancel, fixedCropSize = null }) {
+    const imageRef = useRef(null);
+    const cropperRef = useRef(null);
+    const containerRef = useRef(null);
 
-                useEffect(() => {
-                    if (window.lucide) {
-                        try { window.lucide.createIcons(); } catch (e) {}
-                    }
-                });
+    useEffect(() => {
+        if (window.lucide) {
+            try { window.lucide.createIcons(); } catch (e) {}
+        }
+    });
 
-                useEffect(() => {
-                    let touchStartAngle = 0;
-                    let touchStartDist = 0;
+    useEffect(() => {
+        let touchStartAngle = 0;
+        let touchStartDist = 0;
 
-                    const handleTouchStart = (e) => {
-                        if (e.touches && e.touches.length === 2) {
-                            const t1 = e.touches[0];
-                            const t2 = e.touches[1];
-                            touchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-                            touchStartAngle = Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX) * (180 / Math.PI);
-                        }
-                    };
-
-                    const handleTouchMove = (e) => {
-                        if (e.touches && e.touches.length === 2 && cropperRef.current) {
-                            const t1 = e.touches[0];
-                            const t2 = e.touches[1];
-
-                            const currentDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-                            if (touchStartDist > 0) {
-                                const distDiff = currentDist - touchStartDist;
-                                if (Math.abs(distDiff) >= 4) {
-                                    const zoomRatio = distDiff > 0 ? 0.04 : -0.04;
-                                    cropperRef.current.zoom(zoomRatio);
-                                    touchStartDist = currentDist;
-                                }
-                            }
-
-                            const currentAngle = Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX) * (180 / Math.PI);
-                            let diff = currentAngle - touchStartAngle;
-                            if (diff > 180) diff -= 360;
-                            if (diff < -180) diff += 360;
-
-                            if (Math.abs(diff) >= 2) {
-                                cropperRef.current.rotate(Math.round(diff));
-                                touchStartAngle = currentAngle;
-                            }
-                        }
-                    };
-
-                    const container = containerRef.current;
-                    if (container) {
-                        container.addEventListener('touchstart', handleTouchStart, { passive: true });
-                        container.addEventListener('touchmove', handleTouchMove, { passive: true });
-                    }
-
-                    const initCropper = () => {
-                        if (cropperRef.current) {
-                            cropperRef.current.destroy();
-                            cropperRef.current = null;
-                        }
-                        if (imageRef.current && window.Cropper) {
-                            cropperRef.current = new window.Cropper(imageRef.current, {
-                                aspectRatio: initialAspectRatio,
-                                viewMode: 1,
-                                dragMode: 'move',
-                                autoCropArea: 0.85,
-                                restore: false,
-                                guides: true,
-                                center: true,
-                                highlight: false,
-                                cropBoxMovable: true,
-                                cropBoxResizable: true,
-                                toggleDragModeOnDblclick: false,
-                                zoomOnTouch: true,
-                                zoomOnWheel: true,
-                                wheelZoomRatio: 0.1,
-                                touchDragMode: 'move',
-                                rotatable: true,
-                                scalable: true,
-                                responsive: true,
-                                background: false,
-                                ready() {
-                                    if (cropperRef.current) {
-                                        cropperRef.current.resize();
-                                        if (fixedCropSize) {
-                                            try {
-                                                cropperRef.current.setCropBoxData({
-                                                    width: fixedCropSize,
-                                                    height: fixedCropSize
-                                                });
-                                            } catch (e) {}
-                                        }
-                                    }
-                                }
-                            });
-                        }
-                    };
-
-                    const img = imageRef.current;
-                    if (img) {
-                        if (img.complete) {
-                            initCropper();
-                        } else {
-                            img.onload = initCropper;
-                        }
-                    }
-
-                    return () => {
-                        if (container) {
-                            container.removeEventListener('touchstart', handleTouchStart);
-                            container.removeEventListener('touchmove', handleTouchMove);
-                        }
-                        if (cropperRef.current) {
-                            cropperRef.current.destroy();
-                            cropperRef.current = null;
-                        }
-                    };
-                }, [imageSrc, initialAspectRatio]);
-
-                const handleRotate = (degree) => {
-                    if (cropperRef.current) {
-                        cropperRef.current.rotate(degree);
-                    }
-                };
-
-                const handleZoom = (ratio) => {
-                    if (cropperRef.current) {
-                        cropperRef.current.zoom(ratio);
-                    }
-                };
-
-                const handleReset = () => {
-                    if (cropperRef.current) {
-                        cropperRef.current.reset();
-                    }
-                };
-
-                const handleConfirm = () => {
-                    if (!cropperRef.current) return;
-                    const canvas = cropperRef.current.getCroppedCanvas({
-                        maxWidth: 1920,
-                        maxHeight: 1080,
-                        imageSmoothingEnabled: true,
-                        imageSmoothingQuality: 'high',
-                    });
-                    if (canvas) {
-                        const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
-                        onConfirm(croppedDataUrl);
-                    }
-                };
-
-                return (
-                    <div className="modal-overlay bg-black/90 backdrop-blur-md flex items-center justify-center p-4 z-[9999999]">
-                        <div className="bg-[#161D15] text-[#EFF0EA] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#C5AB89]/40 flex flex-col space-y-3 my-auto">
-                            <div className="flex items-center justify-between shrink-0">
-                                <h3 className="font-extrabold text-sm text-[#C5AB89] flex items-center gap-1.5">
-                                    <i data-lucide="crop" className="w-4 h-4"></i> 裁切圖片
-                                </h3>
-                            </div>
-
-                            <div ref={containerRef} className="relative w-full h-64 bg-black/60 rounded-2xl overflow-hidden flex items-center justify-center border border-[#737C75]/40">
-                                <img ref={imageRef} src={imageSrc} alt="Crop preview" className="max-w-full max-h-full block" />
-                            </div>
-
-                            <div className="space-y-2 shrink-0">
-                                <div className="flex items-center justify-center gap-2 text-xs pt-1">
-                                    <button
-                                        type="button"
-                                        onClick={() => handleRotate(-90)}
-                                        className="p-2.5 rounded-xl bg-[#737C75]/30 text-[#EFF0EA] active:bg-[#C5AB89] active:text-[#161D15] flex items-center justify-center transition-colors"
-                                        title="向左旋轉 90°"
-                                    >
-                                        <i data-lucide="rotate-ccw" className="w-4 h-4"></i>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleRotate(90)}
-                                        className="p-2.5 rounded-xl bg-[#737C75]/30 text-[#EFF0EA] active:bg-[#C5AB89] active:text-[#161D15] flex items-center justify-center transition-colors"
-                                        title="向右旋轉 90°"
-                                    >
-                                        <i data-lucide="rotate-cw" className="w-4 h-4"></i>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleZoom(0.1)}
-                                        className="p-2.5 rounded-xl bg-[#737C75]/30 text-[#EFF0EA] active:bg-[#C5AB89] active:text-[#161D15] flex items-center justify-center transition-colors"
-                                        title="放大"
-                                    >
-                                        <i data-lucide="zoom-in" className="w-4 h-4"></i>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleZoom(-0.1)}
-                                        className="p-2.5 rounded-xl bg-[#737C75]/30 text-[#EFF0EA] active:bg-[#C5AB89] active:text-[#161D15] flex items-center justify-center transition-colors"
-                                        title="縮小"
-                                    >
-                                        <i data-lucide="zoom-out" className="w-4 h-4"></i>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={handleReset}
-                                        className="px-3 py-2.5 rounded-xl bg-[#737C75]/30 text-[#D2CABF] active:bg-[#C5AB89] active:text-[#161D15] text-xs font-bold transition-colors"
-                                        title="重置"
-                                    >
-                                        重置
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="flex gap-2 pt-1 shrink-0">
-                                <button
-                                    type="button"
-                                    onClick={onCancel}
-                                    className="flex-1 py-2.5 rounded-xl bg-[#737C75]/30 text-[#EFF0EA] text-xs font-bold active:bg-[#737C75]/50 transition-colors"
-                                >
-                                    取消
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleConfirm}
-                                    className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-bold shadow-lg active:bg-[#d5bc9a] transition-colors"
-                                >
-                                    確認裁切
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                );
+        const handleTouchStart = (e) => {
+            if (e.touches && e.touches.length === 2) {
+                const t1 = e.touches[0];
+                const t2 = e.touches[1];
+                touchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+                touchStartAngle = Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX) * (180 / Math.PI);
             }
+        };
+
+        const handleTouchMove = (e) => {
+            if (e.touches && e.touches.length === 2 && cropperRef.current) {
+                const t1 = e.touches[0];
+                const t2 = e.touches[1];
+
+                const currentDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+                if (touchStartDist > 0) {
+                    const distDiff = currentDist - touchStartDist;
+                    if (Math.abs(distDiff) >= 4) {
+                        const zoomRatio = distDiff > 0 ? 0.04 : -0.04;
+                        cropperRef.current.zoom(zoomRatio);
+                        touchStartDist = currentDist;
+                    }
+                }
+
+                const currentAngle = Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX) * (180 / Math.PI);
+                let diff = currentAngle - touchStartAngle;
+                if (diff > 180) diff -= 360;
+                if (diff < -180) diff += 360;
+
+                if (Math.abs(diff) >= 2) {
+                    cropperRef.current.rotate(Math.round(diff));
+                    touchStartAngle = currentAngle;
+                }
+            }
+        };
+
+        const container = containerRef.current;
+        if (container) {
+            container.addEventListener('touchstart', handleTouchStart, { passive: true });
+            container.addEventListener('touchmove', handleTouchMove, { passive: true });
+        }
+
+        const initCropper = () => {
+            if (cropperRef.current) {
+                cropperRef.current.destroy();
+                cropperRef.current = null;
+            }
+            if (imageRef.current && window.Cropper) {
+                try {
+                    cropperRef.current = new window.Cropper(imageRef.current, {
+                        aspectRatio: initialAspectRatio,
+                        viewMode: 1,
+                        dragMode: 'move',
+                        autoCropArea: 0.85,
+                        restore: false,
+                        guides: true,
+                        center: true,
+                        highlight: false,
+                        cropBoxMovable: true,
+                        cropBoxResizable: true,
+                        toggleDragModeOnDblclick: false,
+                        zoomOnTouch: true,
+                        zoomOnWheel: true,
+                        wheelZoomRatio: 0.1,
+                        touchDragMode: 'move',
+                        rotatable: true,
+                        scalable: true,
+                        responsive: true,
+                        background: false
+                    });
+                } catch (err) {
+                    console.error("Cropper 初始化失敗:", err);
+                }
+            }
+        };
+
+        const img = imageRef.current;
+        if (img) {
+            if (img.complete) {
+                initCropper();
+            } else {
+                img.onload = initCropper;
+            }
+        }
+
+        return () => {
+            if (container) {
+                container.removeEventListener('touchstart', handleTouchStart);
+                container.removeEventListener('touchmove', handleTouchMove);
+            }
+            if (cropperRef.current) {
+                cropperRef.current.destroy();
+                cropperRef.current = null;
+            }
+        };
+    }, [imageSrc, initialAspectRatio]);
+
+    const handleRotate = (degree) => {
+        if (cropperRef.current) cropperRef.current.rotate(degree);
+    };
+
+    const handleZoom = (ratio) => {
+        if (cropperRef.current) cropperRef.current.zoom(ratio);
+    };
+
+    const handleReset = () => {
+        if (cropperRef.current) cropperRef.current.reset();
+    };
+
+    const handleConfirm = () => {
+        if (cropperRef.current) {
+            try {
+                const canvas = cropperRef.current.getCroppedCanvas({
+                    maxWidth: 1024,
+                    maxHeight: 1024,
+                    imageSmoothingEnabled: true,
+                    imageSmoothingQuality: 'high',
+                });
+                if (canvas) {
+                    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                    onConfirm(croppedDataUrl);
+                    return;
+                }
+            } catch (e) {
+                console.error("裁切輸出失敗:", e);
+            }
+        }
+        onConfirm(imageSrc);
+    };
+
+    return (
+        <div className="modal-overlay bg-black/90 backdrop-blur-md flex items-center justify-center p-4 z-[9999999]">
+            <div className="bg-[#161D15] text-[#EFF0EA] w-full max-w-sm rounded-3xl p-4 shadow-2xl border border-[#C5AB89]/40 flex flex-col space-y-3 my-auto">
+                <div className="flex items-center justify-between shrink-0">
+                    <h3 className="font-extrabold text-sm text-[#C5AB89] flex items-center gap-1.5">
+                        <i data-lucide="crop" className="w-4 h-4"></i> 裁切圖片
+                    </h3>
+                </div>
+
+                <div ref={containerRef} className="relative w-full h-64 bg-black/60 rounded-2xl overflow-hidden flex items-center justify-center border border-[#737C75]/40">
+                    <img ref={imageRef} src={imageSrc} alt="Crop preview" className="max-w-full max-h-full block" />
+                </div>
+
+                <div className="space-y-2 shrink-0">
+                    <div className="flex items-center justify-center gap-2 text-xs pt-1">
+                        <button type="button" onClick={() => handleRotate(-90)} className="p-2.5 rounded-xl bg-[#737C75]/30 text-[#EFF0EA] active:bg-[#C5AB89] active:text-[#161D15] flex items-center justify-center transition-colors">
+                            <i data-lucide="rotate-ccw" className="w-4 h-4"></i>
+                        </button>
+                        <button type="button" onClick={() => handleRotate(90)} className="p-2.5 rounded-xl bg-[#737C75]/30 text-[#EFF0EA] active:bg-[#C5AB89] active:text-[#161D15] flex items-center justify-center transition-colors">
+                            <i data-lucide="rotate-cw" className="w-4 h-4"></i>
+                        </button>
+                        <button type="button" onClick={() => handleZoom(0.1)} className="p-2.5 rounded-xl bg-[#737C75]/30 text-[#EFF0EA] active:bg-[#C5AB89] active:text-[#161D15] flex items-center justify-center transition-colors">
+                            <i data-lucide="zoom-in" className="w-4 h-4"></i>
+                        </button>
+                        <button type="button" onClick={() => handleZoom(-0.1)} className="p-2.5 rounded-xl bg-[#737C75]/30 text-[#EFF0EA] active:bg-[#C5AB89] active:text-[#161D15] flex items-center justify-center transition-colors">
+                            <i data-lucide="zoom-out" className="w-4 h-4"></i>
+                        </button>
+                        <button type="button" onClick={handleReset} className="px-3 py-2.5 rounded-xl bg-[#737C75]/30 text-[#D2CABF] active:bg-[#C5AB89] active:text-[#161D15] text-xs font-bold transition-colors">
+                            重置
+                        </button>
+                    </div>
+                </div>
+
+                <div className="flex gap-2 pt-1 shrink-0">
+                    <button type="button" onClick={onCancel} className="flex-1 py-2.5 rounded-xl bg-[#737C75]/30 text-[#EFF0EA] text-xs font-bold active:bg-[#737C75]/50 transition-colors">
+                        取消
+                    </button>
+                    <button type="button" onClick={handleConfirm} className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-bold shadow-lg active:bg-[#d5bc9a] transition-colors">
+                        確認裁切
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
 
             /* 皇冠 Icon 與星星 Icon 渲染組件 */
             function RankIcon({ rank }) {
@@ -2430,11 +2389,23 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
 
     const [cropSource, setCropSource] = useState(null);
 
+    useEffect(() => {
+        if (window.lucide) {
+            try { window.lucide.createIcons(); } catch (e) {}
+        }
+    });
+
+    // 採用雙重備援：讀取圖片並開啟裁切 Modal
     const handleFileChange = (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
+
         const reader = new FileReader();
-        reader.onload = (evt) => setCropSource(evt.target.result);
+        reader.onload = (evt) => {
+            if (evt.target?.result) {
+                setCropSource(evt.target.result);
+            }
+        };
         reader.readAsDataURL(file);
         e.target.value = '';
     };
@@ -2499,11 +2470,12 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                             <>
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-bold text-[#C5AB89]">周邊圖</label>
-                                    <label className="relative w-full h-28 rounded-xl overflow-hidden border border-[#C5AB89]/40 bg-white/5 flex items-center justify-center cursor-pointer hover:border-[#C5AB89] transition-all block">
+                                    {/* 透明 input 直接覆蓋，底下 Icon/Img 設 pointer-events-none */}
+                                    <div className="relative w-full h-28 rounded-xl overflow-hidden border border-[#C5AB89]/40 bg-white/5 flex items-center justify-center cursor-pointer hover:border-[#C5AB89] transition-all">
                                         {image ? (
-                                            <img src={image} alt="周邊預覽" className="w-full h-full object-cover" />
+                                            <img src={image} alt="周邊預覽" className="w-full h-full object-cover pointer-events-none" />
                                         ) : (
-                                            <div className="flex flex-col items-center gap-1 text-[#A3ADA5]">
+                                            <div className="flex flex-col items-center gap-1 text-[#A3ADA5] pointer-events-none">
                                                 <i data-lucide="image-plus" className="w-6 h-6 text-[#C5AB89]"></i>
                                                 <span className="text-[10px] font-bold">點擊選擇圖片並裁切</span>
                                             </div>
@@ -2511,10 +2483,10 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                         <input 
                                             type="file" 
                                             accept="image/*" 
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20 block" 
                                             onChange={handleFileChange} 
                                         />
-                                    </label>
+                                    </div>
                                 </div>
 
                                 <div className="flex gap-2 w-full">
@@ -2653,7 +2625,10 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                 <ImageCropperModal 
                     imageSrc={cropSource} 
                     initialAspectRatio={1} 
-                    onConfirm={(croppedUrl) => { setImage(croppedUrl); setCropSource(null); }} 
+                    onConfirm={(croppedUrl) => { 
+                        setImage(croppedUrl); 
+                        setCropSource(null); 
+                    }} 
                     onCancel={() => setCropSource(null)} 
                 />
             )}

@@ -1210,7 +1210,14 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                 const handleToggleMerchandise = (cardId, itemId) => {
                     setMerchandiseLogs(merchandiseLogs.map(card =>
                         card.id === cardId
-                            ? { ...card, items: card.items.map(it => it.id === itemId ? { ...it, checked: !it.checked } : it) }
+                            ? {
+                                ...card,
+                                items: card.items.map(it =>
+                                    it.id === itemId
+                                        ? { ...it, checked: it.checked === false ? true : false }
+                                        : it
+                                )
+                            }
                             : card
                     ));
                 };
@@ -2390,25 +2397,23 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
     const isNewCard = !!initialData?.isNewCard;
     const isItemEdit = !!initialData?.cardId;
     
-    // 表單基本欄位 State
     const [image, setImage] = useState(initialData?.image || '');
     const [purchaseDate, setPurchaseDate] = useState(initialData?.purchaseDate || new Date().toISOString().slice(0, 10));
     const [purchaseChannel, setPurchaseChannel] = useState(initialData?.purchaseChannel || '');
     const [memorialPhrase, setMemorialPhrase] = useState(initialData?.memorialPhrase || '');
     
-    // 單一項目編輯用的 State (針對 isItemEdit)
     const [item, setItem] = useState(initialData?.item || '');
     const [amount, setAmount] = useState(initialData?.amount ?? '');
     const [itemCategory, setItemCategory] = useState(initialData?.category || '其他');
 
-    // 多筆項目列表管理的 State（每個項目包含名稱、金額與獨立分類）
     const [formItems, setFormItems] = useState(() => {
         if (initialData?.items && initialData.items.length > 0) {
             return initialData.items.map(i => ({ 
                 id: i.id || Date.now(), 
                 item: i.item || '', 
                 amount: i.amount ?? '',
-                category: i.category || '其他'
+                category: i.category || '其他',
+                checked: i.checked !== false
             }));
         }
         if (initialData?.item) {
@@ -2416,14 +2421,14 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                 id: Date.now(), 
                 item: initialData.item, 
                 amount: initialData.amount ?? '',
-                category: initialData.category || '其他'
+                category: initialData.category || '其他',
+                checked: true
             }];
         }
-        return [{ id: Date.now(), item: '', amount: '', category: '其他' }];
+        return [{ id: Date.now(), item: '', amount: '', category: '其他', checked: true }];
     });
 
     const [cropSource, setCropSource] = useState(null);
-    const fileRef = useRef(null);
 
     const handleFileChange = (e) => {
         const file = e.target.files?.[0];
@@ -2434,7 +2439,6 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
         e.target.value = '';
     };
 
-    // 根據分類名稱自動對應動態 Icon 的輔助函式
     const getCategoryIcon = (cat) => {
         if (!cat) return './image/icons/crown.png';
         if (cat.includes('服') || cat.includes('衣') || cat.includes('穿') || cat.includes('帽')) return './image/icons/shirt.png';
@@ -2452,12 +2456,11 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                 itemId: initialData.itemId || initialData.id,
                 itemAction: 'save',
                 item: item.trim() || '未命名周邊',
-                amount: Math.max(0, Number(amount) || 0),
+                amount: parseMerchAmount(amount),
                 category: itemCategory,
                 categoryIcon: getCategoryIcon(itemCategory)
             });
         } else {
-            // 以第一個項目的分類作為卡片主要代表分類
             const firstCat = formItems[0]?.category || '其他';
             onSave({
                 id: initialData?.id || null,
@@ -2473,7 +2476,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                     amount: parseMerchAmount(fi.amount),
                     category: fi.category || '其他',
                     categoryIcon: getCategoryIcon(fi.category),
-                    checked: true
+                    checked: fi.checked !== false
                 }))
             });
         }
@@ -2496,13 +2499,24 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                             <>
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-bold text-[#C5AB89]">周邊圖</label>
-                                    <label htmlFor="merchandise-image-upload" className="w-full h-28 rounded-xl overflow-hidden border border-[#C5AB89]/40 bg-white/5 flex items-center justify-center cursor-pointer">
-                                        {image ? <img src={image} alt="周邊預覽" className="w-full h-full object-cover" /> : <div className="flex flex-col items-center gap-1 text-[#A3ADA5]"><i data-lucide="image-plus" className="w-6 h-6 text-[#C5AB89]"></i><span className="text-[10px] font-bold">點擊選擇圖片並裁切</span></div>}
+                                    <label className="relative w-full h-28 rounded-xl overflow-hidden border border-[#C5AB89]/40 bg-white/5 flex items-center justify-center cursor-pointer hover:border-[#C5AB89] transition-all block">
+                                        {image ? (
+                                            <img src={image} alt="周邊預覽" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="flex flex-col items-center gap-1 text-[#A3ADA5]">
+                                                <i data-lucide="image-plus" className="w-6 h-6 text-[#C5AB89]"></i>
+                                                <span className="text-[10px] font-bold">點擊選擇圖片並裁切</span>
+                                            </div>
+                                        )}
+                                        <input 
+                                            type="file" 
+                                            accept="image/*" 
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                                            onChange={handleFileChange} 
+                                        />
                                     </label>
-                                    <input id="merchandise-image-upload" ref={fileRef} type="file" accept="image/*" className="sr-only" onChange={handleFileChange} />
                                 </div>
 
-                                {/* 購買日期與購買通路（皆為 text 輸入框，嚴格等寬、防壓疊） */}
                                 <div className="flex gap-2 w-full">
                                     <div className="flex-1 min-w-0 space-y-1">
                                         <label className="text-[10px] font-bold text-[#C5AB89]">購買日期</label>
@@ -2516,7 +2530,6 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                             </>
                         )}
 
-                        {/* 如果是單一項目編輯 (isItemEdit) */}
                         {isItemEdit && (
                             <>
                                 <div className="space-y-1">
@@ -2539,14 +2552,13 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                             </>
                         )}
 
-                        {/* 如果是新增或整場編輯，顯示多筆項目列表管理 */}
                         {!isItemEdit && (
                             <div className="space-y-1.5 pt-0.5">
                                 <div className="flex items-center justify-between">
                                     <label className="text-[10px] font-bold text-[#C5AB89]">周邊項目與分類列表</label>
                                     <button 
                                         type="button" 
-                                        onClick={() => setFormItems([...formItems, { id: Date.now(), item: '', amount: '', category: '其他' }])}
+                                        onClick={() => setFormItems([...formItems, { id: Date.now(), item: '', amount: '', category: '其他', checked: true }])}
                                         className="text-[#C5AB89] hover:opacity-80 p-1 flex items-center justify-center transition-opacity"
                                         title="新增一項"
                                     >
@@ -2557,7 +2569,6 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                 <div className="space-y-2 max-h-36 overflow-y-auto no-scrollbar">
                                     {formItems.map((fi, index) => (
                                         <div key={fi.id} className="bg-white/5 p-2 rounded-xl border border-[#C5AB89]/30 space-y-1.5 min-w-0">
-                                            {/* 第一行：項目名稱在左，分類在右 */}
                                             <div className="flex items-center gap-1.5 min-w-0">
                                                 <input 
                                                     type="text" 
@@ -2596,7 +2607,6 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                                     </button>
                                                 )}
                                             </div>
-                                            {/* 第二行：金額手動輸入 */}
                                             <div className="flex items-center gap-1.5 pt-0.5 min-w-0">
                                                 <span className="text-[10px] font-bold text-[#C5AB89] shrink-0">金額：</span>
                                                 <input 
@@ -2620,7 +2630,6 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                             </div>
                         )}
 
-                        {/* 短語紀念 (位於列表下方、按鈕上方) */}
                         {!isItemEdit && (
                             <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-[#C5AB89]">短語紀念</label>
@@ -2628,7 +2637,6 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                             </div>
                         )}
 
-                        {/* 底部按鈕順序：儲存修改、刪除整場（icon）、取消 */}
                         <div className="flex gap-2 pt-2 items-center">
                             <button type="submit" className="flex-1 py-2 rounded-xl bg-[#C5AB89] text-[#161D15] text-xs font-black">儲存修改</button>
                             {!isNewCard && !isItemEdit && initialData?.id && (
@@ -2641,7 +2649,14 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                     </form>
                 </div>
             </div>
-            {cropSource && <ImageCropperModal imageSrc={cropSource} initialAspectRatio={1} fixedCropSize={132} onConfirm={(croppedUrl) => { setImage(croppedUrl); setCropSource(null); }} onCancel={() => setCropSource(null)} />}
+            {cropSource && (
+                <ImageCropperModal 
+                    imageSrc={cropSource} 
+                    initialAspectRatio={1} 
+                    onConfirm={(croppedUrl) => { setImage(croppedUrl); setCropSource(null); }} 
+                    onCancel={() => setCropSource(null)} 
+                />
+            )}
         </>
     );
 }
@@ -2854,7 +2869,7 @@ return (
                 ) : (
                     merchandiseLogs.map(card => {
                         const items = card.items || [];
-                        const total = items.filter(item => item.checked).reduce((sum, item) => sum + parseMerchAmount(item.amount), 0);
+                        const total = items.filter(item => item.checked !== false).reduce((sum, item) => sum + parseMerchAmount(item.amount), 0);
                         const dateText = card.purchaseDate || '未設定日期';
                         return (
                             <MerchandiseFlipCard

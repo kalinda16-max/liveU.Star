@@ -2738,6 +2738,7 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
     return (
         <div className={`merch-flip-card ${flipped ? 'is-flipped' : ''}`} onClick={() => setFlipped(v => !v)} role="button" tabIndex={0} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFlipped(v => !v); } }}>
             <div className="merch-flip-inner">
+                {/* 正面（第一頁） */}
                 <div className="merch-flip-face merch-v2-front bg-[#232B25]/90 backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
                     <div className="flex items-start gap-3">
                         <div className="merch-crop-preview rounded-2xl overflow-hidden bg-white/5 shrink-0 flex items-center justify-center shadow-[0_0_5px_rgba(197,171,137,0.70)] border border-[#C5AB89]/30">
@@ -2767,8 +2768,17 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
                         </div>
                     </div>
                 </div>
-                <div className="merch-flip-face merch-v2-back merch-flip-back bg-[#232B25]/95 backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
-                    <div className="merch-back-items-grid no-scrollbar">
+
+                {/* 背面（第二頁） */}
+                <div className="merch-flip-face merch-v2-back merch-flip-back bg-[#232B25]/95 backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40 flex flex-col justify-between h-full overflow-hidden">
+                    {/* 微調：pt-1 緊湊留白，頂部漸層縮短至 black 4px */}
+                    <div 
+                        className="merch-back-items-grid no-scrollbar flex-1 overflow-y-auto gap-1.5 pt-1 pb-2.5 px-0.5"
+                        style={{
+                            maskImage: 'linear-gradient(to bottom, transparent 0px, black 4px, black calc(100% - 20px), transparent 100%)',
+                            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0px, black 4px, black calc(100% - 20px), transparent 100%)'
+                        }}
+                    >
                         {items.map(item => (
                             <div key={item.id} className="flex items-center gap-1.5 px-2 py-1.5 min-w-0 rounded-xl bg-white/[0.045] border border-white/10">
                                 <input type="checkbox" checked={!!item.checked} onChange={e => { e.stopPropagation(); onToggle(card.id, item.id); }} onClick={stop} className="w-3.5 h-3.5 accent-[#C5AB89] shrink-0" />
@@ -2777,8 +2787,8 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
                             </div>
                         ))}
                     </div>
-                    <div className="merch-category-footer flex items-center justify-between shrink-0">
-                        <div className="merch-category-summary text-[9px] text-[#A3ADA5] font-bold flex items-center gap-1.5 min-w-0">
+                    <div className="merch-category-footer flex items-center justify-between shrink-0 pt-1.5">
+                        <div className="merch-category-summary text-[9px] text-[#A3ADA5] font-bold flex items-center gap-1.5 min-w-0 pl-2.5">
                             <img src={card.categoryIcon || './image/icons/crown.png'} alt="分類" className="w-3.5 h-3.5 object-contain shrink-0" />
                             <span className="truncate">{card.category || '其他'} {items.length} 項</span>
                         </div>

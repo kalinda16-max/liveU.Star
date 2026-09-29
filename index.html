@@ -1136,73 +1136,92 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                     });
                 };
 
-                const handleSaveMerchandise = (data) => {
-                    if (data.id && !data.cardId) {
-                        setMerchandiseLogs(prev => prev.map(card => card.id === data.id ? {
-                            ...card,
-                            image: data.image !== undefined ? data.image : card.image || '',
-                            purchaseDate: data.purchaseDate !== undefined ? data.purchaseDate : card.purchaseDate || '',
-                            purchaseChannel: data.purchaseChannel !== undefined ? data.purchaseChannel : card.purchaseChannel || '',
-                            category: data.category !== undefined ? data.category : card.category || '其他',
-                            categoryIcon: data.categoryIcon !== undefined ? data.categoryIcon : card.categoryIcon || './image/icons/crown.png',
-                            memorialPhrase: data.memorialPhrase !== undefined ? data.memorialPhrase : card.memorialPhrase || '',
-                            items: Array.isArray(data.items) ? data.items.map((it, idx) => ({
-                                ...it,
-                                id: it.id || `${card.id}-item-${idx}`,
-                                item: it.item || '未命名周邊',
-                                amount: parseMerchAmount(it.amount),
-                                category: it.category || '其他',
-                                categoryIcon: it.categoryIcon || './image/icons/crown.png',
-                                checked: it.checked !== false
-                            })) : card.items
-                        } : card));
-                    } else if (data.cardId) {
-                        setMerchandiseLogs(prev => prev.map(card => {
-                            if (card.id !== data.cardId) return card;
-                            let items = Array.isArray(card.items) ? [...card.items] : [];
-                            if (data.itemAction === 'delete') {
-                                items = items.filter(it => it.id !== data.itemId);
-                            } else if (data.itemAction === 'save') {
-                                const nextItem = {
-                                    id: data.itemId || `item-${Date.now()}`,
-                                    item: data.item?.trim() || '未命名周邊',
-                                    amount: parseMerchAmount(data.amount),
-                                    checked: data.checked !== false
-                                };
-                                const exists = items.some(it => it.id === nextItem.id);
-                                items = exists ? items.map(it => it.id === nextItem.id ? nextItem : it) : [...items, nextItem];
-                            }
-                            return {
-                                ...card,
-                                image: data.image !== undefined ? data.image : card.image || '',
-                                purchaseDate: data.purchaseDate !== undefined ? data.purchaseDate : card.purchaseDate || '',
-                                purchaseChannel: data.purchaseChannel !== undefined ? data.purchaseChannel : card.purchaseChannel || '',
-                                category: data.category !== undefined ? data.category : card.category || '其他',
-                                categoryIcon: data.categoryIcon !== undefined ? data.categoryIcon : card.categoryIcon || './image/icons/crown.png',
-                                memorialPhrase: data.memorialPhrase !== undefined ? data.memorialPhrase : card.memorialPhrase || '',
-                                items
-                            };
-                        }).filter(card => card.items.length > 0));
-                    } else {
-                        const cardId = data.id || `merch-${Date.now()}`;
-                        setMerchandiseLogs(prev => [{
-                            id: cardId,
-                            purchaseDate: data.purchaseDate || '',
-                            purchaseChannel: data.purchaseChannel || '',
-                            category: data.category || '其他',
-                            categoryIcon: data.categoryIcon || './image/icons/crown.png',
-                            memorialPhrase: data.memorialPhrase || '',
-                            image: data.image || '',
-                            items: [{
-                                id: data.itemId || `${cardId}-item`,
-                                item: data.item?.trim() || '未命名周邊',
-                                amount: parseMerchAmount(data.amount),
-                                checked: data.checked !== false
-                            }]
-                        }, ...prev]);
-                    }
-                    setEditingMerchandise(null);
+const handleSaveMerchandise = (data) => {
+    if (data.id && !data.cardId) {
+        // 1. 編輯既有整張卡片
+        setMerchandiseLogs(prev => prev.map(card => card.id === data.id ? {
+            ...card,
+            image: data.image !== undefined ? data.image : card.image || '',
+            purchaseDate: data.purchaseDate !== undefined ? data.purchaseDate : card.purchaseDate || '',
+            purchaseChannel: data.purchaseChannel !== undefined ? data.purchaseChannel : card.purchaseChannel || '',
+            category: data.category !== undefined ? data.category : card.category || '其他',
+            categoryIcon: data.categoryIcon !== undefined ? data.categoryIcon : card.categoryIcon || './image/icons/crown.png',
+            memorialPhrase: data.memorialPhrase !== undefined ? data.memorialPhrase : card.memorialPhrase || '',
+            items: Array.isArray(data.items) ? data.items.map((it, idx) => ({
+                ...it,
+                id: it.id || `${card.id}-item-${idx}`,
+                item: it.item || '未命名周邊',
+                amount: parseMerchAmount(it.amount),
+                category: it.category || '其他',
+                categoryIcon: it.categoryIcon || './image/icons/crown.png',
+                checked: it.checked !== false
+            })) : card.items
+        } : card));
+    } else if (data.cardId) {
+        // 2. 編輯單一項目
+        setMerchandiseLogs(prev => prev.map(card => {
+            if (card.id !== data.cardId) return card;
+            let items = Array.isArray(card.items) ? [...card.items] : [];
+            if (data.itemAction === 'delete') {
+                items = items.filter(it => it.id !== data.itemId);
+            } else if (data.itemAction === 'save') {
+                const nextItem = {
+                    id: data.itemId || `item-${Date.now()}`,
+                    item: data.item?.trim() || '未命名周邊',
+                    amount: parseMerchAmount(data.amount),
+                    category: data.category || '其他',
+                    categoryIcon: data.categoryIcon || './image/icons/crown.png',
+                    checked: data.checked !== false
                 };
+                const exists = items.some(it => it.id === nextItem.id);
+                items = exists ? items.map(it => it.id === nextItem.id ? nextItem : it) : [...items, nextItem];
+            }
+            return {
+                ...card,
+                image: data.image !== undefined ? data.image : card.image || '',
+                purchaseDate: data.purchaseDate !== undefined ? data.purchaseDate : card.purchaseDate || '',
+                purchaseChannel: data.purchaseChannel !== undefined ? data.purchaseChannel : card.purchaseChannel || '',
+                category: data.category !== undefined ? data.category : card.category || '其他',
+                categoryIcon: data.categoryIcon !== undefined ? data.categoryIcon : card.categoryIcon || './image/icons/crown.png',
+                memorialPhrase: data.memorialPhrase !== undefined ? data.memorialPhrase : card.memorialPhrase || '',
+                items
+            };
+        }).filter(card => card.items.length > 0));
+    } else {
+        // 3. 【修復處】新增卡片：優先使用 Modal 送出的 data.items 陣列
+        const cardId = `merch-${Date.now()}`;
+        
+        const formattedItems = (Array.isArray(data.items) && data.items.length > 0)
+            ? data.items.map((it, idx) => ({
+                id: it.id || `${cardId}-item-${idx}`,
+                item: it.item?.trim() || '未命名周邊',
+                amount: parseMerchAmount(it.amount),
+                category: it.category || '其他',
+                categoryIcon: it.categoryIcon || './image/icons/crown.png',
+                checked: it.checked !== false
+            }))
+            : [{
+                id: `${cardId}-item-0`,
+                item: data.item?.trim() || '未命名周邊',
+                amount: parseMerchAmount(data.amount),
+                category: data.category || '其他',
+                categoryIcon: data.categoryIcon || './image/icons/crown.png',
+                checked: true
+            }];
+
+        setMerchandiseLogs(prev => [{
+            id: cardId,
+            purchaseDate: data.purchaseDate || '',
+            purchaseChannel: data.purchaseChannel || '',
+            category: data.category || '其他',
+            categoryIcon: data.categoryIcon || './image/icons/crown.png',
+            memorialPhrase: data.memorialPhrase || '',
+            image: data.image || '',
+            items: formattedItems
+        }, ...prev]);
+    }
+    setEditingMerchandise(null);
+};
 
                 const handleDeleteMerchandise = (id) => {
                     const hasCard = merchandiseLogs.some(card => card.id === id);

@@ -2282,9 +2282,8 @@ return (
         ) : (
             <div className="space-y-3">
                 {events.length === 0 ? (
-                    <div className="text-center py-16 bg-white/5 backdrop-blur-md border border-dashed border-[#C5AB89]/40 rounded-3xl p-6 space-y-3 shadow-[0_0_15px_rgba(197,171,137,0.1)]">
+                    <div className="text-center py-16 bg-white/5 backdrop-blur-md border border-dashed border-[#C5AB89]/40 rounded-3xl p-6 space-y-3 shadow-[0_0_5px_rgba(197,171,137,0.40)]">
                         <p className="text-xs text-[#EFF0EA] font-extrabold">暫無藝文紀錄</p>
-                        <button onClick={onOpenAddModal} className="px-4 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-xs shadow-[0_0_10px_rgba(197,171,137,0.4)">新增藝文紀錄</button>
                     </div>
                 ) : (
                     events.map((evt) => {
@@ -2527,37 +2526,46 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-2.5 overflow-y-auto px-0.5 py-1 flex-1 no-scrollbar text-xs">
-                        {!isItemEdit && (
-                            <>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-[#C5AB89]">周邊圖</label>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            fileRef.current?.click();
-                                        }}
-                                        className="w-full h-28 rounded-xl overflow-hidden border border-[#C5AB89]/40 bg-white/5 flex items-center justify-center cursor-pointer p-0 text-left"
-                                        aria-label="選擇周邊圖片"
-                                    >
-                                        {image ? <img src={image} alt="周邊預覽" className="w-full h-full object-cover pointer-events-none" /> : <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-[#A3ADA5] pointer-events-none"><i data-lucide="image-plus" className="w-6 h-6 text-[#C5AB89]"></i><span className="text-[10px] font-bold">點擊選擇圖片並裁切</span></div>}
-                                    </button>
-                                    <input id="merchandise-image-upload" ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-                                </div>
+{!isItemEdit && (
+    /* 使用 flex 讓圖片在左，日期/通路在右 */
+    <div className="flex gap-2.5 w-full">
+        {/* 左側：周邊圖  */}
+        <div className="w-[110px] shrink-0 space-y-1">
+            <label className="text-[10px] font-bold text-[#C5AB89]">周邊圖</label>
+            <button
+                type="button"
+                onClick={(e) => {
+                    e.preventDefault();
+                    fileRef.current?.click();
+                }}
+                className="w-full h-[110px] rounded-xl overflow-hidden border border-[#C5AB89]/40 bg-white/5 flex items-center justify-center cursor-pointer p-0 text-left"
+                aria-label="選擇周邊圖片"
+            >
+                {image ? (
+                    <img src={image} alt="周邊預覽" className="w-full h-full object-cover pointer-events-none" />
+                ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-[#A3ADA5] pointer-events-none">
+                        <i data-lucide="image-plus" className="w-5 h-5 text-[#C5AB89]"></i>
+                        <span className="text-[9px] font-bold text-center leading-tight">選擇圖片<br/>並裁切</span>
+                    </div>
+                )}
+            </button>
+            <input id="merchandise-image-upload" ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+        </div>
 
-                                {/* 購買日期與購買通路（皆為 text 輸入框，嚴格等寬、防壓疊） */}
-                                <div className="flex gap-2 w-full">
-                                    <div className="flex-1 min-w-0 space-y-1">
-                                        <label className="text-[10px] font-bold text-[#C5AB89]">購買日期</label>
-                                        <input type="text" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} placeholder="2026/09/28" className="w-full h-9 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none box-border" />
-                                    </div>
-                                    <div className="flex-1 min-w-0 space-y-1">
-                                        <label className="text-[10px] font-bold text-[#C5AB89]">購買通路</label>
-                                        <input type="text" value={purchaseChannel} onChange={e => setPurchaseChannel(e.target.value)} placeholder="官方網站" className="w-full h-9 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none box-border" />
-                                    </div>
-                                </div>
-                            </>
-                        )}
+        {/* 右側：購買日期與購買通路（上下垂直排列，自動填滿剩餘寬度） */}
+        <div className="flex-1 min-w-0 flex flex-col justify-between">
+            <div className="space-y-1 min-w-0">
+                <label className="text-[10px] font-bold text-[#C5AB89]">購買日期</label>
+                <input type="text" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} placeholder="2026/09/28" className="w-full h-9 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none box-border" />
+            </div>
+            <div className="space-y-1 min-w-0">
+                <label className="text-[10px] font-bold text-[#C5AB89]">購買通路</label>
+                <input type="text" value={purchaseChannel} onChange={e => setPurchaseChannel(e.target.value)} placeholder="官方網站" className="w-full h-9 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none box-border" />
+            </div>
+        </div>
+    </div>
+)}
 
                         {/* 如果是單一項目編輯 (isItemEdit) */}
                         {isItemEdit && (
@@ -2788,11 +2796,11 @@ return (
         {activePanel === 'tickets' && (
             <div className="space-y-3.5">
                 {schedules.length === 0 ? (
-                    <div className="text-center py-16 bg-[#EFF0EA]/5 border border-dashed border-[#737C75]/40 rounded-3xl p-6">
+                    <div className="text-center py-16 bg-white/5 backdrop-blur-md border border-dashed border-[#C5AB89]/40 rounded-3xl p-6 space-y-3 shadow-[0_0_5px_rgba(197,171,137,0.40)]">
                         <div className="w-12 h-12 rounded-2xl bg-[#C5AB89]/10 mx-auto flex items-center justify-center mb-3">
                             <i data-lucide="calendar-plus" className="w-5 h-5 text-[#C5AB89]"></i>
                         </div>
-                        <p className="text-xs text-[#EFF0EA] font-extrabold mb-2">尚無搶票行程</p>
+                        <p className="text-xs text-[#EFF0EA] font-extrabold mb-2">暫無搶票行程</p>
                     </div>
                 ) : (
                     schedules.map(sch => (
@@ -2908,12 +2916,11 @@ return (
         {activePanel === 'merchandise' && (
             <div className="space-y-3.5">
                 {merchandiseLogs.length === 0 ? (
-                    <div className="bg-[#232B25]/90 backdrop-blur-2xl rounded-3xl p-6 text-center shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
+                    <div className="text-center py-16 bg-white/5 backdrop-blur-md border border-dashed border-[#C5AB89]/40 rounded-3xl p-6 space-y-3 shadow-[0_0_5px_rgba(197,171,137,0.40)]">
                         <div className="w-12 h-12 rounded-2xl bg-[#C5AB89]/10 mx-auto flex items-center justify-center mb-3">
-                            <i data-lucide="image-plus" className="w-6 h-6 text-[#C5AB89]"></i>
+                            <i data-lucide="image-plus" className="w-5 h-5 text-[#C5AB89]"></i>
                         </div>
-                        <p className="text-xs text-[#EFF0EA] font-extrabold mb-2">尚無周邊紀錄</p>
-                        <button onClick={onOpenMerchandiseModal} className="px-4 py-2 bg-[#C5AB89] text-[#161D15] rounded-xl font-bold text-xs">新增周邊</button>
+                        <p className="text-xs text-[#EFF0EA] font-extrabold mb-2">暫無周邊紀錄</p>
                     </div>
                 ) : (
                     merchandiseLogs.map(card => {

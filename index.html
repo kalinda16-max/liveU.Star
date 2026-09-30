@@ -1932,13 +1932,13 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
                     <button 
                         type="button"
                         onClick={() => { onEdit(event); onClose(); }} 
-                        className="flex-1 h-10 rounded-xl bg-[#E2C9A1]/12 hover:bg-[#E2C9A1]/20 text-[#E2C9A1] font-semibold text-xs border border-[#E2C9A1]/35 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] active:scale-[0.98] transition-all flex items-center justify-center gap-1.5">編輯紀錄
+                        className="flex-1 h-10 rounded-xl bg-gradient-to-b from-[#E2C9A1]/25 to-[#E2C9A1]/10 hover:from-[#E2C9A1]/35 hover:to-[#E2C9A1]/20 text-[#EADDC9] font-semibold text-xs border border-[#E2C9A1]/40 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] active:scale-[0.98] transition-all flex items-center justify-center gap-1.">編輯紀錄
                     </button>
                     
                     <button 
                         type="button"
                         onClick={() => { onDelete(event.id); onClose(); }} 
-                        className="w-10 h-10 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400/90 hover:text-red-300 border border-red-500/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] active:scale-[0.98] transition-all" 
+                        className="w-10 h-10 rounded-xl bg-gradient-to-b from-red-500/20 to-red-950/30 hover:from-red-500/30 hover:to-red-900/40 text-red-300 border border-red-500/30 backdrop-blur-md flex items-center justify-center shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] active:scale-[0.98] transition-all" 
                         title="刪除紀錄"
                     >
                         <i data-lucide="trash-2" className="w-4 h-4"></i>
@@ -1947,7 +1947,7 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
                     <button 
                         type="button"
                         onClick={onClose} 
-                        className="flex-1 h-10 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-[#EFF0EA]/70 hover:text-[#EFF0EA] font-semibold text-xs border border-white/10 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] active:scale-[0.98] transition-all flex items-center justify-center"
+                        className="flex-1 h-10 rounded-xl bg-gradient-to-b from-[#1E2024]/80 to-[#141517]/80 hover:from-[#25282E]/80 hover:to-[#1A1C20]/80 text-[#EADDC9]/70 hover:text-[#EADDC9] font-semibold text-xs border border-[#E2C9A1]/20 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] active:scale-[0.98] transition-all flex items-center justify-center"
                     >
                         關閉
                     </button>

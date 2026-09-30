@@ -1828,7 +1828,7 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
     const spotifyEmbed = parseSpotifyEmbedUrl(event.spotifyUrl);
 
     return (
-        <div className="modal-overlay fixed inset-0 bg-black/90 backdrop-blur-md flex items-ecd justify-center p-4 pb-6 z-[999999] overflow-hidden">
+        <div className="modal-overlay fixed inset-0 bg-black/90 backdrop-blur-md flex items-end justify-center px-4 pt-14 pb-[calc(1rem+env(safe-area-inset-bottom))] z-[999999] overflow-hidden">
             <style>{`
                 .custom-scrollbar::-webkit-scrollbar {
                     width: 5px;

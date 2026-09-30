@@ -1804,7 +1804,7 @@ return (
                                 <div className="flex gap-2 pt-2 items-center">
                                     <button type="submit" className="flex-1 py-2.5 rounded-xl bg-gradient-to-b from-[#D2BC9D]/30 from-5% to-[#C5AB89]/15 hover:from-[#C5AB89]/65 hover:to-[#C5AB89]/25 text-[#FAF8F5] text-xs font-semibold border border-[#C5AB89]/70 backdrop-blur-lg shadow-[0_0_3px_rgba(197,171,137,0.40),inset_0_0_0_rgba(255,43,43,0.40)] active:scale-[0.98] transition-all">{initialData ? '儲存修改' : '確認新增'}</button>
                                     {initialData && (
-                                        <button type="button" onClick={() => { onDelete(initialData.id); onClose(); }} className="w-10 h-10 rounded-xl bg-gradient-to-b from-[#E57373]/25 via-[#C76363]/20 to-[#661D1D]/35 hover:from-[#E57373]/40 hover:to-[#8B2626]/50 text-red-200 hover:text-white border border-red-500/50 backdrop-blur-md flex items-center justify-center shrink-0 shadow-[0_0_3px_rgba(239,68,68,040),inset_0_0_1px_rgba(255,255,255,0.3)] active:scale-[0.98] transition-all" title="刪除">
+                                        <button type="button" onClick={() => { onDelete(initialData.id); onClose(); }} className="w-9 h-9 rounded-xl bg-gradient-to-b from-[#E57373]/25 via-[#C76363]/20 to-[#661D1D]/35 hover:from-[#E57373]/40 hover:to-[#8B2626]/50 text-red-200 hover:text-white border border-red-500/50 backdrop-blur-md flex items-center justify-center shrink-0 shadow-[0_0_3px_rgba(239,68,68,040),inset_0_0_1px_rgba(255,255,255,0.3)] active:scale-[0.98] transition-all" title="刪除">
                                             <i data-lucide="trash-2" className="w-3.5 h-3.5"></i>
                                         </button>
                                     )}

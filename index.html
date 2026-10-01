@@ -247,30 +247,49 @@
             flex: 0 0 auto;
         }
 
+        /* 周邊翻頁卡片 v2：保留目前實際顯示結果，集中於主樣式 */
+        .merch-flip-face.merch-v2-front > .merch-front-row {
+            display: flex;
+            align-items: stretch;
+            height: auto;
+        }
+        .merch-flip-face.merch-v2-front .merch-crop-preview {
+            width: 132px;
+            height: 132px;
+            flex-shrink: 0;
+        }
+        .merch-flip-face.merch-v2-front .merch-front-info {
+            flex: 1;
+            height: 132px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+        }
+        .merch-flip-face.merch-v2-front .merch-memory-phrase {
+            font-style: normal !important;
+            font-weight: 800 !important;
+        }
+        .merch-flip-face.merch-v2-front .merch-memory-phrase::before,
+        .merch-flip-face.merch-v2-front .merch-memory-phrase::after {
+            content: none !important;
+        }
+        .merch-flip-face.merch-v2-back .merch-back-title,
+        .merch-flip-face.merch-v2-back .merch-back-total-row {
+            display: none !important;
+        }
+        .merch-flip-face.merch-v2-back .merch-category-footer {
+            position: absolute;
+            left: 14px;
+            bottom: 12px;
+            right: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
     </style>
-<style id="merchandise-v2-adjustments">
-/* 僅周邊翻頁卡片：正面資訊高度自適應，與左側周邊圖一致 */
-.merch-flip-face.merch-v2-front > .merch-front-row{display: flex; align-items: stretch; height: auto;}
-.merch-flip-face.merch-v2-front .merch-crop-preview{width: 132px; height: 132px; flex-shrink: 0;}
-
-/* 修改這裡：將 height 改為 132px（或 100%），移除 min-height */
-.merch-flip-face.merch-v2-front .merch-front-info{
-    flex: 1; 
-    height: 132px; /* 強制鎖定高度與左側相同 */
-    display: flex; 
-    flex-direction: column; 
-    justify-content: space-between; 
-    overflow: hidden;
-}
-
-.merch-flip-face.merch-v2-front .merch-memory-phrase{font-style: normal !important; font-weight: 800 !important;}
-.merch-flip-face.merch-v2-front .merch-memory-phrase::before, .merch-flip-face.merch-v2-front .merch-memory-phrase::after{content: none !important;}
-
-/* 背面：隱藏標題與合計，分類統計和編輯 icon 同列於左下／右下 */
-.merch-flip-face.merch-v2-back .merch-back-title{display: none !important;}
-.merch-flip-face.merch-v2-back .merch-back-total-row{display: none !important;}
-.merch-flip-face.merch-v2-back .merch-category-footer{position: absolute; left: 14px; bottom: 12px; right: 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px;}
-</style>
 </head>
 <body class="bg-[#161D15] text-[#EFF0EA] font-sans antialiased h-full select-none overflow-hidden max-w-[100vw]">
     <div id="root" class="h-full"></div>
@@ -3428,7 +3447,7 @@ function StatsSection({ stats, events }) {
                                     return (
                                         <div key={key} className="space-y-1">
                                             <div className="flex items-center justify-between text-xs font-bold">
-                                                <span className="flex items-center gap-1.5 text-[#EFF0EA]">
+                                                <span className="flex items-center gap-1.5 text-[#EFF0EA]">https://liveweave.com/images/html.svg
                                                     <CategoryIcon cat={cat} sizeClass="w-3.5 h-3.5" />
                                                     {cat.label}
                                                 </span>

@@ -1401,7 +1401,7 @@ const handleSaveMerchandise = (data) => {
 
                 return (
                     <>
-                        <div className="modal-overlay bg-black/85 flex items-center justify-center p-4 pt-14 pb-20">
+                        <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-4 pt-14 pb-20 z-[999999] overflow-hidden">
                             <div className="bg-[#232B25]/90 backdrop-blur-2xl text-[#EFF0EA] w-full max-w-sm rounded-3xl p-5 shadow-[0_0_30px_rgba(197,171,137,0.2)] border border-[#C5AB89]/40 space-y-4 max-h-[75vh] overflow-y-auto no-scrollbar flex flex-col">
                                 <div className="flex items-center justify-between pb-1 shrink-0">
                                     <h3 className="font-extrabold text-sm text-[#C5AB89] flex items-center gap-1.5">
@@ -1560,7 +1560,7 @@ function AddEventModal({ initialData, onSave, onClose }) {
 
 return (
         <>
-            <div className="modal-overlay bg-black/85 flex items-center justify-center p-4 pt-14 pb-20">
+            <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-4 pt-14 pb-20 z-[999999] overflow-hidden">
                 <div className="bg-[#232B25]/90 backdrop-blur-2xl text-[#EFF0EA] w-full max-w-sm rounded-3xl p-4 shadow-[0_0_30px_rgba(197,171,137,0.2)] border border-[#C5AB89]/40 space-y-3 max-h-[620px] flex flex-col">
                     <div className="flex items-center justify-between pb-1 shrink-0">
                         <h3 className="font-extrabold text-sm text-[#C5AB89] flex items-center gap-1.5"><i data-lucide="ticket-plus" className="w-4 h-4 inline"></i> {initialData ? '編輯藝文紀錄' : '新增藝文紀錄'}</h3>
@@ -1773,7 +1773,7 @@ return (
                 };
 
                 return (
-                    <div className="modal-overlay bg-black/85 flex items-center justify-center p-4 pt-14 pb-20">
+                    <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-4 pt-14 pb-20 z-[999999] overflow-hidden">
                         <div className="bg-[#232B25]/90 backdrop-blur-2xl text-[#EFF0EA] w-full max-w-sm rounded-3xl p-4 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40 space-y-3 max-h-[75vh] flex flex-col">
                             <div className="flex items-center justify-between pb-1 shrink-0">
                                 <h3 className="font-extrabold text-sm text-[#C5AB89] flex items-center gap-1.5">
@@ -1847,7 +1847,7 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
     const spotifyEmbed = parseSpotifyEmbedUrl(event.spotifyUrl);
 
     return (
-        <div className="modal-overlay bg-black/90 backdrop-blur-md flex items-center justify-center p-4 pt-14 pb-20 z-[999999]">
+        <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-4 pt-14 pb-20 z-[999999] overflow-hidden">
             <style>{`
                 .custom-scrollbar::-webkit-scrollbar {
                     width: 5px;
@@ -3447,7 +3447,7 @@ function StatsSection({ stats, events }) {
                                     return (
                                         <div key={key} className="space-y-1">
                                             <div className="flex items-center justify-between text-xs font-bold">
-                                                <span className="flex items-center gap-1.5 text-[#EFF0EA]">https://liveweave.com/images/html.svg
+                                                <span className="flex items-center gap-1.5 text-[#EFF0EA]">
                                                     <CategoryIcon cat={cat} sizeClass="w-3.5 h-3.5" />
                                                     {cat.label}
                                                 </span>

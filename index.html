@@ -289,10 +289,6 @@
             left: 14px;
             bottom: 12px;
             right: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
         }
 
     </style>
@@ -2646,7 +2642,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
         </div>
 
         {/* 右側：購買日期與購買通路（上下垂直排列，自動填滿剩餘寬度） */}
-        <div className="flex-1 min-w-0 flex flex-col justify-between">
+        <div className="flex-1 min-w-0 flex flex-col gap-2.5">
             <div className="space-y-1 min-w-0">
                 <label className="text-[10px] font-bold text-[#C5AB89] pl-1.5">購買日期</label>
                 <input type="text" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} placeholder="2026/09/28" className="w-full h-9 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none box-border" />
@@ -2703,7 +2699,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                     <label className="text-[10px] font-bold text-[#C5AB89] pl-1.5">周邊項目與分類列表</label>
                                     <button 
                                         type="button" 
-                                        onClick={() => setFormItems([...formItems, { id: Date.now(), item: '', amount: '', category: '其他' }])}
+                                        onClick={() => setFormItems([{ id: `item-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, item: '', amount: '', category: '其他' }, ...formItems])}
                                         className="text-[#C5AB89] hover:opacity-80 p-1 flex items-center justify-center transition-opacity"
                                         title="新增一項"
                                     >
@@ -2830,6 +2826,16 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
     );
 }
 
+function getMerchCategoryKey(category) {
+    const value = String(category || '').trim();
+    if (!value) return 'other';
+    if (value.includes('服') || value.includes('衣') || value.includes('襪') || value.includes('帽')) return 'clothing';
+    if (value.includes('應援') || value.includes('燈') || value.includes('棒') || value.includes('手幅')) return 'support';
+    if (value.includes('立牌') || value.includes('小卡') || value.includes('照片')) return 'card';
+    if (value.includes('專輯') || value.includes('CD') || value.includes('音樂') || value.includes('DVD') || value.includes('線上') || value.includes('單曲')) return 'album';
+    return 'other';
+}
+
 function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onToggle, onDelete, onEdit }) {
     const [flipped, setFlipped] = useState(false);
     const image = card.image || '';
@@ -2847,19 +2853,19 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
                         <div className="merch-front-info flex-1 min-w-0 flex flex-col justify-between h-[132px] overflow-hidden">
                             <div className="min-w-0">
                                 <div className="flex items-start justify-between gap-2">
-                                    <div className="space-y-0.5 min-w-0">
-                                        {card.activityName && <div><div className="text-[9px] text-[#A3ADA5] font-bold">活動名稱</div><div className="text-[9px] text-[#E1E1DF] font-black break-all line-clamp-2 leading-tight">{card.activityName}</div></div>}
+                                    <div className="space-y-1.5 min-w-0 flex-1">
+                                        {card.activityName && <div className="space-y-0.5"><div className="text-[9px] text-[#A3ADA5] font-bold">活動名稱</div><div className="text-[9px] text-[#E1E1DF] font-black break-all line-clamp-2 leading-tight">{card.activityName}</div></div>}
 
-                                        <div><div className="text-[9px] text-[#A3ADA5] font-bold">購買日期</div><div className="text-[9px] text-[#E1E1DF] font-black truncate">{dateText}</div></div>
+                                        <div className="-mt-0.5"><div className="text-[9px] text-[#A3ADA5] font-bold">購買日期</div><div className="text-[9px] text-[#E1E1DF] font-black truncate">{dateText}</div></div>
                                         
-                                        <div><div className="text-[9px] text-[#A3ADA5] font-bold">購買通路</div><div className="text-[11px] text-[#E1E1DF] font-bold truncate">{card.purchaseChannel || '未設定'}</div></div>
+                                        <div className="-mt-0.5"><div className="text-[9px] text-[#A3ADA5] font-bold">購買通路</div><div className="text-[9px] text-[#E1E1DF] font-bold truncate">{card.purchaseChannel || '未設定'}</div></div>
                                     </div>
                                     {/* 右上角：編輯圖示按鈕 */}
                                     <button type="button" onClick={editCard} className="w-7 h-7 rounded-full bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow-lg shrink-0" title="編輯周邊紀錄">
                                         <i data-lucide="pencil" className="w-3 h-3"></i>
                                     </button>
                                 </div>
-                                {card.memorialPhrase && <div className="merch-memory-phrase text-[10px] text-[#CCB9AA] font-extrabold truncate my-1">{card.memorialPhrase}</div>}
+                                {card.memorialPhrase && <div className="merch-memory-phrase text-[10px] text-[#CCB9AA] font-extrabold truncate my-0.5">{card.memorialPhrase}</div>}
                             </div>
                             <div className="flex items-center justify-end pt-1 min-w-0">
                                 {/* 右下角：花費總金額 */}
@@ -2893,16 +2899,33 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
                             </div>
                         ))}
                     </div>
-                    {/* 右下角底部：將圖示與「幾項」包在同一個 flex 區塊中並排 */}
-                    <div className="merch-category-footer flex items-center justify-end shrink-0 pt-1.5 px-0.5">
-                        <div className="flex items-center gap-2">
-                            <img
-                                src={card.categoryIcon || getMerchCategoryIcon(card.category)}
-                                alt="分類"
-                                className="w-6 h-6 object-contain shrink-0"
-                            />
-                            <div className="text-[10px] text-[#A3ADA5] font-bold shrink-0">{items.length} 項</div>
-                        </div>
+                    {/* 底部：固定五種周邊分類，各自累計本場購買項目數 */}
+                    <div className="merch-category-footer grid grid-cols-5 items-end gap-1 shrink-0 pt-1.5 px-0.5">
+                        {[
+                            { key: 'clothing', icon: './image/icons/shirt.png', label: '服飾' },
+                            { key: 'support', icon: './image/icons/lightstick.png', label: '應援' },
+                            { key: 'card', icon: './image/icons/card.png', label: '小卡／照片' },
+                            { key: 'album', icon: './image/icons/album.png', label: '專輯／音樂' },
+                            { key: 'other', icon: './image/icons/Gift.png', label: '其他' }
+                        ].map(category => {
+                            const count = items.filter(item => getMerchCategoryKey(item?.category) === category.key).length;
+                            return (
+                                <div
+                                    key={category.key}
+                                    className={`flex flex-col items-center justify-end min-w-0 gap-0.5 ${count > 0 ? 'opacity-100' : 'opacity-35'}`}
+                                    title={`${category.label}：${count} 項`}
+                                >
+                                    <img
+                                        src={category.icon}
+                                        alt={category.label}
+                                        className="w-5 h-5 object-contain shrink-0"
+                                    />
+                                    <div className="text-[9px] text-[#A3ADA5] font-bold leading-none whitespace-nowrap">
+                                        {count} 項
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             </div>

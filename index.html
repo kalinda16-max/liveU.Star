@@ -78,6 +78,12 @@
             overflow-x: hidden !important; overflow-y: hidden !important;
             background-color: #161D15; color: #EFF0EA; touch-action: manipulation;
         }
+        /* 統一可見卷軸樣式；.no-scrollbar 仍維持原本的隱藏設定 */
+        *::-webkit-scrollbar { width: 5px; height: 5px; }
+        *::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.18); border-radius: 9999px; }
+        *::-webkit-scrollbar-thumb { background: rgba(197, 171, 137, 0.35); border-radius: 9999px; }
+        *::-webkit-scrollbar-thumb:hover { background: rgba(197, 171, 137, 0.55); }
+        * { scrollbar-width: thin; scrollbar-color: rgba(197, 171, 137, 0.35) rgba(0, 0, 0, 0.18); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
@@ -1125,6 +1131,16 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                     
                 };
 
+                const getMerchCategoryIcon = (cat) => {
+                    const value = String(cat || '').trim();
+                    if (!value) return './image/icons/Gift.png';
+                    if (value.includes('服') || value.includes('衣') || value.includes('襪') || value.includes('帽')) return './image/icons/shirt.png';
+                    if (value.includes('應援') || value.includes('燈') || value.includes('棒') || value.includes('手幅')) return './image/icons/lightstick.png';
+                    if (value.includes('立牌') || value.includes('小卡') || value.includes('照片')) return './image/icons/card.png';
+                    if (value.includes('專輯') || value.includes('CD') || value.includes('音樂') || value.includes('DVD') || value.includes('線上') || value.includes('單曲')) return './image/icons/album.png';
+                    return './image/icons/Gift.png';
+                };
+
                 const normalizeMerchandiseLogs = (raw) => {
                     if (!Array.isArray(raw)) return [];
                     return raw.map((entry, index) => {
@@ -1138,6 +1154,7 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                         return {
                             ...entry,
                             id: cardId,
+                            activityName: entry.activityName || entry.eventName || '',
                             purchaseDate: entry.purchaseDate || entry.date || '',
                             purchaseChannel: entry.purchaseChannel || entry.channel || '',
                             category: entry.category || '其他',
@@ -1149,6 +1166,8 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                                 id: it.id || `${cardId}-item-${itemIndex}`,
                                 item: it.item || '未命名周邊',
                                 amount: parseMerchAmount(it.amount),
+                                category: it.category || entry.category || '其他',
+                                categoryIcon: it.categoryIcon || getMerchCategoryIcon(it.category || entry.category || '其他'),
                                 checked: it.checked !== false
                             }))
                         };
@@ -1160,6 +1179,7 @@ const handleSaveMerchandise = (data) => {
         // 1. 編輯既有整張卡片
         setMerchandiseLogs(prev => prev.map(card => card.id === data.id ? {
             ...card,
+            activityName: data.activityName !== undefined ? data.activityName : card.activityName || '',
             image: data.image !== undefined ? data.image : card.image || '',
             purchaseDate: data.purchaseDate !== undefined ? data.purchaseDate : card.purchaseDate || '',
             purchaseChannel: data.purchaseChannel !== undefined ? data.purchaseChannel : card.purchaseChannel || '',
@@ -1172,7 +1192,7 @@ const handleSaveMerchandise = (data) => {
                 item: it.item || '未命名周邊',
                 amount: parseMerchAmount(it.amount),
                 category: it.category || '其他',
-                categoryIcon: it.categoryIcon || './image/icons/crown.png',
+                categoryIcon: it.categoryIcon || getMerchCategoryIcon(it.category || '其他'),
                 checked: it.checked !== false
             })) : card.items
         } : card));
@@ -1189,7 +1209,7 @@ const handleSaveMerchandise = (data) => {
                     item: data.item?.trim() || '未命名周邊',
                     amount: parseMerchAmount(data.amount),
                     category: data.category || '其他',
-                    categoryIcon: data.categoryIcon || './image/icons/crown.png',
+                    categoryIcon: data.categoryIcon || getMerchCategoryIcon(data.category || '其他'),
                     checked: data.checked !== false
                 };
                 const exists = items.some(it => it.id === nextItem.id);
@@ -1197,6 +1217,7 @@ const handleSaveMerchandise = (data) => {
             }
             return {
                 ...card,
+                activityName: data.activityName !== undefined ? data.activityName : card.activityName || '',
                 image: data.image !== undefined ? data.image : card.image || '',
                 purchaseDate: data.purchaseDate !== undefined ? data.purchaseDate : card.purchaseDate || '',
                 purchaseChannel: data.purchaseChannel !== undefined ? data.purchaseChannel : card.purchaseChannel || '',
@@ -1207,16 +1228,15 @@ const handleSaveMerchandise = (data) => {
             };
         }).filter(card => card.items.length > 0));
     } else {
-        // 3. 【修復處】新增卡片：優先使用 Modal 送出的 data.items 陣列
+        // 3. 新增卡片：每一筆項目保留自己的分類與圖示，避免第二頁把分類合併。
         const cardId = `merch-${Date.now()}`;
-        
         const formattedItems = (Array.isArray(data.items) && data.items.length > 0)
             ? data.items.map((it, idx) => ({
                 id: it.id || `${cardId}-item-${idx}`,
                 item: it.item?.trim() || '未命名周邊',
                 amount: parseMerchAmount(it.amount),
                 category: it.category || '其他',
-                categoryIcon: it.categoryIcon || './image/icons/crown.png',
+                categoryIcon: it.categoryIcon || getMerchCategoryIcon(it.category || '其他'),
                 checked: it.checked !== false
             }))
             : [{
@@ -1224,16 +1244,17 @@ const handleSaveMerchandise = (data) => {
                 item: data.item?.trim() || '未命名周邊',
                 amount: parseMerchAmount(data.amount),
                 category: data.category || '其他',
-                categoryIcon: data.categoryIcon || './image/icons/crown.png',
+                categoryIcon: data.categoryIcon || getMerchCategoryIcon(data.category || '其他'),
                 checked: true
             }];
 
         setMerchandiseLogs(prev => [{
             id: cardId,
+            activityName: data.activityName || '',
             purchaseDate: data.purchaseDate || '',
             purchaseChannel: data.purchaseChannel || '',
-            category: data.category || '其他',
-            categoryIcon: data.categoryIcon || './image/icons/crown.png',
+            category: formattedItems[0]?.category || data.category || '其他',
+            categoryIcon: formattedItems[0]?.categoryIcon || data.categoryIcon || './image/icons/crown.png',
             memorialPhrase: data.memorialPhrase || '',
             image: data.image || '',
             items: formattedItems
@@ -2476,6 +2497,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
     
     // 表單基本欄位 State
     const [image, setImage] = useState(initialData?.image || '');
+    const [activityName, setActivityName] = useState(initialData?.activityName || initialData?.eventName || '');
     const [purchaseDate, setPurchaseDate] = useState(initialData?.purchaseDate || new Date().toISOString().slice(0, 10));
     const [purchaseChannel, setPurchaseChannel] = useState(initialData?.purchaseChannel || '');
     const [memorialPhrase, setMemorialPhrase] = useState(initialData?.memorialPhrase || '');
@@ -2551,6 +2573,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                 cardId: initialData.cardId,
                 itemId: initialData.itemId || initialData.id,
                 itemAction: 'save',
+                activityName,
                 item: item.trim() || '未命名周邊',
                 amount: Math.max(0, Number(amount) || 0),
                 category: itemCategory,
@@ -2563,6 +2586,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
         onSave({
             id: initialData?.id || null,
             image,
+            activityName,
             purchaseDate,
             purchaseChannel,
             category: firstCat,
@@ -2658,6 +2682,20 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                             </>
                         )}
 
+                        {/* 活動名稱：位於周邊項目與分類列表上方，並同步顯示於周邊卡片 */}
+                        {!isItemEdit && (
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-[#C5AB89] pl-1.5">活動名稱</label>
+                                <input
+                                    type="text"
+                                    value={activityName}
+                                    onChange={e => setActivityName(e.target.value)}
+                                    placeholder="例如：w-inds. 25th Anniversary"
+                                    className="w-full h-9 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none box-border"
+                                />
+                            </div>
+                        )}
+
                         {/* 如果是新增或整場編輯，顯示多筆項目列表管理 */}
                         {!isItemEdit && (
                             <div className="space-y-1.5 pt-0.5">
@@ -2702,16 +2740,17 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                                         setFormItems(updated);
                                                     }} 
                                                     placeholder="分類" 
-                                                    className="w-16 shrink-0 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2 py-1 rounded-lg text-xs border border-[#C5AB89]/30 focus:outline-none box-border" 
+                                                    className="w-[58px] shrink-0 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-1.5 py-1 rounded-lg text-xs border border-[#C5AB89]/30 focus:outline-none box-border" 
                                                 />
                                                 {formItems.length > 1 && (
                                                     <button 
                                                         type="button" 
-                                                        onClick={() => setFormItems(formItems.filter(item => item.id !== fi.id))} 
-                                                        className="w-6 h-6 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center shrink-0"
+                                                        onClick={(e) => { e.stopPropagation(); setFormItems(formItems.filter(entry => entry.id !== fi.id)); }} 
+                                                        className="w-7 h-7 min-w-7 rounded-lg bg-red-500/15 text-red-300 border border-red-400/20 flex items-center justify-center shrink-0 text-base font-black leading-none"
                                                         title="移除此項"
+                                                        aria-label="移除此項"
                                                     >
-                                                        <i data-lucide="x" className="w-3.5 h-3.5"></i>
+                                                        ×
                                                     </button>
                                                 )}
                                             </div>
@@ -2809,6 +2848,7 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
                             <div className="min-w-0">
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="space-y-0.5 min-w-0">
+                                        {card.activityName && <div><div className="text-[9px] text-[#A3ADA5] font-bold">活動名稱</div><div className="text-xs font-black truncate">{card.activityName}</div></div>}
                                         <div><div className="text-[9px] text-[#A3ADA5] font-bold">購買日期</div><div className="text-xs font-black truncate">{dateText}</div></div>
                                         <div><div className="text-[9px] text-[#A3ADA5] font-bold">購買通路</div><div className="text-[11px] text-[#EFF0EA] font-bold truncate">{card.purchaseChannel || '未設定'}</div></div>
                                     </div>
@@ -2843,16 +2883,17 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
                         {items.map(item => (
                             <div key={item.id} className="flex items-center gap-1.5 px-2 py-1.5 min-w-0 rounded-xl bg-white/[0.045] border border-white/10">
                                 <input type="checkbox" checked={!!item.checked} onChange={e => { e.stopPropagation(); onToggle(card.id, item.id); }} onClick={stop} className="w-3.5 h-3.5 accent-[#C5AB89] shrink-0" />
-                                <div className="min-w-0 flex-1"><div className={`text-[10px] font-extrabold truncate ${item.checked ? 'text-[#A3ADA5] line-through' : 'text-[#EFF0EA]'}`}>{item.item || '未命名周邊'}</div></div>
+                                <img src={item.categoryIcon || getMerchCategoryIcon(item.category)} alt="分類" className="w-4 h-4 object-contain shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                    <div className={`text-[10px] font-extrabold truncate ${item.checked ? 'text-[#A3ADA5] line-through' : 'text-[#EFF0EA]'}`}>{item.item || '未命名周邊'}</div>
+                                    <div className="text-[8px] text-[#A3ADA5] font-bold truncate">{item.category || '其他'}</div>
+                                </div>
                                 <div className="text-[9px] text-[#C5AB89] font-black font-mono shrink-0">{formatMoney(item.amount)}</div>
                             </div>
                         ))}
                     </div>
-                    <div className="merch-category-footer flex items-center justify-between shrink-0 pt-1.5">
-                        <div className="merch-category-summary text-[9px] text-[#A3ADA5] font-bold flex items-center gap-1.5 min-w-0 pl-2.5">
-                            <img src={card.categoryIcon || './image/icons/crown.png'} alt="分類" className="w-3.5 h-3.5 object-contain shrink-0" />
-                            <span className="truncate">{card.category || '其他'} {items.length} 項</span>
-                        </div>
+                    <div className="merch-category-footer flex items-center justify-end shrink-0 pt-1.5">
+                        <div className="text-[9px] text-[#A3ADA5] font-bold">共 {items.length} 項</div>
                     </div>
                 </div>
             </div>

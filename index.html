@@ -2883,12 +2883,11 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
 
                 {/* 背面（第二頁） */}
                 <div className="merch-flip-face merch-v2-back merch-flip-back bg-[#232B25]/95 backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40 flex flex-col justify-between h-full overflow-hidden">
-                    {/* 微調：pt-1 緊湊留白，頂部漸層縮短至 black 4px */}
                     <div 
-                        className="merch-back-items-grid no-scrollbar flex-1 overflow-y-auto gap-1.5 pt-0 pb-2.5 px-0.5"
+                        className="merch-back-items-grid no-scrollbar flex-1 overflow-y-auto gap-2 pt-0 pb-5 px-0.5"
                         style={{
-                            maskImage: 'linear-gradient(to bottom, transparent 0px, black 1px, black calc(100% - 14px), transparent 100%)',
-                            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0px, black 1px, black calc(100% - 14px), transparent 100%)'
+                            maskImage: 'linear-gradient(to bottom, transparent 0px, black 1px, black calc(100% - 17px), transparent 70%)',
+                            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0px, black 1px, black calc(100% - 17px), transparent 70%)'
                         }}
                     >
                         {items.map(item => (

@@ -2539,9 +2539,9 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
         if (!cat) return './image/icons/crown.png';
         if (cat.includes('服') || cat.includes('衣') || cat.includes('襪') || cat.includes('帽')) return './image/icons/shirt.png';
         if (cat.includes('應援') || cat.includes('燈') || cat.includes('棒') || cat.includes('手幅')) return './image/icons/lightstick.png';
-        if (cat.includes('卡') || cat.includes('小卡') || cat.includes('照片')) return './image/icons/card.png';
-        if (cat.includes('專輯') || cat.includes('CD') || cat.includes('音樂') || cat.includes('DVD')) return './image/icons/album.png';
-        return './image/icons/crown.png';
+        if (cat.includes('立牌') || cat.includes('小卡') || cat.includes('照片')) return './image/icons/card.png';
+        if (cat.includes('專輯') || cat.includes('CD') || cat.includes('音樂') || cat.includes('DVD')) || cat.includes('線上')) || cat.includes('單曲')) || return './image/icons/album.png';
+        return './image/icons/Gift.png';
     };
 
     const handleSubmit = (e) => {
@@ -2557,25 +2557,27 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                 categoryIcon: getCategoryIcon(itemCategory)
             });
         } else {
-            // 以第一個項目的分類作為卡片主要代表分類
-            const firstCat = formItems[0]?.category || '其他';
-            onSave({
-                id: initialData?.id || null,
-                image,
-                purchaseDate,
-                purchaseChannel,
-                category: firstCat,
-                categoryIcon: getCategoryIcon(firstCat),
-                memorialPhrase,
-                items: formItems.map(fi => ({
-                    id: fi.id || Date.now(),
-                    item: fi.item.trim() || '未命名周邊',
-                    amount: parseMerchAmount(fi.amount),
-                    category: fi.category || '其他',
-                    categoryIcon: getCategoryIcon(fi.category),
-                    checked: true
-                }))
-            });
+        // 取得第一筆分類，若無則預設為其他
+    const firstCat = formItems?.[0]?.category || '';
+
+        onSave({
+            id: initialData?.id || null,
+            image,
+            purchaseDate,
+            purchaseChannel,
+            category: firstCat,
+            categoryIcon: getCategoryIcon(firstCat),
+            memorialPhrase,
+        // 使用 index 確保 map 產生的 id 絕對不會重複
+        items: (formItems || []).map((fi, index) => ({
+            id: fi.id || `${Date.now()}_${index}`,
+            item: fi.item?.trim() || '未命名周邊',
+            amount: parseMerchAmount(fi.amount),
+            category: fi.category || '其他',
+            categoryIcon: getCategoryIcon(fi.category),
+            checked: fi.checked ?? true // 保留原本的 checked 狀態，若無則預設 true
+           }))
+          });
         }
         onClose();
     };

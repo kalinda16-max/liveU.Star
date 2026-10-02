@@ -2848,9 +2848,11 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
                             <div className="min-w-0">
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="space-y-0.5 min-w-0">
-                                        {card.activityName && <div><div className="text-[9px] text-[#A3ADA5] font-bold">活動名稱</div><div className="text-xs font-black truncate">{card.activityName}</div></div>}
-                                        <div><div className="text-[9px] text-[#A3ADA5] font-bold">購買日期</div><div className="text-xs font-black truncate">{dateText}</div></div>
-                                        <div><div className="text-[9px] text-[#A3ADA5] font-bold">購買通路</div><div className="text-[11px] text-[#EFF0EA] font-bold truncate">{card.purchaseChannel || '未設定'}</div></div>
+                                        {card.activityName && <div><div className="text-[9px] text-[#A3ADA5] font-bold">活動名稱</div><div className="text-[9px] text-[#E1E1DF] font-black break-all line-clamp-2 leading-tight">{card.activityName}</div></div>}
+
+                                        <div><div className="text-[9px] text-[#A3ADA5] font-bold">購買日期</div><div className="text-[9px] text-[#E1E1DF] font-black truncate">{dateText}</div></div>
+                                        
+                                        <div><div className="text-[9px] text-[#A3ADA5] font-bold">購買通路</div><div className="text-[11px] text-[#E1E1DF] font-bold truncate">{card.purchaseChannel || '未設定'}</div></div>
                                     </div>
                                     {/* 右上角：編輯圖示按鈕 */}
                                     <button type="button" onClick={editCard} className="w-7 h-7 rounded-full bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow-lg shrink-0" title="編輯周邊紀錄">
@@ -2874,32 +2876,32 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
                 <div className="merch-flip-face merch-v2-back merch-flip-back bg-[#232B25]/95 backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40 flex flex-col justify-between h-full overflow-hidden">
                     {/* 微調：pt-1 緊湊留白，頂部漸層縮短至 black 4px */}
                     <div 
-                        className="merch-back-items-grid no-scrollbar flex-1 overflow-y-auto gap-1.5 pt-1 pb-2.5 px-0.5"
+                        className="merch-back-items-grid no-scrollbar flex-1 overflow-y-auto gap-1.5 pt-0 pb-2.5 px-0.5"
                         style={{
-                            maskImage: 'linear-gradient(to bottom, transparent 0px, black 4px, black calc(100% - 20px), transparent 100%)',
-                            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0px, black 4px, black calc(100% - 20px), transparent 100%)'
+                            maskImage: 'linear-gradient(to bottom, transparent 0px, black 1px, black calc(100% - 14px), transparent 100%)',
+                            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0px, black 1px, black calc(100% - 14px), transparent 100%)'
                         }}
                     >
                         {items.map(item => (
                             <div key={item.id} className="flex items-center gap-1.5 px-2 py-1.5 min-w-0 rounded-xl bg-white/[0.045] border border-white/10">
-                                <input type="checkbox" checked={!!item.checked} onChange={e => { e.stopPropagation(); onToggle(card.id, item.id); }} onClick={stop} className="w-3.5 h-3.5 accent-[#C5AB89] shrink-0" />
+                                <input type="checkbox" checked={!!item.checked} onChange={e => { e.stopPropagation(); onToggle(card.id, item.id); }} onClick={stop} className="w-3 h-3 accent-[#AB8C83] shrink-0" />
                                 <div className="min-w-0 flex-1">
-                                    <div className={`text-[10px] font-extrabold truncate ${item.checked ? 'text-[#A3ADA5] line-through' : 'text-[#EFF0EA]'}`}>{item.item || '未命名周邊'}
+                                    <div className={`text-[10px] font-extrabold truncate ${item.checked ? 'text-[#A3ADA5] line-through' : 'text-[#C4D1B6]'}`}>{item.item || '未命名周邊'}
                                 </div>
                                 </div>
-                                <div className="text-[9px] text-[#C5AB89] font-black font-mono shrink-0">{formatMoney(item.amount)}</div>
+                                <div className="text-[10px] text-[#C5AB89] font-black font-mono shrink-0">{formatMoney(item.amount)}</div>
                             </div>
                         ))}
                     </div>
                     {/* 右下角底部：將圖示與「幾項」包在同一個 flex 區塊中並排 */}
                     <div className="merch-category-footer flex items-center justify-end shrink-0 pt-1.5 px-0.5">
-                        <div className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-lg border border-[#C5AB89]/30">
+                        <div className="flex items-center gap-2">
                             <img
                                 src={card.categoryIcon || getMerchCategoryIcon(card.category)}
                                 alt="分類"
-                                className="w-4 h-4 object-contain shrink-0"
+                                className="w-6 h-6 object-contain shrink-0"
                             />
-                            <div className="text-[9px] text-[#A3ADA5] font-bold shrink-0">{items.length} 項</div>
+                            <div className="text-[10px] text-[#A3ADA5] font-bold shrink-0">{items.length} 項</div>
                         </div>
                     </div>
                 </div>

@@ -2883,17 +2883,24 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
                         {items.map(item => (
                             <div key={item.id} className="flex items-center gap-1.5 px-2 py-1.5 min-w-0 rounded-xl bg-white/[0.045] border border-white/10">
                                 <input type="checkbox" checked={!!item.checked} onChange={e => { e.stopPropagation(); onToggle(card.id, item.id); }} onClick={stop} className="w-3.5 h-3.5 accent-[#C5AB89] shrink-0" />
-                                <img src={item.categoryIcon || getMerchCategoryIcon(item.category)} alt="分類" className="w-4 h-4 object-contain shrink-0" />
                                 <div className="min-w-0 flex-1">
-                                    <div className={`text-[10px] font-extrabold truncate ${item.checked ? 'text-[#A3ADA5] line-through' : 'text-[#EFF0EA]'}`}>{item.item || '未命名周邊'}</div>
-                                    <div className="text-[8px] text-[#A3ADA5] font-bold truncate">{item.category || '其他'}</div>
+                                    <div className={`text-[10px] font-extrabold truncate ${item.checked ? 'text-[#A3ADA5] line-through' : 'text-[#EFF0EA]'}`}>{item.item || '未命名周邊'}
+                                </div>
                                 </div>
                                 <div className="text-[9px] text-[#C5AB89] font-black font-mono shrink-0">{formatMoney(item.amount)}</div>
                             </div>
                         ))}
                     </div>
-                    <div className="merch-category-footer flex items-center justify-end shrink-0 pt-1.5">
-                        <div className="text-[9px] text-[#A3ADA5] font-bold">共 {items.length} 項</div>
+                    {/* 右下角底部：將圖示與「幾項」包在同一個 flex 區塊中並排 */}
+                    <div className="merch-category-footer flex items-center justify-end shrink-0 pt-1.5 px-0.5">
+                        <div className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-lg border border-[#C5AB89]/30">
+                            <img
+                                src={card.categoryIcon || getMerchCategoryIcon(card.category)}
+                                alt="分類"
+                                className="w-4 h-4 object-contain shrink-0"
+                            />
+                            <div className="text-[9px] text-[#A3ADA5] font-bold shrink-0">{items.length} 項</div>
+                        </div>
                     </div>
                 </div>
             </div>

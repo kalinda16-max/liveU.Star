@@ -80,10 +80,10 @@
         }
         /* 統一可見卷軸樣式；.no-scrollbar 仍維持原本的隱藏設定 */
         *::-webkit-scrollbar { width: 5px; height: 5px; }
-        *::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.18); border-radius: 9999px; }
-        *::-webkit-scrollbar-thumb { background: rgba(197, 171, 137, 0.35); border-radius: 9999px; }
-        *::-webkit-scrollbar-thumb:hover { background: rgba(197, 171, 137, 0.55); }
-        * { scrollbar-width: thin; scrollbar-color: rgba(197, 171, 137, 0.35) rgba(0, 0, 0, 0.18); }
+        *::-webkit-scrollbar-track { background: #232B25; border-radius: 9999px; }
+        *::-webkit-scrollbar-thumb { background: #737C75; border-radius: 9999px; }
+        *::-webkit-scrollbar-thumb:hover { background: #737C75; }
+        * { scrollbar-width: thin; scrollbar-color: #737C75 #232B25; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
@@ -235,7 +235,7 @@
             align-content: start;
         }
         .merch-back-items-grid::-webkit-scrollbar { width: 4px; }
-        .merch-back-items-grid::-webkit-scrollbar-thumb { background: rgba(197,171,137,.45); border-radius: 999px; }
+        .merch-back-items-grid::-webkit-scrollbar-thumb { background: #737C75; border-radius: 999px; }
         .merch-crop-preview {
             aspect-ratio: 1 / 1;
             width: 132px;
@@ -1870,15 +1870,15 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
                     width: 5px;
                 }
                 .custom-scrollbar::-webkit-scrollbar-track {
-                    background: rgba(0, 0, 0, 0.2);
+                    background: #232B25;
                     border-radius: 9999px;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: rgba(226, 201, 161, 0.3);
+                    background: #737C75;
                     border-radius: 9999px;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: rgba(226, 201, 161, 0.6);
+                    background: #737C75;
                 }
             `}</style>
 
@@ -1895,7 +1895,7 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
                     <div className="absolute inset-0 bg-gradient-to-t from-[#141517] via-[#141517]/50 to-transparent flex items-end p-4 pointer-events-none">
                         <div>
                             <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${cat.badgeBg} inline-flex items-center gap-1 mb-1 shadow`}>
-                                <CategoryIcon cat={cat} sizeClass="w-3.5 h-3.5" /> {cat.label}
+                                {cat.label}
                             </span>
                             <h2 className="text-white font-black text-base leading-snug drop-shadow">{event.title}</h2>
                         </div>
@@ -2422,8 +2422,8 @@ return (
                                                 <h3 className="font-extrabold text-xs text-[#EFF0EA] leading-snug line-clamp-2">{evt.title}</h3>
                                             </div>
                                             
-                                            <div className="flex items-center justify-between mt-1 pr-1">
-                                                <div className="flex items-center gap-0.25" title={`評分：${evt.rating || 5} 顆星`}>
+                                            <div className="flex items-end justify-between mt-1 pr-1 min-h-[16px]">
+                                                <div className="flex items-center gap-0.25 h-3.5" title={`評分：${evt.rating || 5} 顆星`}>
                                                     {[1, 2, 3, 4, 5].map((star) => (
                                                         <svg
                                                             key={star}
@@ -2438,10 +2438,7 @@ return (
                                                         </svg>
                                                     ))}
                                                 </div>
-                                    <div className="flex flex-col items-end gap-0.5">
-                                        <div className="flex items-center text-[10px] text-[#CCB9AA]" title={cat.label}>
-                                         <CategoryIcon cat={cat} sizeClass="w-3.5 h-3.5" />
-                                            </div>
+                                    <div className="flex items-center justify-end h-3.5">
                                                 <div className="text-[10px] text-[#A3ADA5] font-bold flex items-center gap-1 overflow-hidden">
                                                     <img src="./image/icons/favourite.png" alt="場館名稱" className="w-3.5 h-3.5 object-contain shrink-0" />
                                                     <span className="truncate max-w-[120px] text-right" title={evt.venue}> {evt.venue}</span>
@@ -2857,11 +2854,11 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
                             <div className="min-w-0">
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="space-y-1.5 min-w-0 flex-1">
-                                        {card.activityName && <div className="space-y-0.5"><div className="text-[9px] text-[#A3ADA5] font-bold">活動名稱</div><div className="text-[9px] text-[#E1E1DF] font-black break-all line-clamp-2 leading-tight">{card.activityName}</div></div>}
+                                        {card.activityName && <div className="text-[9px] text-[#E1E1DF] font-black break-all line-clamp-2 leading-tight">{card.activityName}</div>}
 
-                                        <div className="-mt-0.5"><div className="text-[9px] text-[#A3ADA5] font-bold">購買日期</div><div className="text-[9px] text-[#E1E1DF] font-black truncate">{dateText}</div></div>
+                                        <div className="-mt-0.5 text-[9px] text-[#E1E1DF] font-black truncate">{dateText}</div>
                                         
-                                        <div className="-mt-0.5"><div className="text-[9px] text-[#A3ADA5] font-bold">購買通路</div><div className="text-[9px] text-[#E1E1DF] font-bold truncate">{card.purchaseChannel || '未設定'}</div></div>
+                                        <div className="-mt-0.5 text-[9px] text-[#E1E1DF] font-bold truncate">{card.purchaseChannel || '未設定'}</div>
                                     </div>
                                     {/* 右上角：編輯圖示按鈕 */}
                                     <button type="button" onClick={editCard} className="w-7 h-7 rounded-full bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow-lg shrink-0" title="編輯周邊紀錄">
@@ -2884,7 +2881,7 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
                 {/* 背面（第二頁） */}
                 <div className="merch-flip-face merch-v2-back merch-flip-back bg-[#232B25]/95 backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40 flex flex-col justify-between h-full overflow-hidden">
                     <div 
-                        className="merch-back-items-grid no-scrollbar flex-1 overflow-y-auto gap-2 pt-0 pb-5 px-0.5"
+                        className="merch-back-items-grid no-scrollbar flex-1 overflow-y-auto gap-2 pt-0 pb-5 px-0.5 -translate-y-[3px]"
                         style={{
                             maskImage: 'linear-gradient(to bottom, transparent 0px, black 1px, black calc(100% - 17px), transparent 70%)',
                             WebkitMaskImage: 'linear-gradient(to bottom, transparent 0px, black 1px, black calc(100% - 17px), transparent 70%)'
@@ -2902,7 +2899,7 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
                         ))}
                     </div>
                     {/* 底部：固定五種周邊分類，各自累計本場購買項目數 */}
-                    <div className="merch-category-footer flex items-end justify-start gap-3 shrink-0 pt-1.5 pl-3 px-0.5">
+                    <div className="merch-category-footer flex items-end justify-start gap-3 shrink-0 pt-1.5 pl-3 px-0.5 translate-y-[3px]">
                         {[
                             { key: 'clothing', icon: './image/icons/shirt.png', label: '服飾' },
                             { key: 'support', icon: './image/icons/lightstick.png', label: '應援' },
@@ -3338,10 +3335,12 @@ function StatsSection({ stats, events }) {
                                 <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-white/5 backdrop-blur-md border border-[#C5AB89]/35 shadow-inner flex items-center justify-center">
                                     {!imgError && activeArtistObj ? (
                                         <img 
-                                            src="./images/artists/artist-of-the-year.jpg" 
+                                            src={activeArtistObj.avatar || "./images/artists/artist-of-the-year.jpg"}
                                             alt={activeArtistObj.artist}
                                             onError={() => setImgError(true)}
-                                            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                                            decoding="async"
+                                            fetchPriority="high"
+                                            className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-105"
                                         />
                                     ) : activeArtistObj && activeArtistObj.avatar ? (
                                         <img 

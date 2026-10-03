@@ -2284,41 +2284,48 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
                             return (
                                 <div className="absolute bottom-3 left-3 right-3 z-[1000] pointer-events-none">
                                     <div className="relative pointer-events-auto">
-                                        <div className="relative bg-[#232B25]/95 backdrop-blur-2xl text-[#EFF0EA] rounded-[24px] px-3.5 pt-3.5 pb-3.5 shadow-[0_0_12px_rgba(197,171,137,0.78)] border border-[#C5AB89]/80 overflow-hidden">
-                                            {/* 雙層金色票卡框 */}
-                                            <div className="absolute inset-[5px] rounded-[20px] border border-[#C5AB89]/45 pointer-events-none"></div>
-                                            <div className="absolute inset-[9px] rounded-[17px] border border-[#C5AB89]/18 pointer-events-none"></div>
-                                            <div className="absolute top-[13px] left-5 right-5 border-t border-[#C5AB89]/35 pointer-events-none"></div>
-                                            <div className="absolute bottom-[13px] left-5 right-5 border-t border-[#C5AB89]/25 pointer-events-none"></div>
+                                        <div className="relative bg-[#232B25]/95 backdrop-blur-2xl text-[#EFF0EA] rounded-[24px] px-3.5 pt-4 pb-3.5 shadow-[0_0_12px_rgba(197,171,137,0.78)] border border-[#C5AB89]/75 overflow-hidden">
+                                            {/* 雙層金色票卡框：僅使用金色，不加入白邊 */}
+                                            <div className="absolute inset-[5px] rounded-[20px] border border-[#C5AB89]/55 pointer-events-none"></div>
+                                            <div className="absolute inset-[9px] rounded-[17px] border border-[#C5AB89]/25 pointer-events-none"></div>
 
-                                            {/* 四角花紋金色裝飾 */}
-                                            <div className="absolute top-[2px] left-[3px] w-7 h-7 flex items-start justify-start text-[#C5AB89]/90 text-[15px] leading-none pointer-events-none">✦</div>
-                                            <div className="absolute top-[2px] right-[3px] w-7 h-7 flex items-start justify-end text-[#C5AB89]/90 text-[15px] leading-none pointer-events-none">✦</div>
-                                            <div className="absolute bottom-[2px] left-[3px] w-7 h-7 flex items-end justify-start text-[#C5AB89]/90 text-[15px] leading-none pointer-events-none">✦</div>
-                                            <div className="absolute bottom-[2px] right-[3px] w-7 h-7 flex items-end justify-end text-[#C5AB89]/90 text-[15px] leading-none pointer-events-none">✦</div>
-                                            <div className="absolute top-[7px] left-[7px] w-5 h-5 border-l border-t border-[#C5AB89]/65 rounded-tl-[12px] pointer-events-none"></div>
-                                            <div className="absolute top-[7px] right-[7px] w-5 h-5 border-r border-t border-[#C5AB89]/65 rounded-tr-[12px] pointer-events-none"></div>
-                                            <div className="absolute bottom-[7px] left-[7px] w-5 h-5 border-l border-b border-[#C5AB89]/65 rounded-bl-[12px] pointer-events-none"></div>
-                                            <div className="absolute bottom-[7px] right-[7px] w-5 h-5 border-r border-b border-[#C5AB89]/65 rounded-br-[12px] pointer-events-none"></div>
+                                            {/* 四角金色花輪／票卡角花裝飾：不使用白色線條 */}
+                                            <div className="absolute top-[4px] left-[5px] w-8 h-8 pointer-events-none text-[#C5AB89]">
+                                                <span className="absolute left-0 top-0 w-5 h-5 border-l-[1.5px] border-t-[1.5px] border-[#C5AB89] rounded-tl-[10px]"></span>
+                                                <span className="absolute left-[4px] top-[4px] w-2 h-2 rounded-full border border-[#C5AB89] shadow-[0_0_5px_rgba(197,171,137,0.35)]"></span>
+                                                <span className="absolute left-[11px] top-[1px] text-[9px] leading-none">✦</span>
+                                                <span className="absolute left-[1px] top-[11px] text-[8px] leading-none">✦</span>
+                                            </div>
+                                            <div className="absolute top-[4px] right-[5px] w-8 h-8 pointer-events-none text-[#C5AB89]">
+                                                <span className="absolute right-0 top-0 w-5 h-5 border-r-[1.5px] border-t-[1.5px] border-[#C5AB89] rounded-tr-[10px]"></span>
+                                                <span className="absolute right-[4px] top-[4px] w-2 h-2 rounded-full border border-[#C5AB89] shadow-[0_0_5px_rgba(197,171,137,0.35)]"></span>
+                                                <span className="absolute right-[11px] top-[1px] text-[9px] leading-none">✦</span>
+                                                <span className="absolute right-[1px] top-[11px] text-[8px] leading-none">✦</span>
+                                            </div>
+                                            <div className="absolute bottom-[4px] left-[5px] w-8 h-8 pointer-events-none text-[#C5AB89]">
+                                                <span className="absolute left-0 bottom-0 w-5 h-5 border-l-[1.5px] border-b-[1.5px] border-[#C5AB89] rounded-bl-[10px]"></span>
+                                                <span className="absolute left-[4px] bottom-[4px] w-2 h-2 rounded-full border border-[#C5AB89] shadow-[0_0_5px_rgba(197,171,137,0.35)]"></span>
+                                                <span className="absolute left-[11px] bottom-[1px] text-[9px] leading-none">✦</span>
+                                                <span className="absolute left-[1px] bottom-[11px] text-[8px] leading-none">✦</span>
+                                            </div>
+                                            <div className="absolute bottom-[4px] right-[5px] w-8 h-8 pointer-events-none text-[#C5AB89]">
+                                                <span className="absolute right-0 bottom-0 w-5 h-5 border-r-[1.5px] border-b-[1.5px] border-[#C5AB89] rounded-br-[10px]"></span>
+                                                <span className="absolute right-[4px] bottom-[4px] w-2 h-2 rounded-full border border-[#C5AB89] shadow-[0_0_5px_rgba(197,171,137,0.35)]"></span>
+                                                <span className="absolute right-[11px] bottom-[1px] text-[9px] leading-none">✦</span>
+                                                <span className="absolute right-[1px] bottom-[11px] text-[8px] leading-none">✦</span>
+                                            </div>
 
-                                            {/* 標題區：第一行國家＋較小城市；右側為觀看最多場次藝人 */}
-                                            <div className="relative z-10 flex items-start justify-between gap-2 px-1.5 pb-2.5 pt-0.5">
-                                                <div className="min-w-0 flex-1 pr-1">
+                                            {/* 標題區：左右往中間收，垂直置中；右側為觀看最多場次藝人 */}
+                                            <div className="relative z-10 flex items-center justify-center gap-3 px-4 pt-1 pb-3">
+                                                <div className="min-w-0 w-[62%] flex flex-col justify-center">
                                                     <div className="flex items-baseline gap-1.5 min-w-0 leading-tight">
                                                         <span className="font-black text-[16px] text-[#EFF0EA] truncate">{selectedCountry.name}</span>
                                                         <span className="font-bold text-[10px] text-[#D2CABF] truncate">・{featuredCity}</span>
                                                     </div>
-
-                                                    {/* 成就徽章：放在國家名稱下方，字級小於國家名稱 */}
-                                                    <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-gradient-to-b from-[#F1DFB9] via-[#E6D09F] to-[#C5AB89] text-[#232B25] border border-[#FFF7E8]/75 shadow-[0_0_8px_rgba(197,171,137,0.38)] px-2 py-0.5">
-                                                        <CompassStarIcon className="w-3.5 h-3.5 shrink-0" />
-                                                        <span className="font-black text-[9px] tracking-wide whitespace-nowrap">{achievement.title}</span>
-                                                        <span className="text-[8px] font-black opacity-70 whitespace-nowrap">Lv.{achievement.level}</span>
-                                                    </div>
                                                 </div>
 
                                                 {topLocalArtist && (
-                                                    <div className="relative w-[62px] h-[62px] rounded-[16px] overflow-hidden border border-[#C5AB89]/70 shrink-0 bg-[#161D15] shadow-[0_0_8px_rgba(197,171,137,0.32)]">
+                                                    <div className="relative w-[58px] h-[58px] rounded-[15px] overflow-hidden border border-[#C5AB89]/70 shrink-0 bg-[#161D15] shadow-[0_0_8px_rgba(197,171,137,0.32)]">
                                                         {topLocalArtist.avatar ? (
                                                             <img src={topLocalArtist.avatar} alt={topLocalArtist.name} className="absolute inset-0 w-full h-full object-cover" />
                                                         ) : (
@@ -2333,34 +2340,28 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
                                             </div>
 
                                             {featuredEvent ? (
-                                                <div className="relative z-10 grid grid-cols-2 gap-2 px-1.5">
-                                                    {/* 左欄：藝人／場館／座位／城市 */}
-                                                    <div className="bg-[#161D15]/60 backdrop-blur-md rounded-[17px] border border-white/10 shadow-inner px-2.5 py-2.5 min-w-0 space-y-1.5">
+                                                <div className="relative z-10 grid grid-cols-2 gap-2 px-4">
+                                                    {/* 左欄：第一行藝人；第二行場館＋座位 */}
+                                                    <div className="bg-[#161D15]/60 backdrop-blur-md rounded-[17px] border border-[#C5AB89]/25 shadow-inner px-2.5 py-2.5 min-w-0">
                                                         <div className="flex items-center gap-1.5 min-w-0">
                                                             <img src="./image/icons/crown1.png" alt="藝人" className="w-4 h-4 object-contain shrink-0" />
-                                                            <span className="font-black text-[12px] text-[#EFF0EA] truncate">{featuredTitle}</span>
+                                                            <span className="font-black text-[11px] text-[#EFF0EA] truncate">{featuredTitle}</span>
                                                         </div>
-                                                        <div className="flex items-center gap-1.5 min-w-0 text-[9px] text-[#D2CABF]">
+                                                        <div className="mt-1.5 flex items-center gap-1.5 min-w-0 text-[9px] text-[#D2CABF]">
                                                             <img src="./image/icons/favourite.png" alt="場館名稱" className="w-3.5 h-3.5 object-contain shrink-0 opacity-90" />
                                                             <span className="truncate">{featuredVenue}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-1.5 min-w-0 text-[9px] text-[#D2CABF]">
-                                                            <span className="w-3.5 h-3.5 shrink-0 flex items-center justify-center text-[#C5AB89] text-[11px]">◇</span>
+                                                            <span className="text-[#C5AB89]/60 shrink-0">·</span>
                                                             <span className="truncate">{featuredSeat}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-1.5 min-w-0 text-[9px] text-[#D2CABF]">
-                                                            <span className="w-3.5 h-3.5 shrink-0 flex items-center justify-center text-[#C5AB89] text-[11px]">⌖</span>
-                                                            <span className="truncate">{featuredCity}</span>
                                                         </div>
                                                     </div>
 
-                                                    {/* 右欄：日期／五星評分 */}
-                                                    <div className="bg-[#161D15]/60 backdrop-blur-md rounded-[17px] border border-white/10 shadow-inner px-2.5 py-2.5 min-w-0 flex flex-col justify-between">
-                                                        <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-[#EFF0EA] min-w-0">
+                                                    {/* 右欄：第一行日期；第二行五星評分；不使用直線分隔 */}
+                                                    <div className="bg-[#161D15]/60 backdrop-blur-md rounded-[17px] border border-[#C5AB89]/25 shadow-inner px-2.5 py-2.5 min-w-0">
+                                                        <div className="flex items-center gap-1.5 text-[9px] font-mono font-bold text-[#EFF0EA] min-w-0">
                                                             <img src="./image/icons/north.png" alt="日期" className="w-4 h-4 object-contain shrink-0" />
                                                             <span className="truncate">{featuredEvent.date || '未記錄日期'}</span>
                                                         </div>
-                                                        <div className="border-t border-white/10 mt-2 pt-2 flex items-end justify-between gap-1">
+                                                        <div className="mt-2 flex items-center justify-between gap-1">
                                                             <div className="min-w-0">
                                                                 <div className="flex items-center gap-0.5">
                                                                     {[1, 2, 3, 4, 5].map(star => (
@@ -2371,26 +2372,25 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
                                                                 </div>
                                                                 <div className="text-[8px] text-[#A3ADA5] font-bold mt-0.5">User Rating</div>
                                                             </div>
-                                                            <div className="text-[15px] font-black text-[#C5AB89] leading-none whitespace-nowrap">{featuredRating.toFixed(1)} <span className="text-[8px] text-[#A3ADA5]">/ 5</span></div>
+                                                            <div className="text-[14px] font-black text-[#C5AB89] leading-none whitespace-nowrap">{featuredRating.toFixed(1)} <span className="text-[8px] text-[#A3ADA5]">/ 5</span></div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <div className="relative z-10 px-1.5 py-3 text-center text-[10px] text-[#A3ADA5]">尚未在當地紀錄演出活動</div>
+                                                <div className="relative z-10 px-4 py-3 text-center text-[10px] text-[#A3ADA5]">尚未在當地紀錄演出活動</div>
                                             )}
 
-                                            {/* 多筆紀錄保留；不顯示「演出歷程」標題 */}
+                                            {/* 多筆紀錄保留；顯示「演出歷程」標題 */}
                                             {selectedCountry.events && selectedCountry.events.length > 1 && (
-                                                <div className="relative z-10 mt-2.5 px-1.5">
-                                                    <div className="border-t border-dashed border-[#C5AB89]/30 pt-2">
-                                                        <div className="space-y-1 max-h-16 overflow-y-auto no-scrollbar pr-0.5">
-                                                            {selectedCountry.events.map(e => (
-                                                                <div key={e.id} className="flex items-center justify-between gap-2 bg-white/5 border border-[#C5AB89]/15 rounded-lg px-2 py-1">
-                                                                    <span className="text-[9px] font-bold text-[#EFF0EA] truncate">{e.artist || e.title}</span>
-                                                                    <span className="text-[8px] font-mono text-[#C5AB89] shrink-0">{e.date}</span>
-                                                                </div>
-                                                            ))}
-                                                        </div>
+                                                <div className="relative z-10 mt-2.5 px-4">
+                                                    <div className="text-[9px] font-black tracking-wide text-[#C5AB89] mb-1">演出歷程</div>
+                                                    <div className="space-y-1 max-h-16 overflow-y-auto no-scrollbar">
+                                                        {selectedCountry.events.map(e => (
+                                                            <div key={e.id} className="flex items-center justify-between gap-2 bg-white/5 border border-[#C5AB89]/15 rounded-lg px-2 py-1">
+                                                                <span className="text-[9px] font-bold text-[#EFF0EA] truncate">{e.artist || e.title}</span>
+                                                                <span className="text-[8px] font-mono text-[#C5AB89] shrink-0">{e.date}</span>
+                                                            </div>
+                                                        ))}
                                                     </div>
                                                 </div>
                                             )}

@@ -1996,7 +1996,7 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
     );
 }
 
-            function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }) {
+function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }) {
                 const mapRef = useRef(null);
                 const mapInst = useRef(null);
                 const markersLayerRef = useRef(L.layerGroup());
@@ -2281,51 +2281,70 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
                             const featuredSeat = featuredEvent?.detailSeat || featuredEvent?.seat || '未記錄座位';
                             const featuredTitle = topLocalArtist?.name || featuredEvent?.artist || featuredEvent?.title || '巡演紀錄';
 
+                            // 計算該國家已去過（非取消、非wishlist）的場次總和
+                            const countryAttendedCount = selectedCountry.events
+                                ? selectedCountry.events.filter(e => e.status !== 'cancelled' && e.status !== 'wishlist').length
+                                : 0;
+
                             return (
                                 <div className="absolute bottom-3 left-3 right-3 z-[1000] pointer-events-none">
                                     <div className="relative pointer-events-auto">
-                                        <div className="relative bg-[#232B25]/95 backdrop-blur-2xl text-[#EFF0EA] rounded-[24px] px-3.5 pt-4 pb-3.5 shadow-[0_0_12px_rgba(197,171,137,0.78)] border border-[#C5AB89]/75 overflow-hidden">
-                                            {/* 雙層金色票卡框：僅使用金色，不加入白邊 */}
-                                            <div className="absolute inset-[5px] rounded-[20px] border border-[#C5AB89]/55 pointer-events-none"></div>
-                                            <div className="absolute inset-[9px] rounded-[17px] border border-[#C5AB89]/25 pointer-events-none"></div>
+                                        <div className="relative bg-[#232B25]/50 backdrop-blur-2xl text-[#EFF0EA] rounded-[14px] px-3.5 pt-4 pb-3.5 shadow-[0_0_5px_rgba(197,171,137,0.90)] overflow-hidden">
+                                            
+                                            {/* 左右兩側與上下橫線框 */}
+                                            <div className="absolute top-[18px] bottom-[18px] left-[5px] w-[1px] bg-[#C5AB89]/55 pointer-events-none"></div>
+                                            <div className="absolute top-[18px] bottom-[18px] right-[5px] w-[1px] bg-[#C5AB89]/55 pointer-events-none"></div>
+                                            <div className="absolute top-[4px] left-[18px] right-[18px] h-[1px] bg-[#C5AB89]/55 pointer-events-none"></div>
+                                            <div className="absolute bottom-[4px] left-[18px] right-[18px] h-[1px] bg-[#C5AB89]/55 pointer-events-none"></div>
 
-                                            {/* 四角金色花輪／票卡角花裝飾：不使用白色線條 */}
+                                            {/* 四角金色花輪／票卡角花裝飾 */}
                                             <div className="absolute top-[4px] left-[5px] w-8 h-8 pointer-events-none text-[#C5AB89]">
                                                 <span className="absolute left-0 top-0 w-5 h-5 border-l-[1.5px] border-t-[1.5px] border-[#C5AB89] rounded-tl-[10px]"></span>
-                                                <span className="absolute left-[4px] top-[4px] w-2 h-2 rounded-full border border-[#C5AB89] shadow-[0_0_5px_rgba(197,171,137,0.35)]"></span>
-                                                <span className="absolute left-[11px] top-[1px] text-[9px] leading-none">✦</span>
-                                                <span className="absolute left-[1px] top-[11px] text-[8px] leading-none">✦</span>
+                                                <span className="absolute left-[4px] top-[4px] w-2 h-2 rounded-full bg-[#C5AB89] shadow-[0_0_6px_rgba(197,171,137,0.8)]"></span>
+                                                <span className="absolute left-[13px] top-[1px] text-[9px] leading-none font-black text-[#C5AB89] drop-shadow-[0_0_4px_rgba(197,171,137,0.8)]">✦</span>
+                                                <span className="absolute left-[2px] top-[10px] text-[10px] leading-none font-black text-[#C5AB89] drop-shadow-[0_0_4px_rgba(197,171,137,0.8)]">✦</span>
                                             </div>
                                             <div className="absolute top-[4px] right-[5px] w-8 h-8 pointer-events-none text-[#C5AB89]">
                                                 <span className="absolute right-0 top-0 w-5 h-5 border-r-[1.5px] border-t-[1.5px] border-[#C5AB89] rounded-tr-[10px]"></span>
-                                                <span className="absolute right-[4px] top-[4px] w-2 h-2 rounded-full border border-[#C5AB89] shadow-[0_0_5px_rgba(197,171,137,0.35)]"></span>
-                                                <span className="absolute right-[11px] top-[1px] text-[9px] leading-none">✦</span>
-                                                <span className="absolute right-[1px] top-[11px] text-[8px] leading-none">✦</span>
+                                                <span className="absolute right-[4px] top-[4px] w-2 h-2 rounded-full bg-[#C5AB89] shadow-[0_0_6px_rgba(197,171,137,0.8)]"></span>
+                                                <span className="absolute right-[13px] top-[1px] text-[9px] leading-none font-black text-[#C5AB89] drop-shadow-[0_0_4px_rgba(197,171,137,0.8)]">✦</span>
+                                                <span className="absolute right-[2px] top-[10px] text-[10px] leading-none font-black text-[#C5AB89] drop-shadow-[0_0_4px_rgba(197,171,137,0.8)]">✦</span>
                                             </div>
                                             <div className="absolute bottom-[4px] left-[5px] w-8 h-8 pointer-events-none text-[#C5AB89]">
                                                 <span className="absolute left-0 bottom-0 w-5 h-5 border-l-[1.5px] border-b-[1.5px] border-[#C5AB89] rounded-bl-[10px]"></span>
-                                                <span className="absolute left-[4px] bottom-[4px] w-2 h-2 rounded-full border border-[#C5AB89] shadow-[0_0_5px_rgba(197,171,137,0.35)]"></span>
-                                                <span className="absolute left-[11px] bottom-[1px] text-[9px] leading-none">✦</span>
-                                                <span className="absolute left-[1px] bottom-[11px] text-[8px] leading-none">✦</span>
+                                                <span className="absolute left-[4px] bottom-[4px] w-2 h-2 rounded-full bg-[#C5AB89] shadow-[0_0_6px_rgba(197,171,137,0.8)]"></span>
+                                                <span className="absolute left-[13px] bottom-[2px] text-[10px] leading-none font-black text-[#C5AB89] drop-shadow-[0_0_4px_rgba(197,171,137,0.8)]">✦</span>
+                                                <span className="absolute left-[3.5px] bottom-[13px] text-[9px] leading-none font-black text-[#C5AB89] drop-shadow-[0_0_4px_rgba(197,171,137,0.8)]">✦</span>
                                             </div>
                                             <div className="absolute bottom-[4px] right-[5px] w-8 h-8 pointer-events-none text-[#C5AB89]">
                                                 <span className="absolute right-0 bottom-0 w-5 h-5 border-r-[1.5px] border-b-[1.5px] border-[#C5AB89] rounded-br-[10px]"></span>
-                                                <span className="absolute right-[4px] bottom-[4px] w-2 h-2 rounded-full border border-[#C5AB89] shadow-[0_0_5px_rgba(197,171,137,0.35)]"></span>
-                                                <span className="absolute right-[11px] bottom-[1px] text-[9px] leading-none">✦</span>
-                                                <span className="absolute right-[1px] bottom-[11px] text-[8px] leading-none">✦</span>
+                                                <span className="absolute right-[4px] bottom-[4px] w-2 h-2 rounded-full bg-[#C5AB89] shadow-[0_0_6px_rgba(197,171,137,0.8)]"></span>
+                                                <span className="absolute right-[13px] bottom-[1.5px] text-[10px] leading-none font-black text-[#C5AB89] drop-shadow-[0_0_4px_rgba(197,171,137,0.8)]">✦</span>
+                                                <span className="absolute right-[3.5px] bottom-[13px] text-[9px] leading-none font-black text-[#C5AB89] drop-shadow-[0_0_4px_rgba(197,171,137,0.8)]">✦</span>
                                             </div>
 
-                                            {/* 標題區：左右往中間收，垂直置中；右側為觀看最多場次藝人 */}
-                                            <div className="relative z-10 flex items-center justify-center gap-3 px-4 pt-1 pb-3">
-                                                <div className="min-w-0 w-[62%] flex flex-col justify-center">
+                                            {/* 標題區：國家、城市與藝人頭貼 */}
+                                            <div className="relative z-10 flex items-center justify-between gap-3 px-4 pt-1 pb-2">
+                                                <div className="min-w-0 flex-1 flex flex-col justify-center pl-2.5">
                                                     <div className="flex items-baseline gap-1.5 min-w-0 leading-tight">
-                                                        <span className="font-black text-[16px] text-[#EFF0EA] truncate">{selectedCountry.name}</span>
+                                                        <span className="font-black text-[15px] text-[#EFF0EA] truncate">{selectedCountry.name}</span>
                                                         <span className="font-bold text-[10px] text-[#D2CABF] truncate">・{featuredCity}</span>
+                                                    </div>
+
+                                                    {/* 🌟 新增：第一行成就徽章、第二行已去過場次總和 */}
+                                                    <div className="mt-1.5 flex flex-col gap-1">
+                                                        <div className="flex items-center gap-1.5 text-[9px] font-bold text-[#C5AB89]">
+                                                            <img src="./image/icons/star1.png" alt="成就徽章" className="w-3.5 h-3.5 object-contain shrink-0" />
+                                                            <span>初階巡演家</span>
+                                                        </div>
+                                                        <div className="text-[8.5px] font-mono text-[#D2CABF]">
+                                                            已去過當地 <strong className="text-[#C5AB89]">{countryAttendedCount}</strong> 場演出
+                                                        </div>
                                                     </div>
                                                 </div>
 
                                                 {topLocalArtist && (
-                                                    <div className="relative w-[58px] h-[58px] rounded-[15px] overflow-hidden border border-[#C5AB89]/70 shrink-0 bg-[#161D15] shadow-[0_0_8px_rgba(197,171,137,0.32)]">
+                                                    <div className="relative w-[70px] h-[70px] rounded-[15px] overflow-hidden border border-[#C5AB89]/70 shrink-0 bg-[#161D15] shadow-[0_0_8px_rgba(197,171,137,0.32)] mr-2">
                                                         {topLocalArtist.avatar ? (
                                                             <img src={topLocalArtist.avatar} alt={topLocalArtist.name} className="absolute inset-0 w-full h-full object-cover" />
                                                         ) : (
@@ -2339,38 +2358,42 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
                                                 )}
                                             </div>
 
-                                            {featuredEvent ? (
-                                                <div className="relative z-10 grid grid-cols-2 gap-2 px-4">
-                                                    {/* 左欄：第一行藝人；第二行場館＋座位 */}
-                                                    <div className="bg-[#161D15]/60 backdrop-blur-md rounded-[17px] border border-[#C5AB89]/25 shadow-inner px-2.5 py-2.5 min-w-0">
-                                                        <div className="flex items-center gap-1.5 min-w-0">
-                                                            <img src="./image/icons/crown1.png" alt="藝人" className="w-4 h-4 object-contain shrink-0" />
-                                                            <span className="font-black text-[11px] text-[#EFF0EA] truncate">{featuredTitle}</span>
+                                       {featuredEvent ? (
+                                                <div className="relative z-10 grid grid-cols-2 gap-2 px-4 mt-1">
+                                                    {/* 左欄：第一行左右並排（藝人與場館）；第二行座位 */}
+                                                    <div className="bg-[#161D15]/60 backdrop-blur-md rounded-[17px] border border-[#C5AB89]/25 shadow-inner px-2.5 py-2.5 min-w-0 flex flex-col justify-between">
+                                                        <div className="flex items-center justify-between gap-2 min-w-0">
+                                                            {/* 左側：藝人 */}
+                                                            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                                                <img src="./image/icons/crown1.png" alt="藝人" className="w-3.5 h-3.5 object-contain shrink-0" />
+                                                                <span className="font-black text-[10.5px] text-[#EFF0EA] truncate">{featuredTitle}</span>
+                                                            </div>
+                                                            {/* 右側：場館名稱 */}
+                                                            <div className="flex items-center gap-1 min-w-0 flex-1 justify-end text-[9px] text-[#D2CABF]">
+                                                                <img src="./image/icons/favourite.png" alt="場館名稱" className="w-3.5 h-3.5 object-contain shrink-0 opacity-90" />
+                                                                <span className="truncate">{featuredVenue}</span>
+                                                            </div>
                                                         </div>
-                                                        <div className="mt-1.5 flex items-center gap-1.5 min-w-0 text-[9px] text-[#D2CABF]">
-                                                            <img src="./image/icons/favourite.png" alt="場館名稱" className="w-3.5 h-3.5 object-contain shrink-0 opacity-90" />
-                                                            <span className="truncate">{featuredVenue}</span>
-                                                            <span className="text-[#C5AB89]/60 shrink-0">·</span>
+                                                        {/* 第二行：座位 */}
+                                                        <div className="mt-2 pt-1.5 border-t border-[#C5AB89]/15 flex items-center gap-1.5 min-w-0 text-[9px] text-[#D2CABF]">
+                                                            <span className="text-[#C5AB89] font-bold shrink-0">Seat</span>
                                                             <span className="truncate">{featuredSeat}</span>
                                                         </div>
                                                     </div>
 
-                                                    {/* 右欄：第一行日期；第二行五星評分；不使用直線分隔 */}
-                                                    <div className="bg-[#161D15]/60 backdrop-blur-md rounded-[17px] border border-[#C5AB89]/25 shadow-inner px-2.5 py-2.5 min-w-0">
+                                                    {/* 右欄：第一行日期；第二行評分星星（已拿掉 User Rating） */}
+                                                    <div className="bg-[#161D15]/60 backdrop-blur-md rounded-[17px] border border-[#C5AB89]/25 shadow-inner px-2.5 py-2.5 min-w-0 flex flex-col justify-between">
                                                         <div className="flex items-center gap-1.5 text-[9px] font-mono font-bold text-[#EFF0EA] min-w-0">
                                                             <img src="./image/icons/north.png" alt="日期" className="w-4 h-4 object-contain shrink-0" />
                                                             <span className="truncate">{featuredEvent.date || '未記錄日期'}</span>
                                                         </div>
-                                                        <div className="mt-2 flex items-center justify-between gap-1">
-                                                            <div className="min-w-0">
-                                                                <div className="flex items-center gap-0.5">
-                                                                    {[1, 2, 3, 4, 5].map(star => (
-                                                                        <svg key={star} className={`w-3.5 h-3.5 ${star <= featuredRating ? 'text-[#C5AB89] fill-[#C5AB89]' : 'text-white/15 fill-white/10'}`} viewBox="0 0 24 24">
-                                                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                                                        </svg>
-                                                                    ))}
-                                                                </div>
-                                                                <div className="text-[8px] text-[#A3ADA5] font-bold mt-0.5">User Rating</div>
+                                                        <div className="mt-2 pt-1.5 border-t border-[#C5AB89]/15 flex items-center justify-between gap-1">
+                                                            <div className="flex items-center gap-0.5">
+                                                                {[1, 2, 3, 4, 5].map(star => (
+                                                                    <svg key={star} className={`w-3.5 h-3.5 ${star <= featuredRating ? 'text-[#C5AB89] fill-[#C5AB89]' : 'text-white/15 fill-white/10'}`} viewBox="0 0 24 24">
+                                                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                                                    </svg>
+                                                                ))}
                                                             </div>
                                                             <div className="text-[14px] font-black text-[#C5AB89] leading-none whitespace-nowrap">{featuredRating.toFixed(1)} <span className="text-[8px] text-[#A3ADA5]">/ 5</span></div>
                                                         </div>

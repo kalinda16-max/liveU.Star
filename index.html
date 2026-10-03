@@ -2402,10 +2402,9 @@ function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }
                                                 <div className="relative z-10 px-4 py-3 text-center text-[10px] text-[#A3ADA5]">尚未在當地紀錄演出活動</div>
                                             )}
 
-                                            {/* 多筆紀錄保留；顯示「演出歷程」標題 */}
+                                            {/* 多筆紀錄保留 */}
                                             {selectedCountry.events && selectedCountry.events.length > 1 && (
                                                 <div className="relative z-10 mt-2.5 px-4">
-                                                    <div className="text-[9px] font-black tracking-wide text-[#C5AB89] mb-1">演出歷程</div>
                                                     <div className="space-y-1 max-h-16 overflow-y-auto no-scrollbar">
                                                         {selectedCountry.events.map(e => (
                                                             <div key={e.id} className="flex items-center justify-between gap-2 bg-white/5 border border-[#C5AB89]/15 rounded-lg px-2 py-1">

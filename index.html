@@ -2328,7 +2328,7 @@ function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }
                                                 <div className="min-w-0 flex-1 flex flex-col justify-center pl-2.5">
                                                     <div className="flex items-baseline gap-1.5 min-w-0 leading-tight">
                                                         <span className="font-black text-[15px] text-[#EFF0EA] truncate">{selectedCountry.name}</span>
-                                                        <span className="font-bold text-[10px] text-[#D2CABF] truncate">・{featuredCity}</span>
+                                                        <span className="font-bold text-[10px] text-[#D2CABF] truncate">{featuredCity}</span>
                                                     </div>
 
                                                     {/*新增：第一行成就徽章、第二行已去過場次總和 */}
@@ -2365,12 +2365,12 @@ function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }
                                                         <div className="flex items-center justify-between gap-2 min-w-0">
                                                             {/* 左側：藝人 */}
                                                             <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                                                <img src="./image/icons/crown1.png" alt="藝人" className="w-3.5 h-3.5 object-contain shrink-0" />
+                                                                <img src="./image/icons/crown1.png" alt="藝人" className="w-3 h-3 object-contain shrink-0" />
                                                                 <span className="font-black text-[10.5px] text-[#EFF0EA] truncate">{featuredTitle}</span>
                                                             </div>
                                                             {/* 右側：場館名稱 */}
                                                             <div className="flex items-center gap-1 min-w-0 flex-1 justify-end text-[9px] text-[#D2CABF]">
-                                                                <img src="./image/icons/favourite.png" alt="場館名稱" className="w-3.5 h-3.5 object-contain shrink-0 opacity-90" />
+                                                                <img src="./image/icons/favourite.png" alt="場館名稱" className="w-3 h-3 object-contain shrink-0 opacity-90" />
                                                                 <span className="truncate">{featuredVenue}</span>
                                                             </div>
                                                         </div>
@@ -2384,18 +2384,17 @@ function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }
                                                     {/* 右欄：第一行日期；第二行評分星 */}
                                                     <div className="bg-[#161D15]/60 backdrop-blur-md rounded-[17px] border border-[#C5AB89]/25 shadow-inner px-2.5 py-2.5 min-w-0 flex flex-col justify-between">
                                                         <div className="flex items-center gap-1.5 text-[9px] font-mono font-bold text-[#EFF0EA] min-w-0">
-                                                            <img src="./image/icons/north.png" alt="日期" className="w-4 h-4 object-contain shrink-0" />
+                                                            <img src="./image/icons/north.png" alt="日期" className="w-3 h-3 object-contain shrink-0" />
                                                             <span className="truncate">{featuredEvent.date || '未記錄日期'}</span>
                                                         </div>
-                                                        <div className="mt-2 flex items-center justify-between gap-1">
+                                                        <div className="mt-2 flex items-center justify-start gap-1">
                                                             <div className="flex items-center gap-0.5">
                                                                 {[1, 2, 3, 4, 5].map(star => (
-                                                                    <svg key={star} className={`w-3.5 h-3.5 ${star <= featuredRating ? 'text-[#C5AB89] fill-[#C5AB89]' : 'text-white/15 fill-white/10'}`} viewBox="0 0 24 24">
+                                                                    <svg key={star} className={`w-3 h-3 ${star <= featuredRating ? 'text-[#C5AB89] fill-[#C5AB89]' : 'text-white/15 fill-white/10'}`} viewBox="0 0 24 24">
                                                                         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                                                                     </svg>
                                                                 ))}
                                                             </div>
-                                                            <div className="text-[14px] font-black text-[#C5AB89] leading-none whitespace-nowrap">{featuredRating.toFixed(1)} <span className="text-[8px] text-[#A3ADA5]">/ 5</span></div>
                                                         </div>
                                                     </div>
                                                 </div>

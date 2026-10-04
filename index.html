@@ -1498,6 +1498,11 @@ function AddEventModal({ initialData, onSave, onClose }) {
                 const [countryName, setCountryName] = useState(initialData?.countryName || '台灣');
                 const [cost, setCost] = useState(initialData?.cost || '');
                 const [detailSeat, setDetailSeat] = useState(initialData?.detailSeat || '');
+                
+                // 🛠️ 【已補上】主辦單位與入場時間的狀態宣告
+                const [organizer, setOrganizer] = useState(initialData?.organizer || '');
+                const [doorTime, setDoorTime] = useState(initialData?.doorTime || '');
+
                 const [spotifyUrl, setSpotifyUrl] = useState(initialData?.spotifyUrl || '');
                 const [notes, setNotes] = useState(initialData?.notes || '');
                 const [coverImg, setCoverImg] = useState(initialData?.coverImg || '');
@@ -1567,9 +1572,9 @@ function AddEventModal({ initialData, onSave, onClose }) {
                     const finalLng = lng !== null ? Number(lng) : resolved.lng;
 
                     onSave({
-                        id: initialData?.id || null, title, type, date, time,
+                        id: initialData?.id || null, title, type, date, time, doorTime,
                         venue: venue || '未指定場館', venueAddress: venueAddress || '未填寫地址',
-                        artist: artist || '',
+                        artist: artist || '', organizer: organizer || '',
                         city: city || '台北', countryCode: resolved.code, countryName: resolved.name,
                         lat: finalLat, lng: finalLng, status, rating,
                         cost: Number(cost) || 0, detailSeat, coverImg, extraImgs, spotifyUrl, notes
@@ -1616,7 +1621,7 @@ return (
                         <label className="text-[11px] font-bold text-[#C5AB89] pl-1.5">演出藝人</label>
                         <input type="text" value={artist} onChange={(e) => setArtist(e.target.value)} className="w-full bg-white/5 backdrop-blur-md text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2 rounded-xl text-xs border border-[rgba(197,171,137,0.4)] shadow-[0_0_5px_rgba(197,171,137,0.1)] focus:outline-none focus:border-[#C5AB89] transition-colors" /></div>
                         
-                        {/* 場館名稱（已移開右上角的評分） */}
+                        {/* 場館名稱 */}
                         <div className="space-y-1">
                             <label className="text-[11px] font-bold text-[#C5AB89] pl-1.5">場館名稱</label>
                             <input type="text" value={venue} onChange={handleVenueChange} required className="w-full bg-white/5 backdrop-blur-md text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2 rounded-xl text-xs border border-[rgba(197,171,137,0.4)] shadow-[0_0_5px_rgba(197,171,137,0.1)] focus:outline-none focus:border-[#C5AB89] transition-colors" />
@@ -1632,7 +1637,7 @@ return (
                             <input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="w-full h-9 bg-white/5 backdrop-blur-md text-[#EFF0EA] px-3 py-2 rounded-xl text-xs border border-[rgba(197,171,137,0.4)] focus:outline-none focus:border-[#C5AB89]" /></div>
                         </div>
                         
-                        {/* 日期與票價（已移開右上角的狀態按鈕） */}
+                        {/* 日期與票價 */}
                         <div className="grid grid-cols-2 gap-2">
                             <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-[#C5AB89] pl-1.5">日期</label>
@@ -1645,15 +1650,30 @@ return (
                         
                         <div className="grid grid-cols-2 gap-2">
                             <div className="space-y-1">
-                            <label className="text-[11px] font-bold text-[#C5AB89] pl-1.5">座位＆票區資訊</label>
-                            <input type="text" value={detailSeat} onChange={(e) => setDetailSeat(e.target.value)} className="w-full bg-white/5 backdrop-blur-md text-[#EFF0EA] px-3 py-2 rounded-xl text-xs border border-[rgba(197,171,137,0.4)] focus:outline-none focus:border-[#C5AB89]" /></div>
+                                <label className="text-[11px] font-bold text-[#C5AB89] pl-1.5">座位＆票區資訊</label>
+                                <input type="text" value={detailSeat} onChange={(e) => setDetailSeat(e.target.value)} className="w-full bg-white/5 backdrop-blur-md text-[#EFF0EA] px-3 py-2 rounded-xl text-xs border border-[rgba(197,171,137,0.4)] focus:outline-none focus:border-[#C5AB89]" />
+                            </div>
 
                             <div className="space-y-1">
-                            <label className="text-[11px] font-bold text-[#C5AB89] pl-1.5">開演時間</label>
-                            <input type="text" value={time} onChange={(e) => setTime(e.target.value)} placeholder="19:30" className="w-full bg-white/5 backdrop-blur-md text-[#EFF0EA] px-3 py-2 rounded-xl text-xs border border-[rgba(197,171,137,0.4)] focus:outline-none focus:border-[#C5AB89]" /></div>
+                                <label className="text-[11px] font-bold text-[#C5AB89] pl-1.5">開演時間</label>
+                                <input type="text" value={time} onChange={(e) => setTime(e.target.value)} placeholder="19:30" className="w-full bg-white/5 backdrop-blur-md text-[#EFF0EA] px-3 py-2 rounded-xl text-xs border border-[rgba(197,171,137,0.4)] focus:outline-none focus:border-[#C5AB89]" />
+                            </div>
                         </div>
 
-                        {/* 🌟 【新位置】座位與開演時間下方：參加狀態與無框線星等評分 */}
+                        {/* 主辦單位與入場時間 */}
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#C5AB89] pl-1.5">主辦單位</label>
+                                <input type="text" value={organizer} onChange={(e) => setOrganizer(e.target.value)} placeholder="例：Live Nation" className="w-full bg-white/5 backdrop-blur-md text-[#EFF0EA] px-3 py-2 rounded-xl text-xs border border-[rgba(197,171,137,0.4)] focus:outline-none focus:border-[#C5AB89]" />
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-[#C5AB89] pl-1.5">入場時間</label>
+                                <input type="text" value={doorTime} onChange={(e) => setDoorTime(e.target.value)} placeholder="例：18:30" className="w-full bg-white/5 backdrop-blur-md text-[#EFF0EA] px-3 py-2 rounded-xl text-xs border border-[rgba(197,171,137,0.4)] focus:outline-none focus:border-[#C5AB89]" />
+                            </div>
+                        </div>
+
+                        {/* 參加狀態與評分 */}
                         <div className="grid grid-cols-2 gap-2 items-center pt-1">
                             <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-[#C5AB89] pl-1.5">參加狀態</label>
@@ -1775,6 +1795,7 @@ return (
             function AddScheduleModal({ initialData, onSave, onDelete, onClose }) {
                 const [title, setTitle] = useState(initialData?.title || '');
                 const [organizer, setOrganizer] = useState(initialData?.organizer || '');
+                const [doorTime, setDoorTime] = useState(initialData?.doorTime || '');
                 const [date, setDate] = useState(initialData?.date || new Date().toISOString().slice(0, 10));
                 const [venue, setVenue] = useState(initialData?.venue || '');
                 const [city, setCity] = useState(initialData?.city || '台北');
@@ -1896,7 +1917,9 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-[#141517] via-[#141517]/50 to-transparent flex items-end p-4 pointer-events-none">
                         <div>
+                            {/* ✨ 加回分類標籤與圖示 */}
                             <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${cat.badgeBg} inline-flex items-center gap-1 mb-1 shadow`}>
+                                <i data-lucide={cat.icon || 'ticket'} className="w-3 h-3"></i>
                                 {cat.label}
                             </span>
                             <h2 className="text-white font-black text-base leading-snug drop-shadow">{event.title}</h2>
@@ -1906,13 +1929,20 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
 
                 {/* 2. 內容滾動區 */}
                 <div className="p-4 space-y-3 overflow-y-auto flex-1 text-xs custom-scrollbar">
-                    {event.artist && (
-                        <div className="bg-gradient-to-b from-[#E2C9A1]/15 via-[#E2C9A1]/5 to-transparent backdrop-blur-xl p-3.5 rounded-2xl border border-[#E2C9A1]/30 shadow-[0_0_5px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.5)]">
+                    
+                    {/* 第一組：演出藝人 & 主辦單位 */}
+                    <div className="grid grid-cols-2 gap-2 bg-gradient-to-b from-[#E2C9A1]/15 via-[#E2C9A1]/5 to-transparent backdrop-blur-xl p-3.5 rounded-2xl border border-[#E2C9A1]/30 shadow-[0_0_5px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.5)] min-w-0">
+                        <div className="min-w-0">
                             <span className="text-[10px] text-[#C5AB89] font-bold block">演出藝人</span>
-                            <p className="font-bold text-[#EADDC9]">{event.artist}</p>
+                            <p className="font-bold text-[#EADDC9] break-words">{event.artist || '未填寫'}</p>
                         </div>
-                    )}
+                        <div className="min-w-0">
+                            <span className="text-[10px] text-[#C5AB89] font-bold block">主辦單位</span>
+                            <p className="font-bold text-[#EADDC9] break-words whitespace-normal leading-relaxed">{event.organizer || '未填寫'}</p>
+                        </div>
+                    </div>
 
+                    {/* 第二組：演出日期 & 票價花費 */}
                     <div className="grid grid-cols-2 gap-2 bg-gradient-to-b from-[#E2C9A1]/15 via-[#E2C9A1]/5 to-transparent backdrop-blur-xl p-3.5 rounded-2xl border border-[#E2C9A1]/30 shadow-[0_0_5px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.5)]">
                         <div>
                             <span className="text-[10px] text-[#C5AB89] font-bold block">演出日期</span>
@@ -1924,19 +1954,34 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
                         </div>
                     </div>
 
+                    {/* 第三組：入場時間 & 開演時間 */}
+                    <div className="grid grid-cols-2 gap-2 bg-gradient-to-b from-[#E2C9A1]/15 via-[#E2C9A1]/5 to-transparent backdrop-blur-xl p-3.5 rounded-2xl border border-[#E2C9A1]/30 shadow-[0_0_5px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.5)]">
+                        <div>
+                            <span className="text-[10px] text-[#C5AB89] font-bold block">入場時間</span>
+                            <span className="font-mono font-bold text-[#EADDC9]">{event.doorTime || '未填寫'}</span>
+                        </div>
+                        <div>
+                            <span className="text-[10px] text-[#C5AB89] font-bold block">開演時間</span>
+                            <span className="font-mono font-bold text-[#EADDC9]">{event.time || '未填寫'}</span>
+                        </div>
+                    </div>
+
+                    {/* 座位＆票區資訊 (若有填寫才顯示) */}
                     {event.detailSeat && (
                         <div className="bg-gradient-to-b from-[#E2C9A1]/15 via-[#E2C9A1]/5 to-transparent backdrop-blur-xl p-3.5 rounded-2xl border border-[#E2C9A1]/30 shadow-[0_0_5px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.5)]">
                             <span className="text-[10px] text-[#C5AB89] font-bold block">座位＆票區資訊</span>
-                            <p className="font-bold text-[#EADDC9]">{event.detailSeat}</p>
+                            <p className="font-bold text-[#EADDC9] break-words">{event.detailSeat}</p>
                         </div>
                     )}
 
+                    {/* 舉辦場館與國家 */}
                     <div className="bg-gradient-to-b from-[#E2C9A1]/15 via-[#E2C9A1]/5 to-transparent backdrop-blur-xl p-3.5 rounded-2xl border border-[#E2C9A1]/30 shadow-[0_0_5px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.5)]">
                         <span className="text-[10px] text-[#C5AB89] font-bold block">舉辦場館與國家 <span className="text-[#EADDC9] font-bold">{event.countryName || '台灣'}</span></span>
-                        <p className="font-bold text-sm text-[#EADDC9]">{event.venue}</p>
-                        <p className="text-[11px] text-[#C5AB89]/80">{event.venueAddress}</p>
+                        <p className="font-bold text-sm text-[#EADDC9] break-words">{event.venue}</p>
+                        <p className="text-[11px] text-[#C5AB89]/80 break-words">{event.venueAddress}</p>
                     </div>
 
+                    {/* Spotify 音樂預覽 */}
                     {spotifyEmbed && (
                         <div className="bg-gradient-to-b from-[#E2C9A1]/15 via-[#E2C9A1]/5 to-transparent backdrop-blur-xl p-3.5 rounded-2xl border border-[#E2C9A1]/30 shadow-[0_0_5px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.5)]">
                             <span className="text-[10px] text-[#C5AB89] font-bold block px-1 mb-1">🎵 Spotify 音樂預覽</span>
@@ -1944,13 +1989,15 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
                         </div>
                     )}
 
+                    {/* 心得筆記 */}
                     {event.notes && (
                         <div className="bg-gradient-to-b from-[#E2C9A1]/15 via-[#E2C9A1]/5 to-transparent backdrop-blur-xl p-3.5 rounded-2xl border border-[#E2C9A1]/30 shadow-[0_0_5px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.5)]">
-                            <span className="text-[10px] text-[#C5AB89] font-bold block">心得筆記</span>
-                            <p className="leading-relaxed text-[#EADDC9]">{event.notes}</p>
+                            <span className="text-[10px] text-[#C5AB89] font-bold block">備註</span>
+                            <p className="leading-relaxed text-[#EADDC9] whitespace-pre-wrap break-words">{event.notes}</p>
                         </div>
                     )}
 
+                    {/* 補充照片 */}
                     {event.extraImgs && event.extraImgs.length > 0 && (
                         <div className="bg-gradient-to-b from-[#E2C9A1]/15 via-[#E2C9A1]/5 to-transparent backdrop-blur-xl p-3.5 rounded-2xl border border-[#E2C9A1]/30 shadow-[0_0_5px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.5)]">
                             <span className="text-[10px] text-[#C5AB89] font-bold block mb-1.5">補充照片</span>

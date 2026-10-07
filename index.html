@@ -3259,7 +3259,7 @@ return (
             </div>
         )}
 
-        {activePanel === 'merchandise' && (
+{activePanel === 'merchandise' && (
             <div className="space-y-3.5">
                 {merchandiseLogs.length === 0 ? (
                     <div className="text-center py-16 bg-white/5 backdrop-blur-md border border-dashed border-[#C5AB89]/40 rounded-3xl p-6 space-y-3 shadow-[0_0_5px_rgba(197,171,137,0.40)]">
@@ -3269,26 +3269,32 @@ return (
                         <p className="text-xs text-[#EFF0EA] font-extrabold mb-2">暫無周邊紀錄</p>
                     </div>
                 ) : (
-                    merchandiseLogs.map(card => {
-                        const items = card.items || [];
-                        const total = items
-                            .filter(item => item?.checked !== false)
-                            .reduce((sum, item) => sum + parseMerchAmount(item?.amount), 0);
-                        const dateText = card.purchaseDate || '未設定日期';
-                        return (
-                            <MerchandiseFlipCard
-                                key={card.id}
-                                card={card}
-                                items={items}
-                                total={total}
-                                dateText={dateText}
-                                formatMoney={formatMoney}
-                                onToggle={onToggleMerchandise}
-                                onDelete={onDeleteMerchandise}
-                                onEdit={(target) => onEditMerchandise(target)}
-                            />
-                        );
-                    })
+                    [...merchandiseLogs]
+                        .sort((a, b) => {
+                            const dateA = new Date(a.purchaseDate || 0);
+                            const dateB = new Date(b.purchaseDate || 0);
+                            return dateB - dateA; // 最新在上，最舊在下
+                        })
+                        .map(card => {
+                            const items = card.items || [];
+                            const total = items
+                                .filter(item => item?.checked !== false)
+                                .reduce((sum, item) => sum + parseMerchAmount(item?.amount), 0);
+                            const dateText = card.purchaseDate || '未設定日期';
+                            return (
+                                <MerchandiseFlipCard
+                                    key={card.id}
+                                    card={card}
+                                    items={items}
+                                    total={total}
+                                    dateText={dateText}
+                                    formatMoney={formatMoney}
+                                    onToggle={onToggleMerchandise}
+                                    onDelete={onDeleteMerchandise}
+                                    onEdit={(target) => onEditMerchandise(target)}
+                                />
+                            );
+                        })
                 )}
             </div>
         )}

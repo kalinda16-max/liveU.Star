@@ -2440,27 +2440,16 @@ function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }
                                                     <span className="truncate">{featuredVenue}</span>
                                                 </div>
 
-                                                    <div className="mt-2 flex items-center gap-1.5 text-[9px] font-mono font-bold text-[#EFF0EA] min-w-0">
-                                                    <img src="./image/icons/north.png" alt="日期" className="w-3 h-3 object-contain shrink-0" />
-                                                    <span className="truncate">{featuredEvent.date || '未記錄日期'}</span>
-                                              </div>
-                                          </div>
-                                    </div>
-                                            ) : (
-                                                <div className="relative z-10 px-4 py-3 text-center text-[10px] text-[#A3ADA5]">尚未在當地紀錄演出活動</div>
-                                            )}
-
-                         {/* 多筆紀錄保留（依演出日期由新到舊排序） */}
-                            {countryAttendedEvents.length > 1 && ( 
-                                <div className="relative z-10 mt-2.5 px-4">
-                                    <div className="space-y-1 max-h-16 overflow-y-auto no-scrollbar">
-                                        {[...countryAttendedEvents]
-                                            .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))
-                                            .map(e => (
-                                                <div key={e.id} className="flex items-center justify-between gap-2 bg-white/5 border border-[#C5AB89]/15 rounded-lg px-2 py-1">
-                                                    <span className="text-[9px] font-bold text-[#EFF0EA] truncate">{e.artist || e.title}</span>
-                                                    <span className="text-[8px] font-mono text-[#C5AB89] shrink-0">{e.date}</span>
-                                                </div>
+                                {countryAttendedEvents.length > 1 && ( 
+                                    <div className="relative z-10 mt-2.5 px-4">
+                                        <div className="space-y-1 max-h-16 overflow-y-auto no-scrollbar">
+                                            {[...countryAttendedEvents]
+                                                .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))
+                                                .map(e => (
+                                                    <div key={e.id} className="flex items-center justify-between gap-2 bg-white/5 border border-[#C5AB89]/15 rounded-lg px-2 py-1">
+                                                        <span className="text-[9px] font-bold text-[#EFF0EA] truncate">{e.artist || e.title}</span>
+                                                        <span className="text-[8px] font-mono text-[#C5AB89] shrink-0">{e.date}</span>
+                                                    </div>
                                                             ))}
                                                     </div>
                                                 </div>

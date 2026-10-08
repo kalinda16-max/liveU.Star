@@ -2660,7 +2660,12 @@ function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCatego
 // 周邊金額統一解析：支援數字、含逗號、NT$、$ 等舊資料格式
 function parseMerchAmount(value) {
     if (typeof value === 'number' && Number.isFinite(value)) return Math.max(0, value);
-    const cleaned = String(value ?? '')
+    const stringVal = String(value ?? '').trim();
+    // 如果留空或輸入特定文字，直接回傳 0
+    if (!stringVal || stringVal === '-' || stringVal.includes('不可考') || stringVal.includes('不明')) {
+        return 0;
+    }
+    const cleaned = stringVal
         .replace(/NT\s*\$?/gi, '')
         .replace(/[$,\s]/g, '')
         .replace(/[^0-9.\-]/g, '');
@@ -3022,6 +3027,14 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
     const image = card.image || '';
     const stop = e => e.stopPropagation();
     const editCard = (e) => { stop(e); onEdit(card); };
+    const renderItemAmount = (amountVal) => {
+        const raw = String(amountVal ?? '').trim();
+        const parsed = Number(raw.replace(/[^0-9.\-]/g, '')) || 0;
+        if (!raw || raw === '0' || parsed === 0) {
+            return '金額未明';
+        }
+        return formatMoney(amountVal);
+    };
     return (
         <div className={`merch-flip-card ${flipped ? 'is-flipped' : ''}`} onClick={() => setFlipped(v => !v)} role="button" tabIndex={0} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFlipped(v => !v); } }}>
             <div className="merch-flip-inner">

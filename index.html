@@ -2491,7 +2491,7 @@ function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCatego
                     className="w-full bg-white/5 backdrop-blur-md text-[#EFF0EA] placeholder-[#A3ADA5] pl-9 pr-8 py-2 rounded-xl text-xs border border-[rgba(197,171,137,0.45)] shadow-[0_0_5px_rgba(197,171,137,0.20)] focus:outline-none focus:border-[#C5AB89] focus:ring-0 focus:ring-[#C5AB89]/50 transition-colors"/>
                 </div>
                 <div className="relative w-full pt-2 min-w-0">
-                    <div className="flex items-center gap-4 overflow-x-auto no-scrollbar py-2 w-full min-w-0 px-1">
+                    <div className="flex items-center gap-4 overflow-x-auto overflow-y-visible no-scrollbar py-3 px-3 w-full min-w-0">
 
                         <button onClick={() => setSelectedCategory('all')} 
                         className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 backdrop-blur-md transition-all ${selectedCategory === 'all' ? 
@@ -2627,7 +2627,7 @@ function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCatego
                                           </div>
 
                                           {/* 中間虛線分隔 */}
-<div className="w-[95px] bg-white/[0.08] border-l border-white/5 p-2.5 flex flex-col justify-between items-center text-center shrink-0 shadow-[inset_1px_0_0_rgba(255,255,255,0.05)]">
+                                           <div className="w-[95px] bg-white/[0.08] border-l border-white/5 p-2.5 flex flex-col justify-between items-center text-center shrink-0 shadow-[inset_1px_0_0_rgba(255,255,255,0.05)]">
                                               <span className="text-[8px] font-mono font-black text-[#A3ADA5]">ADMIT ONE</span>
                                               <div className="font-mono text-[10px] font-black text-[#EFF0EA]">{evt.cost ? `$${Number(evt.cost).toLocaleString()}` : 'FREE'}</div>
                                               {evt.detailSeat ? (

@@ -2627,16 +2627,21 @@ function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCatego
                                           </div>
 
                                           {/* 中間虛線分隔 */}
-                                          <div className="relative w-0 border-r border-dashed border-white/20 my-2 z-10"></div>
-                                            
-                                          {/* 右側票價與座位區塊 */}
-                                          <div className="w-[95px] bg-white/[0.08] border-l border-white/5 p-2.5 flex flex-col justify-between items-center text-center shrink-0 shadow-[inset_1px_0_0_rgba(255,255,255,0.05)]">
+<div className="w-[95px] bg-white/[0.08] border-l border-white/5 p-2.5 flex flex-col justify-between items-center text-center shrink-0 shadow-[inset_1px_0_0_rgba(255,255,255,0.05)]">
                                               <span className="text-[8px] font-mono font-black text-[#A3ADA5]">ADMIT ONE</span>
                                               <div className="font-mono text-[10px] font-black text-[#EFF0EA]">{evt.cost ? `$${Number(evt.cost).toLocaleString()}` : 'FREE'}</div>
                                               {evt.detailSeat ? (
-                                                  <span className="text-[8px] font-bold bg-[#CCB9AA]/20 text-[#CCB9AA] px-1.5 py-0.5 rounded w-full truncate border border-[#C5AB89]/30">
-                                                      {evt.detailSeat.slice(0, 6)}
-                                                  </span>
+                                                  <div className="w-full flex justify-center items-center h-4">
+                                                      <span 
+                                                          className="text-[8px] font-bold bg-[#CCB9AA]/20 text-[#CCB9AA] px-1.5 py-0.5 rounded border border-[#C5AB89]/30 whitespace-nowrap origin-center inline-block"
+                                                          style={{ 
+                                                              transform: evt.detailSeat.length > 5 ? `scale(${Math.max(0.65, 1 - (evt.detailSeat.length - 5) * 0.05)})` : 'scale(1)' 
+                                                          }}
+                                                          title={evt.detailSeat}
+                                                      >
+                                                          {evt.detailSeat}
+                                                      </span>
+                                                    </div>
                                               ) : (
                                                   <span></span>
                                               )}

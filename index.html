@@ -2455,7 +2455,7 @@ function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }
                                                 <div className="relative z-10 mt-2.5 px-4">
                                                     <div className="space-y-1 max-h-16 overflow-y-auto no-scrollbar">
                                                         {[...selectedCountry.events]
-                                                            .sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')))
+                                                            .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))
                                                             .map(e => (
                                                                 <div key={e.id} className="flex items-center justify-between gap-2 bg-white/5 border border-[#C5AB89]/15 rounded-lg px-2 py-1">
                                                                     <span className="text-[9px] font-bold text-[#EFF0EA] truncate">{e.artist || e.title}</span>

@@ -2264,15 +2264,6 @@ function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }
                     });
                 }, [events, venueCounts]);
 
-                const achievement = useMemo(() => {
-                    const count = Number(stats.attendedCount || 0);
-                    if (count >= 10) return { level: 5, title: '殿堂巡演家' };
-                    if (count >= 6) return { level: 4, title: '鉑金巡演家' };
-                    if (count >= 3) return { level: 3, title: '黃金巡演家' };
-                    if (count >= 1) return { level: 2, title: '白銀巡演家' };
-                    return { level: 1, title: '初階巡演家' };
-                }, [stats.attendedCount]);
-
                 const handleCloseCountryModal = () => {
                     if (geoJsonLayerRef.current) {
                         geoJsonLayerRef.current.eachLayer((countryLayer) => {
@@ -2303,34 +2294,55 @@ function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }
                         <div ref={mapRef} id="map" className="w-full h-full flex-1"></div>
                         
                         {selectedCountry && (() => {
+                            // 計算該國家已去過（非取消、非wishlist）的場次總和
+                            const countryAttendedCount = selectedCountry.events
+                                ? selectedCountry.events.filter(e => e.status !== 'cancelled' && e.status !== 'wishlist').length
+                                : 0;
+
+                            // 依照該國家已去過場次計算成就等級
+                            const countryAchievement = (() => {
+                                const count = countryAttendedCount;
+                                if (count >= 10) return { level: 5, title: '殿堂巡演家' };
+                                if (count >= 6) return { level: 4, title: '鉑金巡演家' };
+                                if (count >= 3) return { level: 3, title: '黃金巡演家' };
+                                if (count >= 1) return { level: 2, title: '白銀巡演家' };
+                                return { level: 1, title: '初階巡演家' };
+                            })();
+
+                            // 統計該國家各藝人場次，並找出該藝人的所有活動以取得最新一張照片
                             const localArtistCounts = {};
-                            const localArtistAvatar = {};
+                            const localArtistEvents = {};
                             selectedCountry.events?.forEach(e => {
-                                if (e.artist) {
+                                if (e.status !== 'cancelled' && e.status !== 'wishlist' && e.artist) {
                                     localArtistCounts[e.artist] = (localArtistCounts[e.artist] || 0) + 1;
-                                    if (e.coverImg && !localArtistAvatar[e.artist]) localArtistAvatar[e.artist] = e.coverImg;
+                                    if (!localArtistEvents[e.artist]) localArtistEvents[e.artist] = [];
+                                    localArtistEvents[e.artist].push(e);
                                 }
                             });
+
                             const sortedLocalArtists = Object.entries(localArtistCounts).sort((a, b) => b[1] - a[1]);
-                            const topLocalArtist = sortedLocalArtists.length > 0 ? {
-                                name: sortedLocalArtists[0][0],
+                            const topArtistName = sortedLocalArtists.length > 0 ? sortedLocalArtists[0][0] : null;
+                            
+                            let topArtistAvatar = null;
+                            if (topArtistName && localArtistEvents[topArtistName]) {
+                                // 依日期由新到舊排序，取第一筆（最新的一場）的 coverImg
+                                const sortedArtistEvents = [...localArtistEvents[topArtistName]].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+                                topArtistAvatar = sortedArtistEvents.find(e => e.coverImg)?.coverImg || null;
+                            }
+
+                            const topLocalArtist = topArtistName ? {
+                                name: topArtistName,
                                 count: sortedLocalArtists[0][1],
-                                avatar: localArtistAvatar[sortedLocalArtists[0][0]] || null
+                                avatar: topArtistAvatar
                             } : null;
 
                             const featuredEvent = selectedCountry.events && selectedCountry.events.length > 0
                                 ? [...selectedCountry.events].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))[0]
                                 : null;
-                            const featuredRating = Number(featuredEvent?.rating || 5);
                             const featuredVenue = featuredEvent?.venue || '未定場館';
                             const featuredCity = featuredEvent?.city || '未記錄城市';
                             const featuredSeat = featuredEvent?.detailSeat || featuredEvent?.seat || '未記錄座位';
                             const featuredTitle = topLocalArtist?.name || featuredEvent?.artist || featuredEvent?.title || '巡演紀錄';
-
-                            // 計算該國家已去過（非取消、非wishlist）的場次總和
-                            const countryAttendedCount = selectedCountry.events
-                                ? selectedCountry.events.filter(e => e.status !== 'cancelled' && e.status !== 'wishlist').length
-                                : 0;
 
                             return (
                                 <div className="absolute bottom-3 left-3 right-3 z-[1000] pointer-events-none">
@@ -2377,11 +2389,11 @@ function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }
                                                         <span className="font-bold text-[10px] text-[#D2CABF] truncate">{featuredCity}</span>
                                                     </div>
 
-                                                    {/*新增：第一行成就徽章、第二行已去過場次總和 */}
+                                                    {/* 成就徽章與已去過場次總和 */}
                                                     <div className="mt-1.5 flex flex-col gap-1">
                                                         <div className="flex items-center gap-1.5 text-[9px] font-bold text-[#C5AB89]">
                                                             <img src="./image/icons/star1.png" alt="成就徽章" className="w-3.5 h-3.5 object-contain shrink-0" />
-                                                            <span>初階巡演家</span>
+                                                            <span>{countryAchievement.title}</span>
                                                         </div>
                                                         <div className="text-[8.5px] font-mono text-[#D2CABF]">
                                                             已去過當地 <strong className="text-[#C5AB89]">{countryAttendedCount}</strong> 場演出
@@ -2406,24 +2418,22 @@ function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }
 
                                        {featuredEvent ? (
                                                 <div className="relative z-10 grid grid-cols-2 gap-2 px-4 mt-1">
-                                                    {/* 左欄：第一行左右並排（藝人與場館）；第二行座位） */}
+                                                    {/* 左欄：第一行藝人；第二行座位 */}
                                                     <div className="bg-[#161D15]/60 backdrop-blur-md rounded-[17px] border border-[#C5AB89]/25 shadow-inner px-2.5 py-2.5 min-w-0 flex flex-col justify-between">
                                                         <div className="flex items-center justify-between gap-2 min-w-0">
-                                                            {/* 左側：藝人 */}
                                                             <div className="flex items-center gap-1.5 min-w-0 flex-1">
                                                                 <img src="./image/icons/crown1.png" alt="藝人" className="w-3 h-3 object-contain shrink-0" />
                                                                 <span className="font-black text-[10.5px] text-[#EFF0EA] truncate">{featuredTitle}</span>
                                                             </div>
                                                         </div>
                                                             
-                                                        {/* 第二行：座位 */}
                                                         <div className="mt-2 flex items-center gap-1.5 min-w-0 text-[9px] text-[#D2CABF]">
                                                             <span className="text-[#C5AB89] font-bold shrink-0">Seat</span>
                                                             <span className="truncate">{featuredSeat}</span>
                                                         </div>
                                                     </div>
 
-                                                    {/* 右欄：第一行日期；第二行評分星 */}
+                                                    {/* 右欄：第一行場館；第二行日期 */}
                                                     <div className="bg-[#161D15]/60 backdrop-blur-md rounded-[17px] border border-[#C5AB89]/25 shadow-inner px-2.5 py-2.5 min-w-0 flex flex-col justify-between">
                                                     <div className="flex items-center gap-1 min-w-0 text-[9px] text-[#D2CABF]">
                                                     <img src="./image/icons/favourite.png" alt="場館名稱" className="w-3 h-3 object-contain shrink-0 opacity-90" />
@@ -2440,16 +2450,18 @@ function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }
                                                 <div className="relative z-10 px-4 py-3 text-center text-[10px] text-[#A3ADA5]">尚未在當地紀錄演出活動</div>
                                             )}
 
-                                            {/* 多筆紀錄保留 */}
+                                            {/* 多筆紀錄保留（依演出日期由舊到新排序） */}
                                             {selectedCountry.events && selectedCountry.events.length > 1 && (
                                                 <div className="relative z-10 mt-2.5 px-4">
                                                     <div className="space-y-1 max-h-16 overflow-y-auto no-scrollbar">
-                                                        {selectedCountry.events.map(e => (
-                                                            <div key={e.id} className="flex items-center justify-between gap-2 bg-white/5 border border-[#C5AB89]/15 rounded-lg px-2 py-1">
-                                                                <span className="text-[9px] font-bold text-[#EFF0EA] truncate">{e.artist || e.title}</span>
-                                                                <span className="text-[8px] font-mono text-[#C5AB89] shrink-0">{e.date}</span>
-                                                            </div>
-                                                        ))}
+                                                        {[...selectedCountry.events]
+                                                            .sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')))
+                                                            .map(e => (
+                                                                <div key={e.id} className="flex items-center justify-between gap-2 bg-white/5 border border-[#C5AB89]/15 rounded-lg px-2 py-1">
+                                                                    <span className="text-[9px] font-bold text-[#EFF0EA] truncate">{e.artist || e.title}</span>
+                                                                    <span className="text-[8px] font-mono text-[#C5AB89] shrink-0">{e.date}</span>
+                                                                </div>
+                                                            ))}
                                                     </div>
                                                 </div>
                                             )}
@@ -2552,7 +2564,7 @@ function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCatego
                                             WebkitMaskComposite: 'source-in'
                                         }}
                                     >
-                                        <div className="flex w-full bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] rounded-2xl overflow-hidden]">
+                                        <div className="flex w-full bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] rounded-2xl overflow-hidden">
                                           {/* 左側：封面圖與主要資訊 */}
                                           <div className="flex-1 p-3.5 pl-5 flex items-start gap-2 min-w-0 pr-3">
                                             {/* 封面圖片區塊 */}
@@ -3043,7 +3055,7 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
         <div className={`merch-flip-card ${flipped ? 'is-flipped' : ''}`} onClick={() => setFlipped(v => !v)} role="button" tabIndex={0} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFlipped(v => !v); } }}>
             <div className="merch-flip-inner">
                 {/* 正面（第一頁） */}
-                <div className="merch-flip-face merch-v2-front bg-[#232B25]/90 backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
+                <div className="merch-flip-face merch-v2-front bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
                     <div className="flex items-start gap-3 -mt-0.5">
                         <div className="merch-crop-preview rounded-2xl overflow-hidden bg-white/5 shrink-0 flex items-center justify-center shadow-[0_0_5px_rgba(197,171,137,0.70)] border border-[#C5AB89]/70">
                             {image ? <img src={image} alt="周邊圖" className="w-full h-full object-cover" /> : <i data-lucide="image" className="w-8 h-8 text-[#737C75]"></i>}
@@ -3052,9 +3064,9 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
                             <div className="min-w-0">
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="space-y-1.5 min-w-0 flex-1">
-                                        {card.activityName && <div className="text-[9px] text-[#E1E1DF] font-black break-all line-clamp-2 leading-tight">{card.activityName}</div>}
+                                        {card.activityName && <div className="text-[11px] text-[#E1E1DF] font-black break-all line-clamp-2 leading-tight">{card.activityName}</div>}
 
-                                        <div className="-mt-0.5 text-[9px] text-[#E1E1DF] font-black truncate">{dateText}</div>
+                                        <div className="-mt-0.5 text-[10px] text-[#E1E1DF] font-black truncate">{dateText}</div>
                                         
                                         <div className="-mt-0.5 text-[9px] text-[#E1E1DF] font-bold truncate">{card.purchaseChannel || '未設定'}</div>
                                     </div>
@@ -3063,7 +3075,7 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
                                         <i data-lucide="pencil" className="w-3 h-3"></i>
                                     </button>
                                 </div>
-                                {card.memorialPhrase && <div className="merch-memory-phrase text-[10px] text-[#CCB9AA] font-extrabold truncate my-0.5">{card.memorialPhrase}</div>}
+                                {card.memorialPhrase && <div className="merch-memory-phrase text-[9px] text-[#CCB9AA] font-extrabold truncate my-0.5">{card.memorialPhrase}</div>}
                             </div>
                             <div className="flex items-center justify-end pt-1 min-w-0">
                                 {/* 右下角：花費總金額 */}
@@ -3077,7 +3089,7 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
                 </div>
 
                 {/* 背面（第二頁） */}
-                <div className="merch-flip-face merch-v2-back merch-flip-back bg-[#232B25]/95 backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40 flex flex-col justify-between h-full overflow-hidden">
+                <div className="merch-flip-face merch-v2-back merch-flip-back bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40 flex flex-col justify-between h-full overflow-hidden">
                     <div 
                         className="merch-back-items-grid no-scrollbar flex-1 overflow-y-auto gap-2 pt-0 pb-5 px-0.5 -translate-y-[3px]"
                         style={{

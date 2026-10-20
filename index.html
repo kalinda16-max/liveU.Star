@@ -1158,7 +1158,8 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                             category: entry.category || '其他',
                             categoryIcon: entry.categoryIcon || './image/icons/crown.png',
                             memorialPhrase: entry.memorialPhrase || entry.phrase || '',
-                            image: entry.image || '',
+                            image: entry.image || (Array.isArray(entry.images) ? entry.images[0] : '') || '',
+                            images: (Array.isArray(entry.images) ? entry.images : (entry.image ? [entry.image] : [])).filter(Boolean).slice(0, 5),
                             items: rawItems.map((it, itemIndex) => ({
                                 ...it,
                                 id: it.id || `${cardId}-item-${itemIndex}`,
@@ -1179,6 +1180,7 @@ const handleSaveMerchandise = (data) => {
             ...card,
             activityName: data.activityName !== undefined ? data.activityName : card.activityName || '',
             image: data.image !== undefined ? data.image : card.image || '',
+            images: Array.isArray(data.images) ? data.images.slice(0, 5) : (card.images || (card.image ? [card.image] : [])),
             purchaseDate: data.purchaseDate !== undefined ? data.purchaseDate : card.purchaseDate || '',
             purchaseChannel: data.purchaseChannel !== undefined ? data.purchaseChannel : card.purchaseChannel || '',
             category: data.category !== undefined ? data.category : card.category || '其他',
@@ -1217,6 +1219,7 @@ const handleSaveMerchandise = (data) => {
                 ...card,
                 activityName: data.activityName !== undefined ? data.activityName : card.activityName || '',
                 image: data.image !== undefined ? data.image : card.image || '',
+            images: Array.isArray(data.images) ? data.images.slice(0, 5) : (card.images || (card.image ? [card.image] : [])),
                 purchaseDate: data.purchaseDate !== undefined ? data.purchaseDate : card.purchaseDate || '',
                 purchaseChannel: data.purchaseChannel !== undefined ? data.purchaseChannel : card.purchaseChannel || '',
                 category: data.category !== undefined ? data.category : card.category || '其他',
@@ -2700,8 +2703,12 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
     const isItemEdit = !!initialData?.cardId;
     
     // 表單基本欄位 State
-    const [image, setImage] = useState(initialData?.image || '');
-    const [activityName, setActivityName] = useState(initialData?.activityName || initialData?.eventName || '');
+    const [image, setImage] = useState(initialData?.image || (Array.isArray(initialData?.images) ? initialData.images[0] : '') || '');
+    const [images, setImages] = useState(() => (Array.isArray(initialData?.images) ? initialData.images : (initialData?.image ? [initialData.image] : [])).filter(Boolean).slice(0, 5));
+    const [previewImageIndex, setPreviewImageIndex] = useState(0);
+    const previewTouchStartX = useRef(null);
+    const activityNameState = initialData?.activityName || initialData?.eventName || '';
+    const [activityName, setActivityName] = useState(activityNameState);
     const [purchaseDate, setPurchaseDate] = useState(initialData?.purchaseDate || new Date().toISOString().slice(0, 10));
     const [purchaseChannel, setPurchaseChannel] = useState(initialData?.purchaseChannel || '');
     const [memorialPhrase, setMemorialPhrase] = useState(initialData?.memorialPhrase || '');
@@ -2736,28 +2743,76 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
     const fileRef = useRef(null);
     const previousImageRef = useRef(image);
 
-    const handleFileChange = (e) => {
-        const file = e.currentTarget.files?.[0];
-        if (!file || !file.type?.startsWith('image/')) return;
-
-        previousImageRef.current = image;
-
+    const compressMerchImage = (file) => new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = (evt) => {
-            const result = evt.target?.result;
-            if (typeof result !== 'string' || !result) return;
-
-            // 先立即更新主圖片框，避免 iOS / WebView 裁切元件未初始化時看起來像沒有反應。
-            setImage(result);
-            // 同時開啟裁切視窗；確認後會以裁切後圖片覆蓋暫時預覽。
-            setCropSource(result);
-
-            if (fileRef.current) fileRef.current.value = '';
-        };
-        reader.onerror = () => {
-            if (fileRef.current) fileRef.current.value = '';
+        reader.onerror = reject;
+        reader.onload = () => {
+            const img = new Image();
+            img.onerror = reject;
+            img.onload = () => {
+                const maxSide = 2200;
+                const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+                canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+                const ctx = canvas.getContext('2d');
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                // 高品質 JPEG 壓縮；限制尺寸以減少 IndexedDB 儲存負擔。
+                resolve(canvas.toDataURL('image/jpeg', 0.92));
+            };
+            img.src = reader.result;
         };
         reader.readAsDataURL(file);
+    });
+
+    const handleFileChange = async (e) => {
+        const selected = Array.from(e.currentTarget.files || []).filter(file => file.type?.startsWith('image/'));
+        if (!selected.length) return;
+        const remaining = Math.max(0, 5 - images.length);
+        if (remaining === 0) {
+            alert('每筆周邊紀錄最多新增 5 張圖片。');
+            if (fileRef.current) fileRef.current.value = '';
+            return;
+        }
+        try {
+            const compressed = [];
+            for (const file of selected.slice(0, remaining)) {
+                compressed.push(await compressMerchImage(file));
+            }
+            setImages(prev => {
+                const next = [...prev, ...compressed].slice(0, 5);
+                setImage(next[0] || '');
+                return next;
+            });
+        } catch (err) {
+            console.error('周邊圖片處理失敗：', err);
+            alert('圖片讀取失敗，請重新選擇圖片。');
+        } finally {
+            if (fileRef.current) fileRef.current.value = '';
+        }
+    };
+
+    const removeMerchImage = (index) => {
+        setImages(prev => {
+            const next = prev.filter((_, i) => i !== index);
+            setImage(next[0] || '');
+            setPreviewImageIndex(current => Math.max(0, Math.min(current > index ? current - 1 : current, next.length - 1)));
+            return next;
+        });
+    };
+
+    const handlePreviewTouchStart = (e) => {
+        previewTouchStartX.current = e.touches?.[0]?.clientX ?? null;
+    };
+    const handlePreviewTouchEnd = (e) => {
+        if (previewTouchStartX.current == null || images.length < 2) return;
+        const delta = (e.changedTouches?.[0]?.clientX ?? previewTouchStartX.current) - previewTouchStartX.current;
+        if (Math.abs(delta) > 35) {
+            setPreviewImageIndex(current => delta < 0 ? (current + 1) % images.length : (current - 1 + images.length) % images.length);
+        }
+        previewTouchStartX.current = null;
     };
 
     // 根據分類名稱自動對應動態 Icon 的輔助函式
@@ -2789,7 +2844,8 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
 
         onSave({
             id: initialData?.id || null,
-            image,
+            image: images[0] || image || '',
+            images: images.slice(0, 5),
             activityName,
             purchaseDate,
             purchaseChannel,
@@ -2825,28 +2881,29 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
 {!isItemEdit && (
     /* 使用 flex 讓圖片在左，日期/通路在右 */
     <div className="flex gap-2.5 w-full">
-        {/* 左側：周邊圖  */}
+        {/* 左側：以第一張為主圖，其他圖片可左右滑動檢視 */}
         <div className="w-[110px] shrink-0 space-y-1">
-            <label className="text-[10px] font-bold text-[#C5AB89] pl-1.5">周邊圖</label>
-            <button
-                type="button"
-                onClick={(e) => {
-                    e.preventDefault();
-                    fileRef.current?.click();
-                }}
-                className="w-full h-[110px] rounded-xl overflow-hidden border border-[#C5AB89]/40 bg-white/5 flex items-center justify-center cursor-pointer p-0 text-left"
-                aria-label="選擇周邊圖片"
-            >
-                {image ? (
-                    <img src={image} alt="周邊預覽" className="w-full h-full object-cover pointer-events-none" />
+            <label className="text-[10px] font-bold text-[#C5AB89] pl-1.5">周邊圖（{images.length}/5）</label>
+            <div className="relative w-full aspect-square rounded-lg overflow-hidden border border-[#C5AB89]/50 bg-white/5"
+                onTouchStart={handlePreviewTouchStart} onTouchEnd={handlePreviewTouchEnd}>
+                {images.length > 0 ? (
+                    <img src={images[Math.min(previewImageIndex, images.length - 1)]} alt={`周邊圖片 ${previewImageIndex + 1}`} className="w-full h-full object-cover select-none" draggable="false" />
                 ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-[#A3ADA5] pointer-events-none">
-                        <i data-lucide="image-plus" className="w-6 h-6 text-[#C5AB89]"></i>
-                        <span className="text-[9px] font-bold text-center leading-tight">選擇圖片<br/>並裁切</span>
-                    </div>
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-[#A3ADA5]"><i data-lucide="image" className="w-6 h-6 text-[#C5AB89]"></i><span className="text-[9px]">尚未選圖</span></div>
                 )}
-            </button>
-            <input id="merchandise-image-upload" ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                {images.length > 1 && <>
+                    <button type="button" onClick={() => setPreviewImageIndex(i => (i - 1 + images.length) % images.length)} className="absolute left-1 top-1/2 -translate-y-1/2 rounded-full w-5 h-5 bg-black/65 text-white text-xs" aria-label="上一張圖片">‹</button>
+                    <button type="button" onClick={() => setPreviewImageIndex(i => (i + 1) % images.length)} className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full w-5 h-5 bg-black/65 text-white text-xs" aria-label="下一張圖片">›</button>
+                    <span className="absolute bottom-1 left-1 rounded-full bg-black/75 px-1.5 py-0.5 text-[9px] text-white">{previewImageIndex + 1}/{images.length}</span>
+                </>}
+                {images.length > 0 && <button type="button" onClick={() => removeMerchImage(Math.min(previewImageIndex, images.length - 1))} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/75 text-white flex items-center justify-center" aria-label="移除目前圖片">×</button>}
+            </div>
+            <div className="flex gap-1">
+                {images.length < 5 && <button type="button" onClick={() => fileRef.current?.click()} className="flex-1 h-7 rounded-lg border border-dashed border-[#C5AB89]/60 bg-white/5 flex items-center justify-center gap-1 text-[#A3ADA5]"><i data-lucide="image-plus" className="w-3.5 h-3.5 text-[#C5AB89]"></i><span className="text-[9px] font-bold">新增圖片</span></button>}
+                {images.length > 1 && <span className="flex items-center text-[9px] text-[#A3ADA5]">左右滑動</span>}
+            </div>
+            <input id="merchandise-image-upload" ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileChange} />
+            <p className="text-[9px] text-[#A3ADA5] leading-tight">第一張為主圖，最多 5 張</p>
         </div>
 
         {/* 右側：購買日期與購買通路（上下垂直排列，自動填滿剩餘寬度） */}
@@ -3046,7 +3103,10 @@ function getMerchCategoryKey(category) {
 
 function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onToggle, onDelete, onEdit }) {
     const [flipped, setFlipped] = useState(false);
-    const image = card.image || '';
+    const cardImages = (Array.isArray(card.images) && card.images.length ? card.images : (card.image ? [card.image] : [])).slice(0, 5);
+    const image = cardImages[0] || '';
+    const [zoomIndex, setZoomIndex] = useState(null);
+    const zoomTouchStartX = useRef(null);
     const stop = e => e.stopPropagation();
     const editCard = (e) => { stop(e); onEdit(card); };
     const renderItemAmount = (amountVal) => {
@@ -3058,13 +3118,15 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
         return formatMoney(amountVal);
     };
     return (
+        <>
         <div className={`merch-flip-card ${flipped ? 'is-flipped' : ''}`} onClick={() => setFlipped(v => !v)} role="button" tabIndex={0} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFlipped(v => !v); } }}>
             <div className="merch-flip-inner">
                 {/* 正面（第一頁） */}
                 <div className="merch-flip-face merch-v2-front bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
                     <div className="flex items-start gap-3 -mt-0.5">
-                        <div className="merch-crop-preview rounded-2xl overflow-hidden bg-white/5 shrink-0 flex items-center justify-center shadow-[0_0_5px_rgba(197,171,137,0.70)] border border-[#C5AB89]/70">
-                            {image ? <img src={image} alt="周邊圖" className="w-full h-full object-cover" /> : <i data-lucide="image" className="w-8 h-8 text-[#737C75]"></i>}
+                        <div className="merch-crop-preview rounded-2xl overflow-hidden bg-white/5 shrink-0 flex items-center justify-center shadow-[0_0_5px_rgba(197,171,137,0.70)] border border-[#C5AB89]/70 relative">
+                            {image ? <button type="button" onClick={e => { stop(e); setZoomIndex(0); }} className="w-full h-full p-0 cursor-zoom-in" aria-label="放大周邊圖片"><img src={image} alt="周邊圖（點擊放大）" className="w-full h-full object-cover" /></button> : <i data-lucide="image" className="w-8 h-8 text-[#737C75]"></i>}
+                            {cardImages.length > 1 && <span className="absolute bottom-1 right-1 rounded-full bg-black/75 px-1.5 py-0.5 text-[9px] text-white pointer-events-none">{cardImages.length} 張</span>}
                         </div>
                         <div className="merch-front-info flex-1 min-w-0 flex flex-col justify-between h-[132px] overflow-hidden pt-1.5">
                             <div className="min-w-0">
@@ -3145,6 +3207,26 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
                 </div>
             </div>
         </div>
+        {zoomIndex !== null && ReactDOM.createPortal(
+            <div className="fixed inset-0 z-[2147483647] bg-black/95 flex items-center justify-center p-3"
+                onClick={() => setZoomIndex(null)} role="button" aria-label="關閉放大圖片"
+                onTouchStart={e => { zoomTouchStartX.current = e.touches?.[0]?.clientX ?? null; }}
+                onTouchEnd={e => {
+                    if (zoomTouchStartX.current == null || cardImages.length < 2) return;
+                    const delta = (e.changedTouches?.[0]?.clientX ?? zoomTouchStartX.current) - zoomTouchStartX.current;
+                    if (Math.abs(delta) > 35) setZoomIndex(current => delta < 0 ? (current + 1) % cardImages.length : (current - 1 + cardImages.length) % cardImages.length);
+                    zoomTouchStartX.current = null;
+                }}>
+                <button type="button" className="absolute top-6 right-5 z-10 w-10 h-10 rounded-full bg-[#C5AB89] text-[#161D15] font-black text-xl" onClick={e => { stop(e); setZoomIndex(null); }} aria-label="關閉">×</button>
+                <img src={cardImages[zoomIndex] || image} alt={`放大的周邊圖片 ${zoomIndex + 1}`} className="max-w-full max-h-[84vh] object-contain select-none" draggable="false" onClick={stop} />
+                {cardImages.length > 1 && <>
+                    <button type="button" className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/15 text-white text-2xl" onClick={e => { stop(e); setZoomIndex(i => (i - 1 + cardImages.length) % cardImages.length); }} aria-label="上一張">‹</button>
+                    <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/15 text-white text-2xl" onClick={e => { stop(e); setZoomIndex(i => (i + 1) % cardImages.length); }} aria-label="下一張">›</button>
+                    <div className="absolute bottom-5 left-0 right-0 text-center text-white text-xs">{zoomIndex + 1} / {cardImages.length}　左右滑動可看其他圖片</div>
+                </>}
+            </div>, document.body
+        )}
+        </>
     );
 }
 

@@ -2881,14 +2881,9 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                 <div className="w-[110px] shrink-0 space-y-1">
                                     <label className="text-[10px] font-bold text-[#C5AB89] pl-1.5">周邊圖（{images.length}/5）</label>
                                     <div 
-                                        className="relative w-full aspect-square rounded-lg overflow-hidden border border-[#C5AB89]/50 bg-white/5 flex flex-col items-center justify-center group cursor-pointer"
+                                        className="relative w-full aspect-square rounded-lg overflow-hidden border border-[#C5AB89]/50 bg-white/5 flex flex-col items-center justify-center group"
                                         onTouchStart={handlePreviewTouchStart} 
                                         onTouchEnd={handlePreviewTouchEnd}
-                                        onClick={() => {
-                                            if (images.length === 0 && images.length < 5) {
-                                                fileRef.current?.click();
-                                            }
-                                        }}
                                     >
                                         {images.length > 0 ? (
                                             <>
@@ -2920,7 +2915,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                                     <button 
                                                         type="button" 
                                                         onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }}
-                                                        className="absolute bottom-1 right-1 bg-black/75 hover:bg-black/90 text-[#C5AB89] rounded-full p-1 shadow transition-colors"
+                                                        className="absolute bottom-1 right-1 bg-black/75 hover:bg-black/90 text-[#C5AB89] rounded-full p-1 shadow transition-colors cursor-pointer"
                                                         title="新增圖片"
                                                     >
                                                         <i data-lucide="image-plus" className="w-3.5 h-3.5"></i>
@@ -2931,7 +2926,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                             /* 尚未選圖時的空狀態（整個方框皆可點擊新增） */
                                             <div 
                                                 onClick={() => fileRef.current?.click()} 
-                                                className="w-full h-full flex flex-col items-center justify-center gap-1 text-[#A3ADA5] hover:bg-white/10 transition-colors"
+                                                className="w-full h-full flex flex-col items-center justify-center gap-1 text-[#A3ADA5] hover:bg-white/10 transition-colors cursor-pointer"
                                             >
                                                 <i data-lucide="image-plus" className="w-6 h-6 text-[#C5AB89]"></i>
                                                 <span className="text-[9px] font-bold text-[#C5AB89]">新增圖片</span>

@@ -2839,29 +2839,26 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                 categoryIcon: getCategoryIcon(itemCategory)
             });
         } else {
-        // 取得第一筆分類，若無則預設為其他
-    const firstCat = formItems?.[0]?.category || '';
-
-        onSave({
-            id: initialData?.id || null,
-            image: images[0] || image || '',
-            images: images.slice(0, 5),
-            activityName,
-            purchaseDate,
-            purchaseChannel,
-            category: firstCat,
-            categoryIcon: getCategoryIcon(firstCat),
-            memorialPhrase,
-        // 使用 index 確保 map 產生的 id 絕對不會重複
-        items: (formItems || []).map((fi, index) => ({
-            id: fi.id || `${Date.now()}_${index}`,
-            item: fi.item?.trim() || '未命名周邊',
-            amount: parseMerchAmount(fi.amount),
-            category: fi.category || '',
-            categoryIcon: getCategoryIcon(fi.category),
-            checked: fi.checked ?? true // 保留原本的 checked 狀態，若無則預設 true
-           }))
-          });
+            const firstCat = formItems?.[0]?.category || '';
+            onSave({
+                id: initialData?.id || null,
+                image: images[0] || image || '',
+                images: images.slice(0, 5),
+                activityName,
+                purchaseDate,
+                purchaseChannel,
+                category: firstCat,
+                categoryIcon: getCategoryIcon(firstCat),
+                memorialPhrase,
+                items: (formItems || []).map((fi, index) => ({
+                    id: fi.id || `${Date.now()}_${index}`,
+                    item: fi.item?.trim() || '未命名周邊',
+                    amount: parseMerchAmount(fi.amount),
+                    category: fi.category || '',
+                    categoryIcon: getCategoryIcon(fi.category),
+                    checked: fi.checked ?? true
+                }))
+            });
         }
         onClose();
     };
@@ -2878,47 +2875,86 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-2.5 overflow-y-auto px-0.5 py-1 flex-1 no-scrollbar text-xs">
-{!isItemEdit && (
-    /* 使用 flex 讓圖片在左，日期/通路在右 */
-    <div className="flex gap-2.5 w-full">
-        {/* 左側：以第一張為主圖，其他圖片可左右滑動檢視 */}
-        <div className="w-[110px] shrink-0 space-y-1">
-            <label className="text-[10px] font-bold text-[#C5AB89] pl-1.5">周邊圖（{images.length}/5）</label>
-            <div className="relative w-full aspect-square rounded-lg overflow-hidden border border-[#C5AB89]/50 bg-white/5"
-                onTouchStart={handlePreviewTouchStart} onTouchEnd={handlePreviewTouchEnd}>
-                {images.length > 0 ? (
-                    <img src={images[Math.min(previewImageIndex, images.length - 1)]} alt={`周邊圖片 ${previewImageIndex + 1}`} className="w-full h-full object-cover select-none" draggable="false" />
-                ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-[#A3ADA5]"><i data-lucide="image" className="w-6 h-6 text-[#C5AB89]"></i><span className="text-[9px]">尚未選圖</span></div>
-                )}
-                {images.length > 1 && <>
-                    <button type="button" onClick={() => setPreviewImageIndex(i => (i - 1 + images.length) % images.length)} className="absolute left-1 top-1/2 -translate-y-1/2 rounded-full w-5 h-5 bg-black/65 text-white text-xs" aria-label="上一張圖片">‹</button>
-                    <button type="button" onClick={() => setPreviewImageIndex(i => (i + 1) % images.length)} className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full w-5 h-5 bg-black/65 text-white text-xs" aria-label="下一張圖片">›</button>
-                    <span className="absolute bottom-1 left-1 rounded-full bg-black/75 px-1.5 py-0.5 text-[9px] text-white">{previewImageIndex + 1}/{images.length}</span>
-                </>}
-                {images.length > 0 && <button type="button" onClick={() => removeMerchImage(Math.min(previewImageIndex, images.length - 1))} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/75 text-white flex items-center justify-center" aria-label="移除目前圖片">×</button>}
-            </div>
-            <div className="flex gap-1">
-                {images.length < 5 && <button type="button" onClick={() => fileRef.current?.click()} className="flex-1 h-7 rounded-lg border border-dashed border-[#C5AB89]/60 bg-white/5 flex items-center justify-center gap-1 text-[#A3ADA5]"><i data-lucide="image-plus" className="w-3.5 h-3.5 text-[#C5AB89]"></i><span className="text-[9px] font-bold">新增圖片</span></button>}
-                {images.length > 1 && <span className="flex items-center text-[9px] text-[#A3ADA5]">左右滑動</span>}
-            </div>
-            <input id="merchandise-image-upload" ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileChange} />
-            <p className="text-[9px] text-[#A3ADA5] leading-tight">第一張為主圖，最多 5 張</p>
-        </div>
+                        {!isItemEdit && (
+                            <div className="flex gap-2.5 w-full">
+                                {/* 左側：合併後的圖片預覽與新增框 */}
+                                <div className="w-[110px] shrink-0 space-y-1">
+                                    <label className="text-[10px] font-bold text-[#C5AB89] pl-1.5">周邊圖（{images.length}/5）</label>
+                                    <div 
+                                        className="relative w-full aspect-square rounded-lg overflow-hidden border border-[#C5AB89]/50 bg-white/5 flex flex-col items-center justify-center group cursor-pointer"
+                                        onTouchStart={handlePreviewTouchStart} 
+                                        onTouchEnd={handlePreviewTouchEnd}
+                                        onClick={() => {
+                                            if (images.length === 0 && images.length < 5) {
+                                                fileRef.current?.click();
+                                            }
+                                        }}
+                                    >
+                                        {images.length > 0 ? (
+                                            <>
+                                                <img 
+                                                    src={images[Math.min(previewImageIndex, images.length - 1)]} 
+                                                    alt={`周邊圖片 ${previewImageIndex + 1}`} 
+                                                    className="w-full h-full object-cover select-none" 
+                                                    draggable="false" 
+                                                />
+                                                {/* 刪除當前圖片按鈕 */}
+                                                <button 
+                                                    type="button" 
+                                                    onClick={(e) => { e.stopPropagation(); removeMerchImage(Math.min(previewImageIndex, images.length - 1)); }} 
+                                                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/75 text-white flex items-center justify-center text-xs" 
+                                                    aria-label="移除目前圖片"
+                                                >
+                                                    ×
+                                                </button>
+                                                {/* 圖片切換左右箭頭 */}
+                                                {images.length > 1 && (
+                                                    <>
+                                                        <button type="button" onClick={(e) => { e.stopPropagation(); setPreviewImageIndex(i => (i - 1 + images.length) % images.length); }} className="absolute left-1 top-1/2 -translate-y-1/2 rounded-full w-5 h-5 bg-black/65 text-white text-xs flex items-center justify-center" aria-label="上一張圖片">‹</button>
+                                                        <button type="button" onClick={(e) => { e.stopPropagation(); setPreviewImageIndex(i => (i + 1) % images.length); }} className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full w-5 h-5 bg-black/65 text-white text-xs flex items-center justify-center" aria-label="下一張圖片">›</button>
+                                                        <span className="absolute bottom-1 left-1 rounded-full bg-black/75 px-1.5 py-0.5 text-[9px] text-white">{previewImageIndex + 1}/{images.length}</span>
+                                                    </>
+                                                )}
+                                                {/* 當圖片數量未滿 5 張時，直接在預覽框內提供點擊追加的浮動按鈕 */}
+                                                {images.length < 5 && (
+                                                    <button 
+                                                        type="button" 
+                                                        onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }}
+                                                        className="absolute bottom-1 right-1 bg-black/75 hover:bg-black/90 text-[#C5AB89] rounded-full p-1 shadow transition-colors"
+                                                        title="新增圖片"
+                                                    >
+                                                        <i data-lucide="image-plus" className="w-3.5 h-3.5"></i>
+                                                    </button>
+                                                )}
+                                            </>
+                                        ) : (
+                                            /* 尚未選圖時的空狀態（整個方框皆可點擊新增） */
+                                            <div 
+                                                onClick={() => fileRef.current?.click()} 
+                                                className="w-full h-full flex flex-col items-center justify-center gap-1 text-[#A3ADA5] hover:bg-white/10 transition-colors"
+                                            >
+                                                <i data-lucide="image-plus" className="w-6 h-6 text-[#C5AB89]"></i>
+                                                <span className="text-[9px] font-bold text-[#C5AB89]">新增圖片</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <input id="merchandise-image-upload" ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileChange} />
+                                    <p className="text-[9px] text-[#A3ADA5] leading-tight text-center">{images.length > 0 ? '第一張為主圖' : '最多 5 張'}</p>
+                                </div>
 
-        {/* 右側：購買日期與購買通路（上下垂直排列，自動填滿剩餘寬度） */}
-        <div className="flex-1 min-w-0 flex flex-col gap-2.5">
-            <div className="space-y-1 min-w-0">
-                <label className="text-[10px] font-bold text-[#C5AB89] pl-1.5">購買日期</label>
-                <input type="text" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} placeholder="2026/09/28" className="w-full h-9 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none box-border" />
-            </div>
-            <div className="space-y-1 min-w-0">
-                <label className="text-[10px] font-bold text-[#C5AB89] pl-1.5">購買通路</label>
-                <input type="text" value={purchaseChannel} onChange={e => setPurchaseChannel(e.target.value)} placeholder="官方網站" className="w-full h-9 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none box-border" />
-            </div>
-        </div>
-    </div>
-)}
+                                {/* 右側：購買日期與購買通路 */}
+                                <div className="flex-1 min-w-0 flex flex-col gap-2.5">
+                                    <div className="space-y-1 min-w-0">
+                                        <label className="text-[10px] font-bold text-[#C5AB89] pl-1.5">購買日期</label>
+                                        <input type="text" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} placeholder="2026/09/28" className="w-full h-9 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none box-border" />
+                                    </div>
+                                    <div className="space-y-1 min-w-0">
+                                        <label className="text-[10px] font-bold text-[#C5AB89] pl-1.5">購買通路</label>
+                                        <input type="text" value={purchaseChannel} onChange={e => setPurchaseChannel(e.target.value)} placeholder="官方網站" className="w-full h-9 bg-white/5 text-[#EFF0EA] placeholder-[#A3ADA5] px-2.5 py-1.5 rounded-xl text-xs border border-[#C5AB89]/40 focus:outline-none box-border" />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* 如果是單一項目編輯 (isItemEdit) */}
                         {isItemEdit && (
@@ -2943,7 +2979,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                             </>
                         )}
 
-                        {/* 活動名稱：位於周邊項目與分類列表上方，並同步顯示於周邊卡片 */}
+                        {/* 活動名稱 */}
                         {!isItemEdit && (
                             <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-[#C5AB89] pl-1.5">活動名稱</label>
@@ -2957,7 +2993,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                             </div>
                         )}
 
-                        {/* 如果是新增或整場編輯，顯示多筆項目列表管理 */}
+                        {/* 多筆項目列表管理 */}
                         {!isItemEdit && (
                             <div className="space-y-1.5 pt-0.5">
                                 <div className="flex items-center justify-between">
@@ -2975,7 +3011,6 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                 <div className="space-y-2 max-h-36 overflow-y-auto no-scrollbar">
                                     {formItems.map((fi, index) => (
                                         <div key={fi.id} className="bg-white/5 p-2 rounded-xl border border-[#C5AB89]/30 space-y-1.5 min-w-0">
-                                            {/* 第一行：項目名稱在左，分類在右 */}
                                             <div className="flex items-center gap-1.5 min-w-0">
                                                 <input 
                                                     type="text" 
@@ -3015,7 +3050,6 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                                     </button>
                                                 )}
                                             </div>
-                                            {/* 第二行：金額手動輸入 */}
                                             <div className="flex items-center gap-1.5 pt-0.5 min-w-0">
                                                 <span className="text-[10px] font-bold text-[#C5AB89] shrink-0">金額：</span>
                                                 <input 
@@ -3039,7 +3073,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                             </div>
                         )}
 
-                        {/* 周邊收藏 (位於列表下方、按鈕上方) */}
+                        {/* 周邊收藏位置 */}
                         {!isItemEdit && (
                             <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-[#C5AB89] pl-1.5">周邊收藏位置</label>
@@ -3047,27 +3081,31 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                             </div>
                         )}
 
-                        {/* 底部按鈕順序：儲存修改、刪除整場（icon）、取消 */}
+                        {/* 底部按鈕 */}
                         <div className="flex items-center gap-2 pt-2">
                             <button 
                                 type="submit" 
                                 className="flex-1 h-10 rounded-xl bg-gradient-to-b from-[#D2BC9D]/30 to-[#C5AB89]/15 hover:from-[#C5AB89]/65 hover:to-[#C5AB89]/25 text-[#FAF8F5] text-xs font-semibold border border-[#C5AB89]/70 backdrop-blur-md shadow-[0_0_3px_rgba(197,171,137,0.50),inset_0_1px_0_rgba(255,255,255,0.4)] active:scale-[0.98] transition-all flex items-center justify-center">
                                 {initialData ? '儲存修改' : '確認新增'}
-                                </button>
+                            </button>
 
                             {!isNewCard && !isItemEdit && initialData?.id && (
                                 <button 
-                                type="button" 
-                                onClick={() => { onDelete(initialData.id); onClose(); }} 
-                                className="w-9 h-9 rounded-xl bg-gradient-to-b from-[#E57373]/25 via-[#C76363]/20 to-[#661D1D]/35 hover:from-[#E57373]/40 hover:to-[#8B2626]/50 text-red-200 hover:text-white border border-red-500/50 backdrop-blur-md flex items-center justify-center shrink-0 shadow-[0_0_6px_rgba(239,68,68,0.25),inset_0_1px_0_rgba(255,255,255,0.3)] active:scale-[0.98] transition-all" 
-                                title="刪除整場">
+                                    type="button" 
+                                    onClick={() => { onDelete(initialData.id); onClose(); }} 
+                                    className="w-9 h-9 rounded-xl bg-gradient-to-b from-[#E57373]/25 via-[#C76363]/20 to-[#661D1D]/35 hover:from-[#E57373]/40 hover:to-[#8B2626]/50 text-red-200 hover:text-white border border-red-500/50 backdrop-blur-md flex items-center justify-center shrink-0 shadow-[0_0_6px_rgba(239,68,68,0.25),inset_0_1px_0_rgba(255,255,255,0.3)] active:scale-[0.98] transition-all" 
+                                    title="刪除整場"
+                                >
                                     <i data-lucide="trash-2" className="w-3.5 h-3.5"></i>
                                 </button>
                             )}
                             <button 
-                            type="button" 
-                            onClick={onClose} 
-                            className="flex-1 h-10 rounded-xl bg-gradient-to-b from-[#FFF0DB]/20 to-[#FFF9F0]/5 hover:bg-white/15 text-[#EFF0EA]/80 hover:text-[#EFF0EA] text-xs font-bold border border-white/20 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.3)] active:scale-[0.98] transition-all flex items-center justify-center">取消</button>
+                                type="button" 
+                                onClick={onClose} 
+                                className="flex-1 h-10 rounded-xl bg-gradient-to-b from-[#FFF0DB]/20 to-[#FFF9F0]/5 hover:bg-white/15 text-[#EFF0EA]/80 hover:text-[#EFF0EA] text-xs font-bold border border-white/20 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.3)] active:scale-[0.98] transition-all flex items-center justify-center"
+                            >
+                                取消
+                            </button>
                         </div>
                     </form>
                 </div>

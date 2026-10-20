@@ -2743,9 +2743,9 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
     });
 
     // 支援多圖依序裁切的佇列 State
-    const [cropQueue, setCropQueue] = useState([]); // 存放待裁切的檔案物件
-    const [cropSource, setCropSource] = useState(null); // 當前正在裁切的圖片 DataURL
-    const [pendingCroppedImages, setPendingCroppedImages] = useState([]); // 暫存已裁切完成的圖片
+    const [cropQueue, setCropQueue] = useState([]);
+    const [cropSource, setCropSource] = useState(null);
+    const [pendingCroppedImages, setPendingCroppedImages] = useState([]);
     
     const fileRef = useRef(null);
     const previousImageRef = useRef(image);
@@ -2788,7 +2788,6 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
         if (filesToProcess.length > 0) {
             previousImageRef.current = image;
             setPendingCroppedImages([]);
-            // 取出第一張準備裁切，其餘放入 queue
             const firstFile = filesToProcess[0];
             const restFiles = filesToProcess.slice(1);
             setCropQueue(restFiles);
@@ -2811,7 +2810,6 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
             const updatedPending = [...pendingCroppedImages, compressed];
 
             if (cropQueue.length > 0) {
-                // 還有下一張要裁切
                 setPendingCroppedImages(updatedPending);
                 const nextFile = cropQueue[0];
                 setCropQueue(cropQueue.slice(1));
@@ -2822,7 +2820,6 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                 };
                 reader.readAsDataURL(nextFile);
             } else {
-                // 全部裁切完畢，一次加入總陣列中
                 setImages(prev => {
                     const next = [...prev, ...updatedPending].slice(0, 5);
                     setImage(next[0] || '');
@@ -2838,7 +2835,6 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
     };
 
     const handleCropCancel = () => {
-        // 若取消當前裁切，但前面已經裁切好的依然保留並寫入
         if (pendingCroppedImages.length > 0) {
             setImages(prev => {
                 const next = [...prev, ...pendingCroppedImages].slice(0, 5);
@@ -2948,7 +2944,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                     <form onSubmit={handleSubmit} className="space-y-2.5 overflow-y-auto px-0.5 py-1 flex-1 no-scrollbar text-xs">
                         {!isItemEdit && (
                             <div className="flex gap-2.5 w-full">
-                                {/* 左側：合併後的圖片預覽與新增框 */}
+                                {/* 左側：圖片預覽與新增框（不再具備點擊放大功能，純預覽與切換） */}
                                 <div className="w-[110px] shrink-0 space-y-1">
                                     <label className="text-[10px] font-bold text-[#C5AB89] pl-1.5">周邊圖（{images.length}/5）</label>
                                     <div 
@@ -2961,9 +2957,8 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                                 <img 
                                                     src={images[Math.min(previewImageIndex, images.length - 1)]} 
                                                     alt={`周邊圖片 ${previewImageIndex + 1}`} 
-                                                    className="w-full h-full object-cover select-none cursor-pointer" 
+                                                    className="w-full h-full object-cover select-none" 
                                                     draggable="false"
-                                                    onClick={() => setIsLightboxOpen(true)}
                                                 />
                                                 <button 
                                                     type="button" 
@@ -3001,9 +2996,8 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                             </div>
                                         )}
                                     </div>
-                                    {/* 注意：這裡必須加入 multiple 屬性以允許一次選取多張圖片 */}
                                     <input id="merchandise-image-upload" ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileChange} />
-                                    <p className="text-[9px] text-[#A3ADA5] leading-tight text-center">{images.length > 0 ? '點擊圖片放大檢視' : '最多 5 張'}</p>
+                                    <p className="text-[9px] text-[#A3ADA5] leading-tight text-center">{images.length > 0 ? '第一張為主圖' : '最多 5 張'}</p>
                                 </div>
 
                                 {/* 右側：購買日期與購買通路 */}
@@ -3175,23 +3169,25 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                 </div>
             </div>
 
-            {/* 滿版高畫質圖片檢視 Lightbox */}
+            {/* 滿版圖片檢視 Lightbox（此處指主畫面點擊檢視清單大圖時的彈窗，若其他地方有呼叫） */}
             {isLightboxOpen && images.length > 0 && (
                 <div 
                     className="fixed inset-0 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center z-[9999999] p-4 select-none"
                     onTouchStart={handleLightboxTouchStart}
                     onTouchEnd={handleLightboxTouchEnd}
                 >
+                    {/* 優化後的關閉按鈕：下移至 pt-12 (避開 iPhone 狀態列與動態島)、精緻圓形毛玻璃設計 */}
                     <button 
                         type="button"
                         onClick={() => setIsLightboxOpen(false)}
-                        className="absolute top-4 left-4 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white flex items-center justify-center backdrop-blur-md border border-white/10 transition-all text-sm"
+                        className="absolute top-12 left-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white flex items-center justify-center backdrop-blur-md border border-white/10 transition-all text-xs z-10"
                         aria-label="關閉檢視"
                     >
                         ✕
                     </button>
 
-                    <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-white/10 text-white/90 text-xs backdrop-blur-md border border-white/10 font-mono">
+                    {/* 頁碼指示（同樣下移避免與頂部狀態列重疊） */}
+                    <div className="absolute top-12 right-4 px-3 py-1 rounded-full bg-white/10 text-white/90 text-xs backdrop-blur-md border border-white/10 font-mono z-10">
                         {previewImageIndex + 1} / {images.length}
                         {cropQueue.length > 0 && ` (還有 ${cropQueue.length} 張待裁切)`}
                     </div>
@@ -3240,7 +3236,6 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
         </>
     );
 }
-
 function getMerchCategoryKey(category) {
     const value = String(category || '').trim();
     if (!value) return 'other';

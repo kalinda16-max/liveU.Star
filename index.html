@@ -2716,12 +2716,12 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
     const [purchaseChannel, setPurchaseChannel] = useState(initialData?.purchaseChannel || '');
     const [memorialPhrase, setMemorialPhrase] = useState(initialData?.memorialPhrase || '');
     
-    // 單一項目編輯用的 State (針對 isItemEdit)
+    // 單一項目編輯 State
     const [item, setItem] = useState(initialData?.item || '');
     const [amount, setAmount] = useState(initialData?.amount ?? '');
     const [itemCategory, setItemCategory] = useState(initialData?.category || '其他');
 
-    // 多筆項目列表管理的 State
+    // 多筆項目列表 State
     const [formItems, setFormItems] = useState(() => {
         if (initialData?.items && initialData.items.length > 0) {
             return initialData.items.map(i => ({ 
@@ -2742,7 +2742,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
         return [{ id: Date.now(), item: '', amount: '', category: '其他' }];
     });
 
-    // 支援多圖依序裁切的佇列 State
+    // 支援多圖依序裁切佇列 State
     const [cropQueue, setCropQueue] = useState([]);
     const [cropSource, setCropSource] = useState(null);
     const [pendingCroppedImages, setPendingCroppedImages] = useState([]);
@@ -2768,12 +2768,13 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 resolve(canvas.toDataURL('image/jpeg', 0.92));
             };
+            img.src = reject;
             img.src = reader.result;
         };
         reader.readAsDataURL(fileOrBlob);
     });
 
-    // 選擇檔案後，將多張圖片放入佇列，並啟動第一張的裁切
+    // 多圖選擇處理
     const handleFileChange = async (e) => {
         const selected = Array.from(e.currentTarget.files || []).filter(file => file.type?.startsWith('image/'));
         if (!selected.length) return;
@@ -2802,7 +2803,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
         if (fileRef.current) fileRef.current.value = '';
     };
 
-    // 當前一張圖片裁切確認後
+    // 裁切確認
     const handleCropConfirm = async (croppedUrl) => {
         try {
             const blob = await fetch(croppedUrl).then(r => r.blob());
@@ -2944,7 +2945,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                     <form onSubmit={handleSubmit} className="space-y-2.5 overflow-y-auto px-0.5 py-1 flex-1 no-scrollbar text-xs">
                         {!isItemEdit && (
                             <div className="flex gap-2.5 w-full">
-                                {/* 左側：圖片預覽與新增框（不再具備點擊放大功能，純預覽與切換） */}
+                                {/* 左側：周邊圖選取與預覽 */}
                                 <div className="w-[110px] shrink-0 space-y-1">
                                     <label className="text-[10px] font-bold text-[#C5AB89] pl-1.5">周邊圖（{images.length}/5）</label>
                                     <div 
@@ -3000,7 +3001,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                     <p className="text-[9px] text-[#A3ADA5] leading-tight text-center">{images.length > 0 ? '第一張為主圖' : '最多 5 張'}</p>
                                 </div>
 
-                                {/* 右側：購買日期與購買通路 */}
+                                {/* 右側：購買日期與通路 */}
                                 <div className="flex-1 min-w-0 flex flex-col gap-2.5">
                                     <div className="space-y-1 min-w-0">
                                         <label className="text-[10px] font-bold text-[#C5AB89] pl-1.5">購買日期</label>
@@ -3014,7 +3015,6 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                             </div>
                         )}
 
-                        {/* 如果是單一項目編輯 (isItemEdit) */}
                         {isItemEdit && (
                             <>
                                 <div className="space-y-1">
@@ -3037,7 +3037,6 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                             </>
                         )}
 
-                        {/* 活動名稱 */}
                         {!isItemEdit && (
                             <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-[#C5AB89] pl-1.5">活動名稱</label>
@@ -3051,7 +3050,6 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                             </div>
                         )}
 
-                        {/* 多筆項目列表管理 */}
                         {!isItemEdit && (
                             <div className="space-y-1.5 pt-0.5">
                                 <div className="flex items-center justify-between">
@@ -3131,7 +3129,6 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                             </div>
                         )}
 
-                        {/* 周邊收藏位置 */}
                         {!isItemEdit && (
                             <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-[#C5AB89] pl-1.5">周邊收藏位置</label>
@@ -3139,7 +3136,6 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                             </div>
                         )}
 
-                        {/* 底部按鈕 */}
                         <div className="flex items-center gap-2 pt-2">
                             <button 
                                 type="submit" 
@@ -3169,27 +3165,26 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                 </div>
             </div>
 
-            {/* 滿版圖片檢視 Lightbox（此處指主畫面點擊檢視清單大圖時的彈窗，若其他地方有呼叫） */}
+            {/* 滿版高畫質圖片檢視 Lightbox (圖一對應之組件) */}
             {isLightboxOpen && images.length > 0 && (
                 <div 
-                    className="fixed inset-0 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center z-[9999999] p-4 select-none"
+                    className="fixed inset-0 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center z-[9999999] p-4 select-none pt-[env(safe-area-inset-top)]"
                     onTouchStart={handleLightboxTouchStart}
                     onTouchEnd={handleLightboxTouchEnd}
                 >
-                    {/* 優化後的關閉按鈕：下移至 pt-12 (避開 iPhone 狀態列與動態島)、精緻圓形毛玻璃設計 */}
+                    {/* 低調精緻的關閉按鈕：下移至 top-14 (約 56px)，徹底避開 iPhone 狀態列 */}
                     <button 
                         type="button"
                         onClick={() => setIsLightboxOpen(false)}
-                        className="absolute top-12 left-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white flex items-center justify-center backdrop-blur-md border border-white/10 transition-all text-xs z-10"
+                        className="absolute top-14 left-4 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white/80 hover:text-white flex items-center justify-center backdrop-blur-md border border-white/15 transition-all text-xs z-20 shadow-md"
                         aria-label="關閉檢視"
                     >
                         ✕
                     </button>
 
-                    {/* 頁碼指示（同樣下移避免與頂部狀態列重疊） */}
-                    <div className="absolute top-12 right-4 px-3 py-1 rounded-full bg-white/10 text-white/90 text-xs backdrop-blur-md border border-white/10 font-mono z-10">
+                    {/* 頁碼指示：同樣下移至 top-14 保持視覺對齊 */}
+                    <div className="absolute top-14 right-4 px-3 py-1 rounded-full bg-black/40 text-white/90 text-xs backdrop-blur-md border border-white/15 font-mono z-20 shadow-md">
                         {previewImageIndex + 1} / {images.length}
-                        {cropQueue.length > 0 && ` (還有 ${cropQueue.length} 張待裁切)`}
                     </div>
 
                     <div className="relative w-full max-w-2xl max-h-[75vh] flex items-center justify-center overflow-hidden">
@@ -3223,7 +3218,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                 </div>
             )}
 
-            {/* 圖片裁切編輯 Modal（支援多圖依序裁切） */}
+            {/* 圖片裁切編輯 Modal */}
             {cropSource && (
                 <ImageCropperModal
                     imageSrc={cropSource}
@@ -3236,6 +3231,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
         </>
     );
 }
+
 function getMerchCategoryKey(category) {
     const value = String(category || '').trim();
     if (!value) return 'other';

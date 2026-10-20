@@ -2706,7 +2706,10 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
     const [image, setImage] = useState(initialData?.image || (Array.isArray(initialData?.images) ? initialData.images[0] : '') || '');
     const [images, setImages] = useState(() => (Array.isArray(initialData?.images) ? initialData.images : (initialData?.image ? [initialData.image] : [])).filter(Boolean).slice(0, 5));
     const [previewImageIndex, setPreviewImageIndex] = useState(0);
+    const [isLightboxOpen, setIsLightboxOpen] = useState(false);
     const previewTouchStartX = useRef(null);
+    const lightboxTouchStartX = useRef(null);
+
     const activityNameState = initialData?.activityName || initialData?.eventName || '';
     const [activityName, setActivityName] = useState(activityNameState);
     const [purchaseDate, setPurchaseDate] = useState(initialData?.purchaseDate || new Date().toISOString().slice(0, 10));
@@ -2718,7 +2721,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
     const [amount, setAmount] = useState(initialData?.amount ?? '');
     const [itemCategory, setItemCategory] = useState(initialData?.category || '其他');
 
-    // 多筆項目列表管理的 State（每個項目包含名稱、金額與獨立分類）
+    // 多筆項目列表管理的 State
     const [formItems, setFormItems] = useState(() => {
         if (initialData?.items && initialData.items.length > 0) {
             return initialData.items.map(i => ({ 
@@ -2739,11 +2742,15 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
         return [{ id: Date.now(), item: '', amount: '', category: '其他' }];
     });
 
-    const [cropSource, setCropSource] = useState(null);
+    // 支援多圖依序裁切的佇列 State
+    const [cropQueue, setCropQueue] = useState([]); // 存放待裁切的檔案物件
+    const [cropSource, setCropSource] = useState(null); // 當前正在裁切的圖片 DataURL
+    const [pendingCroppedImages, setPendingCroppedImages] = useState([]); // 暫存已裁切完成的圖片
+    
     const fileRef = useRef(null);
     const previousImageRef = useRef(image);
 
-    const compressMerchImage = (file) => new Promise((resolve, reject) => {
+    const compressMerchImage = (fileOrBlob) => new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onerror = reject;
         reader.onload = () => {
@@ -2759,14 +2766,14 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                 ctx.imageSmoothingEnabled = true;
                 ctx.imageSmoothingQuality = 'high';
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                // 高品質 JPEG 壓縮；限制尺寸以減少 IndexedDB 儲存負擔。
                 resolve(canvas.toDataURL('image/jpeg', 0.92));
             };
             img.src = reader.result;
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(fileOrBlob);
     });
 
+    // 選擇檔案後，將多張圖片放入佇列，並啟動第一張的裁切
     const handleFileChange = async (e) => {
         const selected = Array.from(e.currentTarget.files || []).filter(file => file.type?.startsWith('image/'));
         if (!selected.length) return;
@@ -2776,22 +2783,74 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
             if (fileRef.current) fileRef.current.value = '';
             return;
         }
+
+        const filesToProcess = selected.slice(0, remaining);
+        if (filesToProcess.length > 0) {
+            previousImageRef.current = image;
+            setPendingCroppedImages([]);
+            // 取出第一張準備裁切，其餘放入 queue
+            const firstFile = filesToProcess[0];
+            const restFiles = filesToProcess.slice(1);
+            setCropQueue(restFiles);
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                setCropSource(reader.result);
+            };
+            reader.readAsDataURL(firstFile);
+        }
+
+        if (fileRef.current) fileRef.current.value = '';
+    };
+
+    // 當前一張圖片裁切確認後
+    const handleCropConfirm = async (croppedUrl) => {
         try {
-            const compressed = [];
-            for (const file of selected.slice(0, remaining)) {
-                compressed.push(await compressMerchImage(file));
+            const blob = await fetch(croppedUrl).then(r => r.blob());
+            const compressed = await compressMerchImage(blob);
+            const updatedPending = [...pendingCroppedImages, compressed];
+
+            if (cropQueue.length > 0) {
+                // 還有下一張要裁切
+                setPendingCroppedImages(updatedPending);
+                const nextFile = cropQueue[0];
+                setCropQueue(cropQueue.slice(1));
+
+                const reader = new FileReader();
+                reader.onload = () => {
+                    setCropSource(reader.result);
+                };
+                reader.readAsDataURL(nextFile);
+            } else {
+                // 全部裁切完畢，一次加入總陣列中
+                setImages(prev => {
+                    const next = [...prev, ...updatedPending].slice(0, 5);
+                    setImage(next[0] || '');
+                    setPreviewImageIndex(next.length - 1);
+                    return next;
+                });
+                setCropSource(null);
             }
+        } catch (err) {
+            console.error('裁切後圖片處理失敗：', err);
+            setCropSource(null);
+        }
+    };
+
+    const handleCropCancel = () => {
+        // 若取消當前裁切，但前面已經裁切好的依然保留並寫入
+        if (pendingCroppedImages.length > 0) {
             setImages(prev => {
-                const next = [...prev, ...compressed].slice(0, 5);
+                const next = [...prev, ...pendingCroppedImages].slice(0, 5);
                 setImage(next[0] || '');
                 return next;
             });
-        } catch (err) {
-            console.error('周邊圖片處理失敗：', err);
-            alert('圖片讀取失敗，請重新選擇圖片。');
-        } finally {
-            if (fileRef.current) fileRef.current.value = '';
+        } else {
+            setImage(previousImageRef.current || '');
         }
+        setCropQueue([]);
+        setPendingCroppedImages([]);
+        setCropSource(null);
     };
 
     const removeMerchImage = (index) => {
@@ -2799,6 +2858,7 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
             const next = prev.filter((_, i) => i !== index);
             setImage(next[0] || '');
             setPreviewImageIndex(current => Math.max(0, Math.min(current > index ? current - 1 : current, next.length - 1)));
+            if (next.length === 0) setIsLightboxOpen(false);
             return next;
         });
     };
@@ -2815,7 +2875,18 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
         previewTouchStartX.current = null;
     };
 
-    // 根據分類名稱自動對應動態 Icon 的輔助函式
+    const handleLightboxTouchStart = (e) => {
+        lightboxTouchStartX.current = e.touches?.[0]?.clientX ?? null;
+    };
+    const handleLightboxTouchEnd = (e) => {
+        if (lightboxTouchStartX.current == null || images.length < 2) return;
+        const delta = (e.changedTouches?.[0]?.clientX ?? lightboxTouchStartX.current) - lightboxTouchStartX.current;
+        if (Math.abs(delta) > 40) {
+            setPreviewImageIndex(current => delta < 0 ? (current + 1) % images.length : (current - 1 + images.length) % images.length);
+        }
+        lightboxTouchStartX.current = null;
+    };
+
     const getCategoryIcon = (cat) => {
         if (!cat) return './image/icons/Gift.png';
         if (cat.includes('服') || cat.includes('衣') || cat.includes('襪') || cat.includes('帽')) return './image/icons/shirt.png';
@@ -2890,32 +2961,30 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                                 <img 
                                                     src={images[Math.min(previewImageIndex, images.length - 1)]} 
                                                     alt={`周邊圖片 ${previewImageIndex + 1}`} 
-                                                    className="w-full h-full object-cover select-none" 
-                                                    draggable="false" 
+                                                    className="w-full h-full object-cover select-none cursor-pointer" 
+                                                    draggable="false"
+                                                    onClick={() => setIsLightboxOpen(true)}
                                                 />
-                                                {/* 刪除當前圖片按鈕 */}
                                                 <button 
                                                     type="button" 
                                                     onClick={(e) => { e.stopPropagation(); removeMerchImage(Math.min(previewImageIndex, images.length - 1)); }} 
-                                                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/75 text-white flex items-center justify-center text-xs" 
+                                                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/40 hover:bg-black/70 text-white/80 hover:text-white flex items-center justify-center text-[10px] backdrop-blur-sm transition-all" 
                                                     aria-label="移除目前圖片"
                                                 >
-                                                    ×
+                                                    ✕
                                                 </button>
-                                                {/* 圖片切換左右箭頭 */}
                                                 {images.length > 1 && (
                                                     <>
-                                                        <button type="button" onClick={(e) => { e.stopPropagation(); setPreviewImageIndex(i => (i - 1 + images.length) % images.length); }} className="absolute left-1 top-1/2 -translate-y-1/2 rounded-full w-5 h-5 bg-black/65 text-white text-xs flex items-center justify-center" aria-label="上一張圖片">‹</button>
-                                                        <button type="button" onClick={(e) => { e.stopPropagation(); setPreviewImageIndex(i => (i + 1) % images.length); }} className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full w-5 h-5 bg-black/65 text-white text-xs flex items-center justify-center" aria-label="下一張圖片">›</button>
-                                                        <span className="absolute bottom-1 left-1 rounded-full bg-black/75 px-1.5 py-0.5 text-[9px] text-white">{previewImageIndex + 1}/{images.length}</span>
+                                                        <button type="button" onClick={(e) => { e.stopPropagation(); setPreviewImageIndex(i => (i - 1 + images.length) % images.length); }} className="absolute left-1 top-1/2 -translate-y-1/2 rounded-full w-5 h-5 bg-black/40 text-white text-xs flex items-center justify-center backdrop-blur-sm" aria-label="上一張圖片">‹</button>
+                                                        <button type="button" onClick={(e) => { e.stopPropagation(); setPreviewImageIndex(i => (i + 1) % images.length); }} className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full w-5 h-5 bg-black/40 text-white text-xs flex items-center justify-center backdrop-blur-sm" aria-label="下一張圖片">›</button>
+                                                        <span className="absolute bottom-1 left-1 rounded-full bg-black/50 px-1.5 py-0.5 text-[9px] text-white backdrop-blur-sm">{previewImageIndex + 1}/{images.length}</span>
                                                     </>
                                                 )}
-                                                {/* 當圖片數量未滿 5 張時，直接在預覽框內提供點擊追加的浮動按鈕 */}
                                                 {images.length < 5 && (
                                                     <button 
                                                         type="button" 
                                                         onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }}
-                                                        className="absolute bottom-1 right-1 bg-black/75 hover:bg-black/90 text-[#C5AB89] rounded-full p-1 shadow transition-colors cursor-pointer"
+                                                        className="absolute bottom-1 right-1 bg-black/60 hover:bg-black/85 text-[#C5AB89] rounded-full p-1 shadow backdrop-blur-sm transition-colors cursor-pointer"
                                                         title="新增圖片"
                                                     >
                                                         <i data-lucide="image-plus" className="w-3.5 h-3.5"></i>
@@ -2923,7 +2992,6 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                                 )}
                                             </>
                                         ) : (
-                                            /* 尚未選圖時的空狀態（整個方框皆可點擊新增） */
                                             <div 
                                                 onClick={() => fileRef.current?.click()} 
                                                 className="w-full h-full flex flex-col items-center justify-center gap-1 text-[#A3ADA5] hover:bg-white/10 transition-colors cursor-pointer"
@@ -2933,8 +3001,9 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                                             </div>
                                         )}
                                     </div>
+                                    {/* 注意：這裡必須加入 multiple 屬性以允許一次選取多張圖片 */}
                                     <input id="merchandise-image-upload" ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileChange} />
-                                    <p className="text-[9px] text-[#A3ADA5] leading-tight text-center">{images.length > 0 ? '第一張為主圖' : '最多 5 張'}</p>
+                                    <p className="text-[9px] text-[#A3ADA5] leading-tight text-center">{images.length > 0 ? '點擊圖片放大檢視' : '最多 5 張'}</p>
                                 </div>
 
                                 {/* 右側：購買日期與購買通路 */}
@@ -3105,19 +3174,67 @@ function MerchandiseModal({ initialData, onSave, onDelete, onClose }) {
                     </form>
                 </div>
             </div>
+
+            {/* 滿版高畫質圖片檢視 Lightbox */}
+            {isLightboxOpen && images.length > 0 && (
+                <div 
+                    className="fixed inset-0 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center z-[9999999] p-4 select-none"
+                    onTouchStart={handleLightboxTouchStart}
+                    onTouchEnd={handleLightboxTouchEnd}
+                >
+                    <button 
+                        type="button"
+                        onClick={() => setIsLightboxOpen(false)}
+                        className="absolute top-4 left-4 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white flex items-center justify-center backdrop-blur-md border border-white/10 transition-all text-sm"
+                        aria-label="關閉檢視"
+                    >
+                        ✕
+                    </button>
+
+                    <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-white/10 text-white/90 text-xs backdrop-blur-md border border-white/10 font-mono">
+                        {previewImageIndex + 1} / {images.length}
+                        {cropQueue.length > 0 && ` (還有 ${cropQueue.length} 張待裁切)`}
+                    </div>
+
+                    <div className="relative w-full max-w-2xl max-h-[75vh] flex items-center justify-center overflow-hidden">
+                        <img 
+                            src={images[previewImageIndex]} 
+                            alt={`高畫質預覽 ${previewImageIndex + 1}`} 
+                            className="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl" 
+                            draggable="false"
+                        />
+                    </div>
+
+                    {images.length > 1 && (
+                        <div className="flex items-center gap-6 mt-6">
+                            <button 
+                                type="button" 
+                                onClick={() => setPreviewImageIndex(i => (i - 1 + images.length) % images.length)} 
+                                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur-md border border-white/10 transition-all"
+                            >
+                                ‹
+                            </button>
+                            <span className="text-xs text-white/60">左右滑動或點擊按鈕切換</span>
+                            <button 
+                                type="button" 
+                                onClick={() => setPreviewImageIndex(i => (i + 1) % images.length)} 
+                                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur-md border border-white/10 transition-all"
+                            >
+                                ›
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* 圖片裁切編輯 Modal（支援多圖依序裁切） */}
             {cropSource && (
                 <ImageCropperModal
                     imageSrc={cropSource}
                     initialAspectRatio={1}
                     fixedCropSize={132}
-                    onConfirm={(croppedUrl) => {
-                        setImage(croppedUrl);
-                        setCropSource(null);
-                    }}
-                    onCancel={() => {
-                        setImage(previousImageRef.current || '');
-                        setCropSource(null);
-                    }}
+                    onConfirm={handleCropConfirm}
+                    onCancel={handleCropCancel}
                 />
             )}
         </>

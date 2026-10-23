@@ -3610,7 +3610,7 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                                 <div 
                                     onClick={(e) => { 
                                         e.stopPropagation(); 
-                                        setPlayingCdId(isPlaying ? null : item.id); 
+                                        setPlayingCdId(prev => (prev === item.id ? null : item.id)); 
                                     }}
                                     className="relative w-24 h-24 shrink-0 cursor-pointer group flex items-center"
                                 >

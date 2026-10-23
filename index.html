@@ -3484,6 +3484,9 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                 const [expandedTrackId, setExpandedTrackId] = useState(null);
                 const [vaultInfoOpen, setVaultInfoOpen] = useState(false);
                 const [detailItem, setDetailItem] = useState(null);
+                const [detailPage, setDetailPage] = useState(0);
+                const [playingPreview, setPlayingPreview] = useState(null);
+                const previewAudioRef = useRef(null);
 
                 const artistList = useMemo(() => {
                     const set = new Set(musicLogs.map(m => m.artist).filter(Boolean));
@@ -3603,14 +3606,14 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                                         {isExpanded && (
                                             <div className="bg-black/30 rounded-xl p-2.5 space-y-1.5 border border-white/5 text-xs">
                                                 {item.tracks && item.tracks.map((tr, idx) => (
-                                                    <div key={idx} className="flex items-center justify-between text-[11px] py-1 border-b border-white/5 last:border-0">
-                                                        <div className="flex items-center gap-2 truncate pr-2">
+                                                    <div key={idx} className="flex items-center justify-between gap-2 text-[11px] py-1.5 border-b border-white/5 last:border-0">
+                                                        <div className="flex items-center gap-2 min-w-0">
                                                             <span className="font-mono text-[9px] text-[#C5AB89]">{String(idx + 1).padStart(2, '0')}</span>
                                                             <span className="font-medium text-[#EFF0EA] truncate">{tr.name}</span>
                                                         </div>
-                                                        <div className="flex items-center gap-2 font-mono text-[9px] text-[#A3ADA5] shrink-0">
-                                                            <span>{tr.bitRate}</span>
-                                                            <span>{tr.duration}</span>
+                                                        <div className="flex items-center gap-2 shrink-0">
+                                                            <span className="font-mono text-[9px] text-[#A3ADA5]">{tr.duration || ''}</span>
+                                                            {tr.previewUrl ? <button type="button" title="播放約 30 秒試聽" aria-label={`播放 ${tr.name}`} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPlayingPreview({ key: `${item.id}-${idx}`, url: tr.previewUrl, name: tr.name }); }} className="w-7 h-7 rounded-full bg-[#C5AB89]/15 border border-[#C5AB89]/40 text-[#C5AB89] flex items-center justify-center"><i data-lucide={playingPreview?.key === `${item.id}-${idx}` ? 'pause' : 'play'} className="w-3.5 h-3.5"></i></button> : <span className="text-[9px] text-[#737C75]">無試聽</span>}
                                                         </div>
                                                     </div>
                                                 ))}
@@ -3622,7 +3625,29 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                         </div>
                     </div>
                     {vaultInfoOpen && <div className="fixed inset-0 z-[1000000] bg-black/80 flex items-center justify-center p-4" onClick={() => setVaultInfoOpen(false)}><div className="w-full max-w-sm rounded-2xl bg-[#232B25] border border-[#C5AB89]/40 p-5 text-center" onClick={e => e.stopPropagation()}><div className="text-sm font-black text-[#EFF0EA]">音樂典藏庫</div><div className="text-[10px] text-[#C5AB89] mt-1">LiveU Music Vault</div><div className="mt-4 text-xs text-[#A3ADA5]">目前顯示典藏：{filteredMusic.length} 輯</div><div className="text-lg font-black text-[#C5AB89] mt-1">累積投資金額 NT$ {totalValue.toLocaleString()}</div><button className="mt-4 w-full rounded-xl bg-[#C5AB89] text-[#161D15] font-bold py-2" onClick={() => setVaultInfoOpen(false)}>關閉</button></div></div>}
-                    {detailItem && <div className="fixed inset-0 z-[1000000] bg-black/80 flex items-center justify-center p-4" onClick={() => setDetailItem(null)}><div className="w-full max-w-sm max-h-[85dvh] overflow-y-auto rounded-2xl bg-[#232B25] border border-[#C5AB89]/40 p-4 text-[#EFF0EA] space-y-3" onClick={e => e.stopPropagation()}><div className="flex justify-between items-center"><h3 className="font-black text-[#C5AB89]">典藏完整資料</h3><button onClick={() => setDetailItem(null)} aria-label="關閉">✕</button></div>{(detailItem.coverImages?.length ? detailItem.coverImages : [detailItem.coverImg]).filter(Boolean).map((src,i)=><img key={i} src={src} alt={`封面 ${i+1}`} className="w-full aspect-square object-contain rounded-xl bg-black/20"/>)}<div><div className="text-[10px] text-[#C5AB89]">藝人／團體</div><div>{detailItem.artist || '—'}</div></div><div><div className="text-[10px] text-[#C5AB89]">專輯／單曲名稱</div><div>{detailItem.album || '—'}</div></div><div><div className="text-[10px] text-[#C5AB89]">媒介類型／版本</div><div>{detailItem.type === 'cd' ? 'CD 實體' : '線上音源'} ・ {detailItem.version || '—'}</div></div><div><div className="text-[10px] text-[#C5AB89]">格式／金額</div><div>{detailItem.format || '—'} ・ NT$ {Number(detailItem.price||0).toLocaleString()}</div></div><div><div className="text-[10px] text-[#C5AB89]">購買管道</div><div>{detailItem.channel || '—'}</div></div><div><div className="text-[10px] text-[#C5AB89]">iTunes / Apple Music</div>{detailItem.itunesUrl || detailItem.spotifyUrl ? <a href={detailItem.itunesUrl || detailItem.spotifyUrl} target="_blank" rel="noreferrer" className="text-[#C5AB89] underline break-all">開啟 Apple Music / iTunes</a> : <div>—</div>}</div><div><div className="text-[10px] text-[#C5AB89]">收錄曲目</div>{(detailItem.tracks||[]).length ? detailItem.tracks.map((tr,i)=><div key={i} className="flex justify-between gap-2 py-1 border-b border-white/10"><span>{i+1}. {tr.name}</span>{tr.spotifyUrl ? <a href={tr.spotifyUrl} target="_blank" rel="noreferrer" className="text-[#C5AB89] underline shrink-0">iTunes</a> : detailItem.spotifyUrl ? <a href={detailItem.spotifyUrl} target="_blank" rel="noreferrer" className="text-[#C5AB89] underline shrink-0">開啟專輯</a> : null}</div>) : <div className="text-xs text-[#A3ADA5]">尚無曲目資料</div>}</div><button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); const it = detailItem; setDetailItem(null); if (it) onEditMusic(it); }} className="w-full rounded-xl bg-[#C5AB89] text-[#161D15] font-bold py-2">編輯資料</button></div></div>}
+                    {detailItem && <div className="fixed inset-0 z-[1000000] bg-black/80 flex items-center justify-center p-4" onClick={() => { setDetailItem(null); setDetailPage(0); }}>
+                        <div className="w-full max-w-sm max-h-[85dvh] overflow-y-auto rounded-2xl bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] border border-[#C5AB89]/40 shadow-lg p-4 text-[#EFF0EA] space-y-3" onClick={e => e.stopPropagation()}>
+                            <div className="flex items-center justify-between gap-2"><h3 className="font-black text-[#C5AB89]">{detailPage === 0 ? '典藏完整資料' : '收錄曲目'}</h3><span className="text-[10px] text-[#A3ADA5]">{detailPage + 1} / 2</span></div>
+                            {detailPage === 0 ? <>
+                                <div className="w-full aspect-square overflow-x-auto flex snap-x snap-mandatory rounded-xl border border-[#C5AB89]/30 bg-black/20" style={{scrollbarWidth:'thin'}}>
+                                    {(detailItem.coverImages?.length ? detailItem.coverImages : [detailItem.coverImg]).filter(Boolean).map((src,i)=><img key={i} src={src} alt={`封面 ${i+1}`} className="w-full h-full object-contain shrink-0 snap-center" />)}
+                                    {!(detailItem.coverImages?.length || detailItem.coverImg) && <div className="w-full h-full min-h-40 flex items-center justify-center text-xs text-[#A3ADA5]">尚未新增封面圖片</div>}
+                                </div>
+                                <div><div className="text-[10px] text-[#C5AB89]">藝人</div><div className="text-sm">{detailItem.artist || '—'}</div></div>
+                                <div><div className="text-[10px] text-[#C5AB89]">專輯名稱</div><div className="text-sm">{detailItem.album || '—'}</div></div>
+                                <div><div className="text-[10px] text-[#C5AB89]">版本</div><div className="text-sm">{detailItem.version || '—'}</div></div>
+                                <div className="grid grid-cols-2 gap-3"><div><div className="text-[10px] text-[#C5AB89]">發行日期</div><div className="text-sm">{detailItem.releaseDate || detailItem.release_date || '—'}</div></div><div><div className="text-[10px] text-[#C5AB89]">發行公司</div><div className="text-sm">{detailItem.label || detailItem.recordLabel || '—'}</div></div></div>
+                                <div className="grid grid-cols-2 gap-3"><div><div className="text-[10px] text-[#C5AB89]">購買管道</div><div className="text-sm break-words">{detailItem.channel || '—'}</div></div><div><div className="text-[10px] text-[#C5AB89]">金額</div><div className="text-sm">NT$ {Number(detailItem.price||0).toLocaleString()}</div></div></div>
+                                <div><div className="text-[10px] text-[#C5AB89]">媒介類型</div><div className="text-sm">{detailItem.type === 'cd' ? 'CD 實體' : '線上音源'}{detailItem.format ? ` ・ ${detailItem.format}` : ''}</div></div>
+                                <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); const it = detailItem; setDetailItem(null); setDetailPage(0); if (it) onEditMusic(it); }} className="w-full rounded-xl bg-[#C5AB89] text-[#161D15] font-bold py-2">編輯資料</button>
+                            </> : <div className="space-y-1 max-h-[58dvh] overflow-y-auto pr-1">
+                                {(detailItem.tracks || []).length ? detailItem.tracks.map((tr,i)=><div key={`${tr.name}-${i}`} className="flex items-center justify-between gap-2 py-2 border-b border-white/10"><div className="flex items-center gap-2 min-w-0"><span className="text-[10px] text-[#C5AB89] font-mono">{String(i+1).padStart(2,'0')}</span><span className="text-sm truncate">{tr.name}</span></div>{tr.previewUrl ? <button type="button" title="播放約 30 秒試聽" onClick={(e)=>{e.preventDefault();e.stopPropagation();setPlayingPreview({key:`detail-${detailItem.id}-${i}`,url:tr.previewUrl,name:tr.name});}} className="w-8 h-8 rounded-full bg-[#C5AB89]/15 border border-[#C5AB89]/40 text-[#C5AB89] flex items-center justify-center shrink-0"><i data-lucide={playingPreview?.key === `detail-${detailItem.id}-${i}` ? 'pause' : 'play'} className="w-3.5 h-3.5"></i></button> : <span className="text-[9px] text-[#A3ADA5]">無試聽連結</span>}</div>) : <div className="py-8 text-center text-xs text-[#A3ADA5]">尚無收錄曲目</div>}
+                            </div>}
+                            <div className="flex gap-2 pt-1"><button type="button" onClick={() => setDetailPage(p => Math.max(0,p-1))} disabled={detailPage===0} className="flex-1 rounded-xl border border-[#C5AB89]/40 py-2 text-xs font-bold text-[#D2CABF] disabled:opacity-30">上一頁</button><button type="button" onClick={() => setDetailPage(p => Math.min(1,p+1))} disabled={detailPage===1} className="flex-1 rounded-xl bg-[#C5AB89] py-2 text-xs font-bold text-[#161D15] disabled:opacity-30">下一頁：收錄曲目</button></div>
+                        </div>
+                    </div>}
+                    {playingPreview && <audio ref={previewAudioRef} key={playingPreview.key} src={playingPreview.url} autoPlay preload="none" onTimeUpdate={e => { if (e.currentTarget.currentTime >= 30) { e.currentTarget.pause(); e.currentTarget.currentTime = 30; setPlayingPreview(null); } }} onEnded={() => setPlayingPreview(null)} onError={() => setPlayingPreview(null)} />}
+
                     </>
                 );
             }
@@ -3704,30 +3729,44 @@ function AddMusicModal({ initialData, onSave, onDelete, onClose }) {
                 };
 
                 const fetchITunesTracks = async () => {
-                    const term = [artist.trim(), album.trim()].filter(Boolean).join(' ');
-                    if (!term) { setItunesMessage('請先輸入藝人與專輯名稱。'); return; }
-                    setItunesLoading(true); setItunesMessage('正在搜尋 Apple / iTunes 音樂資料…');
+                    const artistTerm = artist.trim();
+                    const albumTerm = album.trim();
+                    if (!artistTerm || !albumTerm) { setItunesMessage('請先輸入藝人與專輯名稱。'); return; }
+                    const norm = value => String(value || '').toLocaleLowerCase().normalize('NFKC').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+                    setItunesLoading(true); setItunesMessage('正在搜尋專輯曲目…');
                     try {
-                        const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=song&limit=200`;
-                        const response = await fetch(url);
-                        if (!response.ok) throw new Error('iTunes Search API 暫時無法連線');
-                        const data = await response.json();
-                        const results = (data.results || []).filter(x => !artist.trim() || (x.artistName || '').toLowerCase().includes(artist.trim().toLowerCase()));
-                        const mapped = results.map(x => ({
-                            name: x.trackName || '未知曲目',
-                            duration: x.trackTimeMillis ? `${String(Math.floor(x.trackTimeMillis / 60000)).padStart(2,'0')}:${String(Math.floor((x.trackTimeMillis % 60000) / 1000)).padStart(2,'0')}` : '',
-                            bitRate: 'Apple Music / iTunes',
-                            itunesUrl: x.trackViewUrl || '',
-                            previewUrl: x.previewUrl || ''
-                        }));
-                        if (!mapped.length) { setItunesMessage('找不到符合的曲目，請確認藝人或專輯名稱。'); return; }
+                        const searchResponse = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(`${artistTerm} ${albumTerm}`)}&entity=album&attribute=albumTerm&limit=50`);
+                        if (!searchResponse.ok) throw new Error('iTunes Search API 暫時無法連線');
+                        const searchData = await searchResponse.json();
+                        const wantedAlbum = norm(albumTerm), wantedArtist = norm(artistTerm);
+                        const albums = (searchData.results || []).filter(x => {
+                            const resultAlbum = norm(x.collectionName), resultArtist = norm(x.artistName);
+                            return resultAlbum && (resultAlbum === wantedAlbum || resultAlbum.includes(wantedAlbum) || wantedAlbum.includes(resultAlbum)) && resultArtist && (resultArtist === wantedArtist || resultArtist.includes(wantedArtist) || wantedArtist.includes(resultArtist));
+                        }).sort((a,b) => ((norm(b.collectionName) === wantedAlbum ? 2 : 0) + (norm(b.artistName) === wantedArtist ? 1 : 0)) - ((norm(a.collectionName) === wantedAlbum ? 2 : 0) + (norm(a.artistName) === wantedArtist ? 1 : 0)));
+                        let albumMatch = albums[0] || null, songs = [];
+                        if (albumMatch?.collectionId) {
+                            const lookupResponse = await fetch(`https://itunes.apple.com/lookup?id=${encodeURIComponent(albumMatch.collectionId)}&entity=song`);
+                            if (!lookupResponse.ok) throw new Error('無法取得專輯曲目');
+                            const lookupData = await lookupResponse.json();
+                            songs = (lookupData.results || []).filter(x => x.wrapperType === 'track' || x.kind === 'song');
+                        } else {
+                            const songResponse = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(`${artistTerm} ${albumTerm}`)}&entity=song&limit=200`);
+                            if (!songResponse.ok) throw new Error('iTunes Search API 暫時無法連線');
+                            const songData = await songResponse.json();
+                            songs = (songData.results || []).filter(x => {
+                                const resultAlbum = norm(x.collectionName), resultArtist = norm(x.artistName);
+                                return resultAlbum && (resultAlbum === wantedAlbum || resultAlbum.includes(wantedAlbum) || wantedAlbum.includes(resultAlbum)) && resultArtist && (resultArtist === wantedArtist || resultArtist.includes(wantedArtist) || wantedArtist.includes(resultArtist));
+                            });
+                            albumMatch = songs.find(x => x.collectionViewUrl) || null;
+                        }
+                        const mapped = songs.map(x => ({ name: x.trackName || '未知曲目', duration: x.trackTimeMillis ? `${String(Math.floor(x.trackTimeMillis / 60000)).padStart(2,'0')}:${String(Math.floor((x.trackTimeMillis % 60000) / 1000)).padStart(2,'0')}` : '', bitRate: '', itunesUrl: x.trackViewUrl || '', previewUrl: x.previewUrl || '' }));
+                        if (!mapped.length) { setItunesMessage('找不到這張專輯的曲目。請確認專輯名稱、藝人名稱或專輯是否收錄於音樂資料庫。'); return; }
                         setTracks(mapped);
-                        const albumResult = results.find(x => x.collectionViewUrl);
-                        if (albumResult) setItunesUrl(albumResult.collectionViewUrl);
-                        setItunesMessage(`已自動匯入 ${mapped.length} 首曲目。iTunes Search API 為公開 API，不需要 Spotify 授權或 OAuth。`);
+                        if (albumMatch?.collectionViewUrl) setItunesUrl(albumMatch.collectionViewUrl);
+                        setItunesMessage(`已匯入「${albumMatch?.collectionName || albumTerm}」的 ${mapped.length} 首曲目。`);
                     } catch (err) {
-                        console.error('iTunes Search API 失敗：', err);
-                        setItunesMessage('抓取失敗，請確認網路後重試；也可手動儲存資料。');
+                        console.error('專輯曲目抓取失敗：', err);
+                        setItunesMessage('抓取失敗，請確認網路連線後重試；也可手動儲存資料。');
                     } finally { setItunesLoading(false); }
                 };
 
@@ -3802,8 +3841,8 @@ function AddMusicModal({ initialData, onSave, onDelete, onClose }) {
                                     <input type="text" value={channel} onChange={e => setChannel(e.target.value)} className="w-full bg-white/5 border border-[#C5AB89]/40 p-2 rounded-xl text-xs" />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-[#C5AB89]">iTunes Search API／Apple Music</label>
-                                    <input type="url" value={itunesUrl} onChange={e => setItunesUrl(e.target.value)} placeholder="自動抓取後填入 Apple Music 連結" className="w-full bg-white/5 border border-[#C5AB89]/40 p-2 rounded-xl text-xs" />
+                                    <label className="text-[10px] font-bold text-[#C5AB89]">專輯曲目連結</label>
+                                    <input type="url" value={itunesUrl} onChange={e => setItunesUrl(e.target.value)} placeholder="貼上專輯連結（選填）" className="w-full bg-white/5 border border-[#C5AB89]/40 p-2 rounded-xl text-xs" />
                                     <button type="button" disabled={itunesLoading} onClick={fetchITunesTracks} className="w-full rounded-xl border border-[#C5AB89]/50 bg-[#C5AB89]/15 py-2 text-xs font-bold text-[#C5AB89] disabled:opacity-50">{itunesLoading ? '搜尋中…' : '自動搜尋並抓取曲目'}</button>
                                     {itunesMessage && <p className="text-[10px] text-[#D2CABF] leading-relaxed">{itunesMessage}</p>}
                                     {tracks.length > 0 && <div className="max-h-28 overflow-y-auto rounded-lg border border-white/10 p-2 text-[10px] text-[#D2CABF]">{tracks.map((tr,i)=><div key={`${tr.name}-${i}`} className="py-1 border-b border-white/5 last:border-0">{i+1}. {tr.name} {tr.duration ? `· ${tr.duration}` : ''}</div>)}</div>}

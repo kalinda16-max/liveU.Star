@@ -3682,7 +3682,55 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                                             </div>
                                             <div className="flex items-center gap-2 shrink-0">
                                                 <span className="font-mono text-[9px] text-[#A3ADA5]">{tr.duration || ''}</span>
-                                                {tr.previewUrl ? <button type="button" title="播放約 30 秒試聽" aria-label={`播放 ${tr.name}`} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPlayingPreview({ key: `${item.id}-${idx}`, url: tr.previewUrl, name: tr.name }); }} className="w-7 h-7 rounded-full bg-[#C5AB89]/15 border border-[#C5AB89]/40 text-[#C5AB89] flex items-center justify-center"><i data-lucide={playingPreview?.key === `${item.id}-${idx}` ? 'pause' : 'play'} className="w-3.5 h-3.5"></i></button> : <span className="text-[9px] text-[#737C75]">無試聽</span>}
+                                                {tr.previewUrl ? (
+    <div className="flex items-center gap-1 shrink-0">
+        {/* 播放按鈕 */}
+        <button 
+            type="button" 
+            title={`播放 ${tr.name}`} 
+            aria-label={`播放 ${tr.name}`} 
+            onClick={(e) => { 
+                e.preventDefault(); 
+                e.stopPropagation(); 
+                const trackKey = `${item.id}-${idx}`;
+                if (playingPreview?.key === trackKey && previewPaused && previewAudioRef.current) {
+                    previewAudioRef.current.play().then(() => setPreviewPaused(false)).catch(() => {});
+                } else if (playingPreview?.key !== trackKey) {
+                    setPreviewPaused(false);
+                    setPlayingPreview({ key: trackKey, url: tr.previewUrl, name: tr.name });
+                }
+            }} 
+            className="w-7 h-7 rounded-lg bg-[#C5AB89]/15 border border-[#C5AB89]/40 flex items-center justify-center shrink-0 transition-all duration-150 active:scale-90 active:bg-[#C5AB89]/30"
+        >
+            <span className="w-0 h-0 border-y-[5px] border-y-transparent border-l-[8px] border-l-[#C5AB89] ml-0.5" aria-hidden="true"></span>
+        </button>
+
+        {/* 暫停按鈕 */}
+        <button 
+            type="button" 
+            title={`暫停 ${tr.name}`} 
+            aria-label={`暫停 ${tr.name}`} 
+            onClick={(e) => { 
+                e.preventDefault(); 
+                e.stopPropagation(); 
+                const trackKey = `${item.id}-${idx}`;
+                if (playingPreview?.key === trackKey && previewAudioRef.current) {
+                    previewAudioRef.current.pause();
+                    setPreviewPaused(true);
+                }
+            }} 
+            className="w-7 h-7 rounded-lg bg-[#C5AB89]/15 border border-[#C5AB89]/40 flex items-center justify-center shrink-0 transition-all duration-150 active:scale-90 active:bg-[#C5AB89]/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
+            disabled={playingPreview?.key !== `${item.id}-${idx}` || previewPaused}
+        >
+            <span className="flex items-center gap-[2px]" aria-hidden="true">
+                <span className="block w-[3px] h-3 rounded-sm bg-[#C5AB89]"></span>
+                <span className="block w-[3px] h-3 rounded-sm bg-[#C5AB89]"></span>
+            </span>
+        </button>
+    </div>
+) : (
+    <span className="text-[9px] text-[#737C75]">無試聽</span>
+)}
                                             </div>
                                         </div>
                                     ))}
@@ -3734,10 +3782,69 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                               e.stopPropagation(); 
                               const it = detailItem; setDetailItem(null); setDetailPage(0); if (it) onEditMusic(it); }} className="w-full rounded-xl bg-[#C5AB89] text-[#161D15] font-bold py-2">編輯資料</button>
                     </div>
-                    <div className="music-detail-face music-detail-back rounded-2xl bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] border border-[#C5AB89]/40 shadow-lg p-4 text-[#EFF0EA]" onClick={e => { if (e.target.closest('button')) e.stopPropagation(); }}>
+<div className="music-detail-face music-detail-back rounded-2xl bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] border border-[#C5AB89]/40 shadow-lg p-4 text-[#EFF0EA]" onClick={e => { if (e.target.closest('button')) e.stopPropagation(); }}>
                         <h3 className="font-black text-[#C5AB89] mb-3">收錄曲目</h3>
                         <div className="space-y-1">
-                            {(detailItem.tracks || []).length ? detailItem.tracks.map((tr,i)=>{ const trackKey = `detail-${detailItem.id}-${i}`; const isCurrentTrack = playingPreview?.key === trackKey; return <div key={`${tr.name}-${i}`} className="flex items-center justify-between gap-2 py-2"><div className="flex items-center gap-2 min-w-0"><span className="text-[10px] text-[#C5AB89] font-mono">{String(i+1).padStart(2,'0')}</span><span className="text-sm truncate">{tr.name}</span></div>{tr.previewUrl ? <div className="flex items-center gap-1.5 shrink-0"><button type="button" title={`播放 ${tr.name}`} aria-label={`播放 ${tr.name}`} onClick={(e)=>{e.preventDefault();e.stopPropagation();if (isCurrentTrack && previewPaused && previewAudioRef.current) { previewAudioRef.current.play().then(()=>setPreviewPaused(false)).catch(()=>{}); } else if (!isCurrentTrack) { setPreviewPaused(false); setPlayingPreview({key:trackKey,url:tr.previewUrl,name:tr.name}); } }} className="w-7 h-7 rounded-lg bg-[#C5AB89]/15 border border-[#C5AB89]/40 flex items-center justify-center shrink-0"><img src="./image/icons/play.png" alt="播放" className="w-3.5 h-3.5 object-contain" /></button><button type="button" title={`暫停 ${tr.name}`} aria-label={`暫停 ${tr.name}`} onClick={(e)=>{e.preventDefault();e.stopPropagation();if (isCurrentTrack && previewAudioRef.current) { previewAudioRef.current.pause(); setPreviewPaused(true); } }} className="w-7 h-7 rounded-lg bg-[#C5AB89]/15 border border-[#C5AB89]/40 flex items-center justify-center shrink-0" disabled={!isCurrentTrack || previewPaused}><span className="flex items-center gap-[2px]" aria-hidden="true"><span className="block w-[3px] h-3 rounded-sm bg-[#C5AB89]"></span><span className="block w-[3px] h-3 rounded-sm bg-[#C5AB89]"></span></span></button></div> : <span className="text-[9px] text-[#A3ADA5]">無試聽連結</span>}</div>;}) : <div className="py-8 text-center text-xs text-[#A3ADA5]">尚無收錄曲目</div>}
+                            {(detailItem.tracks || []).length ? detailItem.tracks.map((tr,i)=>{ 
+                                const trackKey = `detail-${detailItem.id}-${i}`; 
+                                const isCurrentTrack = playingPreview?.key === trackKey; 
+                                return (
+                                    <div key={`${tr.name}-${i}`} className="flex items-center justify-between gap-2 py-2">
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <span className="text-[10px] text-[#C5AB89] font-mono">{String(i+1).padStart(2,'0')}</span>
+                                            <span className="text-sm truncate">{tr.name}</span>
+                                        </div>
+                                        {tr.previewUrl ? (
+                                            <div className="flex items-center gap-1.5 shrink-0">
+                                                {/* 播放按鈕（純 CSS 三角形 + 點擊反饋） */}
+                                                <button 
+                                                    type="button" 
+                                                    title={`播放 ${tr.name}`} 
+                                                    aria-label={`播放 ${tr.name}`} 
+                                                    onClick={(e)=>{
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        if (isCurrentTrack && previewPaused && previewAudioRef.current) { 
+                                                            previewAudioRef.current.play().then(()=>setPreviewPaused(false)).catch(()=>{}); 
+                                                        } else if (!isCurrentTrack) { 
+                                                            setPreviewPaused(false); 
+                                                            setPlayingPreview({key:trackKey,url:tr.previewUrl,name:tr.name}); 
+                                                        }
+                                                    }} 
+                                                    className="w-7 h-7 rounded-lg bg-[#C5AB89]/15 border border-[#C5AB89]/40 flex items-center justify-center shrink-0 transition-all duration-150 active:scale-90 active:bg-[#C5AB89]/30"
+                                                >
+                                                    <span className="w-0 h-0 border-y-[5px] border-y-transparent border-l-[8px] border-l-[#C5AB89] ml-0.5" aria-hidden="true"></span>
+                                                </button>
+
+                                                {/* 暫停按鈕（雙直條 + 點擊反饋） */}
+                                                <button 
+                                                    type="button" 
+                                                    title={`暫停 ${tr.name}`} 
+                                                    aria-label={`暫停 ${tr.name}`} 
+                                                    onClick={(e)=>{
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        if (isCurrentTrack && previewAudioRef.current) { 
+                                                            previewAudioRef.current.pause(); 
+                                                            setPreviewPaused(true); 
+                                                        }
+                                                    }} 
+                                                    className="w-7 h-7 rounded-lg bg-[#C5AB89]/15 border border-[#C5AB89]/40 flex items-center justify-center shrink-0 transition-all duration-150 active:scale-90 active:bg-[#C5AB89]/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100" 
+                                                    disabled={!isCurrentTrack || previewPaused}
+                                                >
+                                                    <span className="flex items-center gap-[2px]" aria-hidden="true">
+                                                        <span className="block w-[3px] h-3 rounded-sm bg-[#C5AB89]"></span>
+                                                        <span className="block w-[3px] h-3 rounded-sm bg-[#C5AB89]"></span>
+                                                    </span>
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <span className="text-[9px] text-[#A3ADA5]">無試聽連結</span>)}
+                                    </div>
+                                );
+                            }) : (
+                                <div className="py-8 text-center text-xs text-[#A3ADA5]">尚無收錄曲目</div>
+                            )}
                         </div>
                         <div className="text-center text-[10px] text-[#A3ADA5] mt-4">點擊面板翻回典藏完整資料</div>
                     </div>

@@ -932,17 +932,80 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
     );
 }
 
+            const DEFAULT_MUSIC_LOGS = [
+                            {
+                                id: 'music-1',
+                                artist: 'Mr.Children',
+                                album: 'SOUNDTRACKS',
+                                type: 'cd',
+                                version: '初回限定盤 (CD+Blu-ray)',
+                                format: 'FLAC 96kHz/24bit',
+                                releaseDate: '2020-12-02',
+                                purchaseDate: '2020-12-05',
+                                channel: 'Tower Records JP',
+                                price: 3500,
+                                coverImg: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop',
+                                tracks: [
+                                    { name: 'DANCING SHOES', duration: '03:45', bitRate: '24-bit Hi-Res' },
+                                    { name: 'Brand new planet', duration: '05:12', bitRate: '24-bit Hi-Res' },
+                                    { name: 'turn over?', duration: '03:32', bitRate: '24-bit Hi-Res' },
+                                    { name: 'The song of praise', duration: '04:20', bitRate: '24-bit Hi-Res' }
+                                ],
+                                notes: '倫敦 Abbey Road Studios 錄音，高音質音源與發燒裝幀！'
+                            },
+                            {
+                                id: 'music-2',
+                                artist: 'w-inds.',
+                                album: '20th Anniversary Best Album',
+                                type: 'digital',
+                                version: 'Hi-Res 數位串流 & 購買解鎖',
+                                format: 'AAC 320kbps / FLAC',
+                                releaseDate: '2021-03-14',
+                                purchaseDate: '2021-03-14',
+                                channel: 'mora / iTunes Store',
+                                price: 1200,
+                                coverImg: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop',
+                                tracks: [
+                                    { name: 'Forever Memories', duration: '05:00', bitRate: '320kbps' },
+                                    { name: 'Feel The Fate', duration: '04:42', bitRate: '320kbps' },
+                                    { name: 'Paradox', duration: '04:15', bitRate: '320kbps' },
+                                    { name: 'Round & Round', duration: '03:55', bitRate: '320kbps' }
+                                ],
+                                notes: '慶祝出道20週年數位音源典藏。'
+                            },
+                            {
+                                id: 'music-3',
+                                artist: 'BIGBANG',
+                                album: 'MADE FULL ALBUM',
+                                type: 'cd',
+                                version: '韓國進口隨機封面限定版',
+                                format: 'Physical CD',
+                                releaseDate: '2016-12-12',
+                                purchaseDate: '2016-12-20',
+                                channel: 'KTOWN4U',
+                                price: 850,
+                                coverImg: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop',
+                                tracks: [
+                                    { name: 'FXXK IT', duration: '03:52', bitRate: 'CD Audio' },
+                                    { name: 'LAST DANCE', duration: '04:40', bitRate: 'CD Audio' },
+                                    { name: 'GIRLFRIEND', duration: '03:49', bitRate: 'CD Audio' }
+                                ],
+                                notes: '含寫真冊與限定卡。'
+                            }
+                        ];
+
             function App() {
             // 1. 資料 State（改為預設空值/預設物件，準備從 IndexedDB 載入）
                 const [events, setEvents] = useState([]);
                 const [schedules, setSchedules] = useState([]);
                 const [merchandiseLogs, setMerchandiseLogs] = useState([]);
+                const [musicLogs, setMusicLogs] = useState(DEFAULT_MUSIC_LOGS);
                 const [userProfile, setUserProfile] = useState({ name: 'LiveU', subtitle: 'say something', avatarUrl: '', initials: 'LU' });
                 const [isDataLoaded, setIsDataLoaded] = useState(false);
 
                 // 2. 【要保留】原本的 UI 狀態、分頁、搜尋與各種 Modal 開關
                 const [activeTab, setActiveTab] = useState('archive');
-                const [schedulePanel, setSchedulePanel] = useState('tickets');
+                const [schedulePanel, setSchedulePanel] = useState('music');
                 const [viewMode, setViewMode] = useState('list');
                 const [selectedCategory, setSelectedCategory] = useState('all');
                 const [searchQuery, setSearchQuery] = useState('');
@@ -950,6 +1013,10 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                 const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
                 const [isAddModalOpen, setIsAddModalOpen] = useState(false);
                 const [isAddScheduleModalOpen, setIsAddScheduleModalOpen] = useState(false);
+                const [isAddMusicModalOpen, setIsAddMusicModalOpen] = useState(false);
+                const [editingMusic, setEditingMusic] = useState(null);
+                const [musicTypeFilter, setMusicTypeFilter] = useState('all');
+                const [selectedArtist, setSelectedArtist] = useState('all');
                 const [isAddMerchModalOpen, setIsAddMerchModalOpen] = useState(false);
                 const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
                 const [editingEvent, setEditingEvent] = useState(null);
@@ -964,6 +1031,7 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                             const savedEvents = await getFromIDB('events');
                             const savedSchedules = await getFromIDB('schedules');
                             const savedMerchandiseLogs = await getFromIDB('merchandiseLogs');
+                            const savedMusicLogs = await getFromIDB('musicLogs');
                             const savedProfile = await getFromIDB('userProfile');
 
                             if (savedEvents) {
@@ -979,6 +1047,9 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                                 const legacySchedules = localStorage.getItem('liveecho_schedules_v12');
                                 if (legacySchedules) setSchedules(JSON.parse(legacySchedules));
                             }
+
+                            if (savedMusicLogs) setMusicLogs(savedMusicLogs);
+                            else setMusicLogs([]);
 
                             if (savedMerchandiseLogs) {
                                 setMerchandiseLogs(normalizeMerchandiseLogs(savedMerchandiseLogs));
@@ -1014,6 +1085,11 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                     if (!isDataLoaded) return;
                     saveToIDB('merchandiseLogs', merchandiseLogs).catch(e => console.error('儲存 merchandiseLogs 失敗', e));
                 }, [merchandiseLogs, isDataLoaded]);
+
+                useEffect(() => {
+                    if (!isDataLoaded) return;
+                    saveToIDB('musicLogs', musicLogs).catch(e => console.error('儲存 musicLogs 失敗', e));
+                }, [musicLogs, isDataLoaded]);
 
                 useEffect(() => {
                     if (!isDataLoaded) return;
@@ -1111,6 +1187,18 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                 const handleDeleteEvent = (id) => {
                     setEvents(events.filter(e => e.id !== id));
                     
+                };
+
+                const handleSaveMusic = (data) => {
+                    if (data.id) setMusicLogs(musicLogs.map(m => m.id === data.id ? data : m));
+                    else setMusicLogs([{ ...data, id: 'music-' + Date.now() }, ...musicLogs]);
+                    setEditingMusic(null);
+                    setIsAddMusicModalOpen(false);
+                };
+
+                const handleDeleteMusic = (id) => {
+                    setMusicLogs(musicLogs.filter(m => m.id !== id));
+                    setEditingMusic(null);
                 };
 
                 const handleSaveSchedule = (data) => {
@@ -1325,8 +1413,8 @@ const handleSaveMerchandise = (data) => {
                             {/* 切換鈕（樣式與條列/月曆一致） */}
                                     <div className="flex bg-[#161D15] p-0.5 rounded-lg border border-[#737C75]/40">
                                 <button 
-                                   onClick={() => setSchedulePanel('tickets')} 
-                                   className={`px-2.5 py-1 rounded-md text-[11px] ${schedulePanel === 'tickets' ? 'bg-[#C5AB89] text-[#161D15] font-bold' : 'text-[#D2CABF]'}`}>搶票
+                                   onClick={() => setSchedulePanel('music')} 
+                                   className={`px-2.5 py-1 rounded-md text-[11px] ${schedulePanel === 'music' ? 'bg-[#C5AB89] text-[#161D15] font-bold' : 'text-[#D2CABF]'}`}>音樂典藏
                                 </button>
                                 <button 
                                    onClick={() => setSchedulePanel('merchandise')} 
@@ -1336,7 +1424,7 @@ const handleSaveMerchandise = (data) => {
 
                             {/* ＋ 按鈕（點擊時根據當前頁籤開啟對應 Modal） */}
                                 <button 
-                                   onClick={() => schedulePanel === 'tickets' ? setIsAddScheduleModalOpen(true) : setIsAddMerchModalOpen(true)} 
+                                   onClick={() => schedulePanel === 'music' ? setIsAddMusicModalOpen(true) : setIsAddMerchModalOpen(true)} 
                                    className="w-7 h-7 rounded-lg bg-[#C5AB89] text-[#161D15] flex items-center justify-center shadow">
                                    <i data-lucide="plus" className="w-3.5 h-3.5 font-black"></i>
                                 </button>
@@ -1354,7 +1442,9 @@ const handleSaveMerchandise = (data) => {
 
                         <main className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
                             {activeTab === 'archive' && <ArchiveSection events={filteredEvents} allEvents={events} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} searchQuery={searchQuery} setSearchQuery={setSearchQuery} viewMode={viewMode} onDelete={handleDeleteEvent} onEdit={(evt) => setEditingEvent(evt)} getGoogleMapsUrl={getGoogleMapsUrl} onOpenAddModal={() => setIsAddModalOpen(true)} />}
-                            {activeTab === 'schedule' && <ScheduleSection activePanel={schedulePanel} schedules={schedules} merchandiseLogs={merchandiseLogs} onDelete={handleDeleteSchedule} onEdit={(sch) => setEditingSchedule(sch)} onSaveSchedule={handleSaveSchedule} onToggleMerchandise={handleToggleMerchandise} onDeleteMerchandise={handleDeleteMerchandise} onEditMerchandise={(item) => setEditingMerchandise(item)} onOpenAddModal={() => setIsAddScheduleModalOpen(true)} onOpenMerchandiseModal={() => setIsAddMerchModalOpen(true)} />}
+                            {activeTab === 'schedule' && (schedulePanel === 'music'
+                                ? <MusicCollectionSection musicLogs={musicLogs} musicTypeFilter={musicTypeFilter} setMusicTypeFilter={setMusicTypeFilter} selectedArtist={selectedArtist} setSelectedArtist={setSelectedArtist} searchQuery={searchQuery} setSearchQuery={setSearchQuery} onEditMusic={(item) => setEditingMusic(item)} />
+                                : <ScheduleSection activePanel="merchandise" schedules={schedules} merchandiseLogs={merchandiseLogs} onDelete={handleDeleteSchedule} onEdit={(sch) => setEditingSchedule(sch)} onSaveSchedule={handleSaveSchedule} onToggleMerchandise={handleToggleMerchandise} onDeleteMerchandise={handleDeleteMerchandise} onEditMerchandise={(item) => setEditingMerchandise(item)} onOpenAddModal={() => setIsAddScheduleModalOpen(true)} onOpenMerchandiseModal={() => setIsAddMerchModalOpen(true)} />)}
                             {activeTab === 'map' && <LeafletMapSection events={events} stats={stats} getGoogleMapsUrl={getGoogleMapsUrl} onDelete={handleDeleteEvent} onEdit={(evt) => setEditingEvent(evt)} />}
                             {activeTab === 'stats' && <StatsSection stats={stats} events={events} />}
                         </main>
@@ -1384,6 +1474,7 @@ const handleSaveMerchandise = (data) => {
                         {isBackupModalOpen && <BackupModal events={events} schedules={schedules} merchandiseLogs={merchandiseLogs} userProfile={userProfile} onClose={() => setIsBackupModalOpen(false)} onImport={handleImportData} showAlert={showAlert} />}
                         {isEditProfileOpen && <EditProfileModal userProfile={userProfile} setUserProfile={setUserProfile} onClose={() => setIsEditProfileOpen(false)} showAlert={showAlert} />}
                         {(isAddModalOpen || editingEvent) && <AddEventModal initialData={editingEvent} onSave={handleSaveEvent} onClose={() => { setIsAddModalOpen(false); setEditingEvent(null); }} />}
+                        {(isAddMusicModalOpen || editingMusic) && <AddMusicModal initialData={editingMusic} onSave={handleSaveMusic} onDelete={handleDeleteMusic} onClose={() => { setIsAddMusicModalOpen(false); setEditingMusic(null); }} />}
                         {(isAddScheduleModalOpen || editingSchedule) && <AddScheduleModal initialData={editingSchedule} onSave={handleSaveSchedule} onDelete={handleDeleteSchedule} onClose={() => { setIsAddScheduleModalOpen(false); setEditingSchedule(null); }} />}
                         {(isAddMerchModalOpen || editingMerchandise) && <MerchandiseModal initialData={editingMerchandise || { isNewCard: true }} onSave={handleSaveMerchandise} onDelete={handleDeleteMerchandise} onClose={() => { setIsAddMerchModalOpen(false); setEditingMerchandise(null); }} />}
                     </div>
@@ -3369,6 +3460,222 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
         </>
     );
 }
+
+function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter, selectedArtist, setSelectedArtist, searchQuery, setSearchQuery, onEditMusic }) {
+                const [playingCdId, setPlayingCdId] = useState(null);
+                const [expandedTrackId, setExpandedTrackId] = useState(null);
+
+                const artistList = useMemo(() => {
+                    const set = new Set(musicLogs.map(m => m.artist).filter(Boolean));
+                    return ['all', ...Array.from(set)];
+                }, [musicLogs]);
+
+                const filteredMusic = useMemo(() => {
+                    return musicLogs.filter(m => {
+                        const matchType = musicTypeFilter === 'all' || m.type === musicTypeFilter;
+                        const matchArtist = selectedArtist === 'all' || m.artist === selectedArtist;
+                        const q = (searchQuery || '').toLowerCase();
+                        const matchSearch = (m.album || '').toLowerCase().includes(q) || (m.artist || '').toLowerCase().includes(q);
+                        return matchType && matchArtist && matchSearch;
+                    });
+                }, [musicLogs, musicTypeFilter, selectedArtist, searchQuery]);
+
+                const totalValue = useMemo(() => {
+                    return filteredMusic.reduce((sum, m) => sum + (Number(m.price) || 0), 0);
+                }, [filteredMusic]);
+
+                return (
+                    <div className="p-3.5 pb-20 space-y-3.5">
+                        <div className="bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] p-3.5 rounded-2xl border border-[#C5AB89]/40 shadow-lg flex items-center justify-between">
+                            <div>
+                                <div className="text-[10px] text-[#C5AB89] font-bold tracking-wider uppercase">LiveU Music Vault</div>
+                                <div className="text-sm font-black text-[#EFF0EA] mt-0.5">音樂典藏庫 ({filteredMusic.length} 輯)</div>
+                            </div>
+                            <div className="text-right font-mono">
+                                <div className="text-[9px] text-[#A3ADA5]">累積投資金額</div>
+                                <div className="text-xs font-black text-[#C5AB89]">NT$ {totalValue.toLocaleString()}</div>
+                            </div>
+                        </div>
+
+                        {/* 切換 CD / Digital */}
+                        <div className="flex bg-[#232B25] p-1 rounded-xl border border-[#737C75]/30">
+                            <button onClick={() => setMusicTypeFilter('all')} className={`flex-1 py-1.5 text-xs font-bold rounded-lg ${musicTypeFilter === 'all' ? 'bg-[#C5AB89] text-[#161D15]' : 'text-[#D2CABF]'}`}>✨ 全部典藏</button>
+                            <button onClick={() => setMusicTypeFilter('cd')} className={`flex-1 py-1.5 text-xs font-bold rounded-lg ${musicTypeFilter === 'cd' ? 'bg-[#C5AB89] text-[#161D15]' : 'text-[#D2CABF]'}`}>💿 CD 實體專輯</button>
+                            <button onClick={() => setMusicTypeFilter('digital')} className={`flex-1 py-1.5 text-xs font-bold rounded-lg ${musicTypeFilter === 'digital' ? 'bg-[#C5AB89] text-[#161D15]' : 'text-[#D2CABF]'}`}>🎧 線上數位音源</button>
+                        </div>
+
+                        {/* 按藝人過濾 */}
+                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                            {artistList.map(art => (
+                                <button
+                                    key={art}
+                                    onClick={() => setSelectedArtist(art)}
+                                    className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                                        selectedArtist === art 
+                                            ? 'bg-[#C5AB89] text-[#161D15] shadow-[0_0_8px_rgba(197,171,137,0.5)]' 
+                                            : 'bg-white/10 text-[#EFF0EA] hover:bg-white/20'
+                                    }`}
+                                >
+                                    {art === 'all' ? '全部藝人' : art}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* 專輯卡片 */}
+                        <div className="space-y-3">
+                            {filteredMusic.map((item) => {
+                                const isPlaying = playingCdId === item.id;
+                                const isExpanded = expandedTrackId === item.id;
+
+                                return (
+                                    <div key={item.id} className="bg-[#232B25] border border-[#C5AB89]/40 rounded-2xl p-3.5 shadow-md space-y-3">
+                                        <div className="flex gap-3">
+                                            {/* CD 封面與旋轉動畫 */}
+                                            <div 
+                                                onClick={() => setPlayingCdId(isPlaying ? null : item.id)}
+                                                className="relative w-24 h-24 rounded-xl overflow-hidden border border-[#C5AB89]/50 shrink-0 cursor-pointer group"
+                                            >
+                                                <img src={item.coverImg} alt={item.album} className="w-full h-full object-cover" />
+                                                
+                                                {item.type === 'cd' && (
+                                                    <div className={`absolute inset-0 bg-black/60 flex items-center justify-center transition-opacity ${isPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                                                        <div className={`w-14 h-14 rounded-full border-2 border-[#C5AB89] bg-black/80 flex items-center justify-center ${isPlaying ? 'animate-cd-spin' : ''}`}>
+                                                            <div className="w-4 h-4 rounded-full bg-[#161D15] border border-[#C5AB89]"></div>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                <span className={`absolute top-1 left-1 px-1.5 py-0.5 rounded text-[8px] font-black uppercase ${item.type === 'cd' ? 'bg-[#C5AB89] text-[#161D15]' : 'bg-emerald-600 text-white'}`}>
+                                                    {item.type === 'cd' ? 'CD' : 'DIGITAL'}
+                                                </span>
+                                            </div>
+
+                                            {/* 專輯基本資料 */}
+                                            <div className="flex-1 min-w-0 flex flex-col justify-between">
+                                                <div>
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-[10px] font-extrabold text-[#C5AB89] truncate">{item.artist}</span>
+                                                        <button onClick={() => onEditMusic(item)} className="p-1 text-[#D2CABF] hover:text-[#C5AB89]"><i data-lucide="pencil" className="w-3.5 h-3.5"></i></button>
+                                                    </div>
+                                                    <h3 className="font-extrabold text-sm text-[#EFF0EA] truncate">{item.album}</h3>
+                                                    <p className="text-[10px] text-[#A3ADA5] truncate mt-0.5">{item.version}</p>
+                                                </div>
+
+                                                <div className="flex items-center justify-between text-[10px] font-mono text-[#D2CABF] pt-2 border-t border-white/10">
+                                                    <span>{item.format}</span>
+                                                    <span className="font-bold text-[#C5AB89]">NT$ {Number(item.price || 0).toLocaleString()}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between pt-1">
+                                            <button 
+                                                onClick={() => setExpandedTrackId(isExpanded ? null : item.id)}
+                                                className="text-[10px] text-[#C5AB89] font-bold flex items-center gap-1 hover:underline"
+                                            >
+                                                <i data-lucide={isExpanded ? "chevron-up" : "chevron-down"} className="w-3.5 h-3.5"></i>
+                                                {isExpanded ? '收合專輯曲目' : `查看收錄曲目 (${item.tracks ? item.tracks.length : 0})`}
+                                            </button>
+                                            <span className="text-[9px] text-[#A3ADA5] font-mono">管道：{item.channel}</span>
+                                        </div>
+
+                                        {isExpanded && (
+                                            <div className="bg-black/30 rounded-xl p-2.5 space-y-1.5 border border-white/5 text-xs">
+                                                {item.tracks && item.tracks.map((tr, idx) => (
+                                                    <div key={idx} className="flex items-center justify-between text-[11px] py-1 border-b border-white/5 last:border-0">
+                                                        <div className="flex items-center gap-2 truncate pr-2">
+                                                            <span className="font-mono text-[9px] text-[#C5AB89]">{String(idx + 1).padStart(2, '0')}</span>
+                                                            <span className="font-medium text-[#EFF0EA] truncate">{tr.name}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 font-mono text-[9px] text-[#A3ADA5] shrink-0">
+                                                            <span>{tr.bitRate}</span>
+                                                            <span>{tr.duration}</span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                );
+            }
+
+            /* 3. 周邊紀錄 MerchandiseSection */
+
+function AddMusicModal({ initialData, onSave, onDelete, onClose }) {
+                const [artist, setArtist] = useState(initialData?.artist || '');
+                const [album, setAlbum] = useState(initialData?.album || '');
+                const [type, setType] = useState(initialData?.type || 'cd');
+                const [version, setVersion] = useState(initialData?.version || '');
+                const [format, setFormat] = useState(initialData?.format || 'FLAC 24-bit');
+                const [price, setPrice] = useState(initialData?.price || '');
+                const [channel, setChannel] = useState(initialData?.channel || '');
+                const [coverImg, setCoverImg] = useState(initialData?.coverImg || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop');
+
+                const handleSubmit = (e) => {
+                    e.preventDefault();
+                    onSave({
+                        id: initialData?.id || null,
+                        artist, album, type, version, format, price: Number(price) || 0,
+                        channel, coverImg,
+                        tracks: initialData?.tracks || [{ name: 'Track 01', duration: '03:30', bitRate: 'Hi-Res' }]
+                    });
+                };
+
+                return (
+                    <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-4 z-[999999]">
+                        <div className="bg-[#232B25] text-[#EFF0EA] w-full max-w-sm rounded-3xl p-4 border border-[#C5AB89]/40 space-y-3">
+                            <h3 className="font-extrabold text-sm text-[#C5AB89]">{initialData ? '編輯音樂紀錄' : '新增音樂典藏 (CD/音源)'}</h3>
+                            <form onSubmit={handleSubmit} className="space-y-2 text-xs">
+                                <div>
+                                    <label className="text-[10px] font-bold text-[#C5AB89]">藝人/團體</label>
+                                    <input type="text" value={artist} onChange={e => setArtist(e.target.value)} required className="w-full bg-white/5 border border-[#C5AB89]/40 p-2 rounded-xl text-xs" />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-[#C5AB89]">專輯/單曲名稱</label>
+                                    <input type="text" value={album} onChange={e => setAlbum(e.target.value)} required className="w-full bg-white/5 border border-[#C5AB89]/40 p-2 rounded-xl text-xs" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label className="text-[10px] font-bold text-[#C5AB89]">媒介類型</label>
+                                        <select value={type} onChange={e => setType(e.target.value)} className="w-full bg-[#161D15] border border-[#C5AB89]/40 p-2 rounded-xl text-xs">
+                                            <option value="cd">CD 實體</option>
+                                            <option value="digital">線上音源</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold text-[#C5AB89]">金額 (NT$)</label>
+                                        <input type="number" value={price} onChange={e => setPrice(e.target.value)} className="w-full bg-white/5 border border-[#C5AB89]/40 p-2 rounded-xl text-xs font-mono" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-[#C5AB89]">版本描述 (例: 初回盤 / Hi-Res)</label>
+                                    <input type="text" value={version} onChange={e => setVersion(e.target.value)} className="w-full bg-white/5 border border-[#C5AB89]/40 p-2 rounded-xl text-xs" />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-[#C5AB89]">購買管道</label>
+                                    <input type="text" value={channel} onChange={e => setChannel(e.target.value)} className="w-full bg-white/5 border border-[#C5AB89]/40 p-2 rounded-xl text-xs" />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-[#C5AB89]">封面圖片網址</label>
+                                    <input type="text" value={coverImg} onChange={e => setCoverImg(e.target.value)} className="w-full bg-white/5 border border-[#C5AB89]/40 p-2 rounded-xl text-xs" />
+                                </div>
+
+                                <div className="flex gap-2 pt-2">
+                                    <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] font-black text-xs">儲存</button>
+                                    {initialData && (
+                                        <button type="button" onClick={() => { onDelete(initialData.id); onClose(); }} className="px-3 rounded-xl bg-red-600/30 text-red-200 border border-red-500/40"><i data-lucide="trash-2" className="w-4 h-4"></i></button>
+                                    )}
+                                    <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-white/10 text-xs font-bold">取消</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                );
+            }
 
 function ScheduleSection({ activePanel = 'tickets', schedules, merchandiseLogs, onDelete, onEdit, onSaveSchedule, onToggleMerchandise, onDeleteMerchandise, onEditMerchandise, onOpenAddModal, onOpenMerchandiseModal }) {
     const STATUS_CYCLE = ['即將開賣', '售票中', '已完售'];

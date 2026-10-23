@@ -301,19 +301,24 @@
         .music-detail-face { position: absolute; inset: 0; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow-y: auto; scrollbar-width: thin; }
         .music-detail-back { transform: rotateY(180deg); }
 
-        /* 黑膠唱片滑出與旋轉效果 */
+        /* 1. 黑膠唱片基礎樣式與過渡動畫 */
         .vinyl-disc {
+            transform: translateX(0) rotate(0deg);
             transition: transform 0.5s cubic-bezier(.2, .75, .25, 1);
         }
-        /* 當父容器被 hover 或有 is-playing 狀態時，黑膠向右滑出並旋轉 */
+
+        /* 2. 當滑鼠 hover 或正在播放時，向右滑出 */
         .group:hover .vinyl-disc,
         .vinyl-disc.is-spinning {
             transform: translateX(42%) rotate(180deg);
         }
+
+        /* 3. 旋轉動畫（僅負責轉圈，不再重複寫死 translateX，讓它繼承當前狀態） */
         @keyframes vinylSpin {
             from { transform: translateX(42%) rotate(0deg); }
             to { transform: translateX(42%) rotate(360deg); }
         }
+
         .vinyl-disc.is-spinning {
             animation: vinylSpin 6s linear infinite;
         }

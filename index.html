@@ -301,29 +301,30 @@
         .music-detail-face { position: absolute; inset: 0; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow-y: auto; scrollbar-width: thin; }
         .music-detail-back { transform: rotateY(180deg); }
 
-/* 1. 黑膠唱片基礎樣式與過渡動畫（負責平滑滑出、收回） */
+/* 1. 基礎黑膠樣式：使用獨立的 translate（平移）與 rotate（旋轉）屬性，互不干擾！ */
 .vinyl-disc {
-    transform: translateX(0) rotate(0deg);
-    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    translate: 0px 0px;
+    rotate: 0deg;
+    transition: translate 0.5s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/* 2. 電腦版 hover 時滑出 */
+/* 2. 電腦版 hover 時向右平移滑出 */
 @media (hover: hover) {
     .group:hover .vinyl-disc {
-        transform: translateX(42%) rotate(180deg);
+        translate: 42% 0px;
     }
 }
 
-/* 3. 手機與電腦共用：點擊播放時向右滑出並套用旋轉動畫 */
+/* 3. 點擊播放時向右平移滑出，並套用旋轉動畫 */
 .vinyl-disc.is-spinning {
-    transform: translateX(42%) rotate(180deg);
+    translate: 42% 0px;
     animation: vinylSpin 6s linear infinite;
 }
 
-/* 4. 旋轉動畫：只負責轉角度 (0deg 到 360deg)，不寫 translateX，讓位移交給 transition 處理 */
+/* 4. 旋轉動畫：只針對 rotate 旋轉屬性做動畫，完全不碰平移，完美解決卡住或瞬移問題！ */
 @keyframes vinylSpin {
-    from { transform: translateX(42%) rotate(0deg); }
-    to { transform: translateX(42%) rotate(360deg); }
+    from { rotate: 0deg; }
+    to { rotate: 360deg; }
 }
     </style>
 </head>

@@ -301,27 +301,30 @@
         .music-detail-face { position: absolute; inset: 0; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow-y: auto; scrollbar-width: thin; }
         .music-detail-back { transform: rotateY(180deg); }
 
-        /* 1. 黑膠唱片基礎樣式與過渡動畫 */
-        .vinyl-disc {
-            transform: translateX(0) rotate(0deg);
-            transition: transform 0.5s cubic-bezier(.2, .75, .25, 1);
-        }
+/* 1. 黑膠唱片基礎樣式與過渡動畫 */
+.vinyl-disc {
+    transform: translateX(0) rotate(0deg);
+    transition: transform 0.5s cubic-bezier(.2, .75, .25, 1);
+}
 
-        /* 2. 當滑鼠 hover 或正在播放時，向右滑出 */
-        .group:hover .vinyl-disc,
-        .vinyl-disc.is-spinning {
-            transform: translateX(42%) rotate(180deg);
-        }
+/* 2. 只有在「支援滑鼠 hover 的電腦版」才允許 hover 時滑出 */
+@media (hover: hover) {
+    .group:hover .vinyl-disc {
+        transform: translateX(42%) rotate(180deg);
+    }
+}
 
-        /* 3. 旋轉動畫（僅負責轉圈，不再重複寫死 translateX，讓它繼承當前狀態） */
-        @keyframes vinylSpin {
-            from { transform: translateX(42%) rotate(0deg); }
-            to { transform: translateX(42%) rotate(360deg); }
-        }
+/* 3. 正在播放（手機與電腦共用：點擊觸發）時向右滑出並旋轉 */
+.vinyl-disc.is-spinning {
+    transform: translateX(42%) rotate(180deg);
+    animation: vinylSpin 6s linear infinite;
+}
 
-        .vinyl-disc.is-spinning {
-            animation: vinylSpin 6s linear infinite;
-        }
+/* 4. 旋轉動畫（僅負責轉圈） */
+@keyframes vinylSpin {
+    from { transform: translateX(42%) rotate(0deg); }
+    to { transform: translateX(42%) rotate(360deg); }
+}
 
     </style>
 </head>

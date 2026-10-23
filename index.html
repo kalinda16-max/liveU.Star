@@ -3556,37 +3556,45 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
             </button>
 
             {/* 切換 CD / Digital */}
-            <div className="flex bg-[#232B25] p-1 rounded-xl border border-[#737C75]/30 gap-1 w-full">
-                <button 
-                    type="button"
-                    onClick={() => setMusicTypeFilter('all')} 
-                    className={`flex-1 py-2 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all ${
-                        musicTypeFilter === 'all' ? 'bg-[#C5AB89] text-[#161D15] shadow-sm' : 'text-[#D2CABF] hover:text-[#EFF0EA]'
-                    }`}
-                >
-                    <span className="whitespace-nowrap leading-none inline-block">✨ 全部典藏</span>
-                </button>
-                <button 
-                    type="button"
-                    onClick={() => setMusicTypeFilter('cd')} 
-                    className={`flex-1 py-2 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all ${
-                        musicTypeFilter === 'cd' ? 'bg-[#C5AB89] text-[#161D15] shadow-sm' : 'text-[#D2CABF] hover:text-[#EFF0EA]'
-                    }`}
-                >
-                    <img src="./image/icons/music_1.png" alt="CD" className="w-3.5 h-3.5 object-contain shrink-0 self-center" />
-                    <span className="whitespace-nowrap leading-none inline-block">CD 實體專輯</span>
-                </button>
-                <button 
-                    type="button"
-                    onClick={() => setMusicTypeFilter('digital')} 
-                    className={`flex-1 py-2 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all ${
-                        musicTypeFilter === 'digital' ? 'bg-[#C5AB89] text-[#161D15] shadow-sm' : 'text-[#D2CABF] hover:text-[#EFF0EA]'
-                    }`}
-                >
-                    <img src="./image/icons/live-streaming.png" alt="數位音源" className="w-3.5 h-3.5 object-contain shrink-0 self-center" />
-                    <span className="whitespace-nowrap leading-none inline-block">線上數位音源</span>
-                </button>
-            </div>
+            <div className="grid grid-cols-3 bg-[#232B25] p-1 rounded-xl border border-[#737C75]/30 gap-1 w-full">
+    <button 
+        type="button"
+        onClick={() => setMusicTypeFilter('all')} 
+        className={`flex-1 py-2 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all duration-150 active:scale-95 border text-center ${
+            musicTypeFilter === 'all' 
+                ? 'text-[#EFF0EA] border-[#C5AB89] shadow-[0_0_8px_rgba(197,171,137,0.4)] font-black' 
+                : 'bg-transparent text-[#D2CABF] border-transparent hover:text-[#EFF0EA] hover:bg-white/5'
+        }`}
+    >
+        <span className="whitespace-nowrap leading-none inline-block">✨ 全部典藏</span>
+    </button>
+    
+    <button 
+        type="button"
+        onClick={() => setMusicTypeFilter('cd')} 
+        className={`flex-1 py-2 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all duration-150 active:scale-95 border text-center ${
+            musicTypeFilter === 'cd' 
+                ? 'text-[#EFF0EA] border-[#C5AB89] shadow-[0_0_8px_rgba(197,171,137,0.4)] font-black' 
+                : 'bg-transparent text-[#D2CABF] border-transparent hover:text-[#EFF0EA] hover:bg-white/5'
+        }`}
+    >
+        <img src="./image/icons/music_1.png" alt="CD" className="w-4 h-4 object-contain shrink-0 self-center pointer-events-none" />
+        <span className="whitespace-nowrap leading-none inline-block">CD實體專輯</span>
+    </button>
+    
+    <button 
+        type="button"
+        onClick={() => setMusicTypeFilter('digital')} 
+        className={`flex-1 py-2 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all duration-150 active:scale-95 border text-center ${
+            musicTypeFilter === 'digital' 
+                ? 'text-[#EFF0EA] border-[#C5AB89] shadow-[0_0_8px_rgba(197,171,137,0.4)] font-black' 
+                : 'bg-transparent text-[#D2CABF] border-transparent hover:text-[#EFF0EA] hover:bg-white/5'
+        }`}
+    >
+        <img src="./image/icons/live-streaming.png" alt="數位音源" className="w-4 h-4 object-contain shrink-0 self-center pointer-events-none" />
+        <span className="whitespace-nowrap leading-none inline-block">線上數位音源</span>
+    </button>
+</div>
 
             {/* 按藝人過濾 */}
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
@@ -3612,7 +3620,7 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                     const isExpanded = expandedTrackId === item.id;
 
                     return (
-                        <div key={item.id} onClick={() => setDetailItem(item)} className="bg-[#232B25] border border-[#C5AB89]/40 rounded-2xl p-3.5 shadow-md space-y-3 cursor-pointer">
+                        <div key={item.id} onClick={() => setDetailItem(item)} className="bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] border border-[#C5AB89]/50 rounded-2xl p-3.5 shadow-xl shadow-[0_5px_10px_rgba(197,171,137,0.35)] space-y-3 cursor-pointer">
                             <div className="flex gap-3">
                                 {/* CD 封面與黑膠滑出旋轉動畫 */}
                                 <div 
@@ -3747,8 +3755,8 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
             <div className="music-detail-flip-inner">
                 <div className="music-detail-face rounded-2xl bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] border border-[#C5AB89]/40 shadow-lg p-4 text-[#EFF0EA] space-y-3" onClick={e => { if (e.target.closest('button')) e.stopPropagation(); }}>
                     <h3 className="font-black text-[#C5AB89] flex items-center gap-1.5">
-                        <img src="./image/icons/treasure-chest.png" alt="星號圖示" className="w-4 h-4 object-contain shrink-0" />
-                           <span>典藏完整資料</span>
+                        <img src="./image/icons/treasure-chest.png" alt="星號圖示" className="w-5 h-5 object-contain shrink-0" />
+                           <span>The light of my night sky</span>
                        </h3>
                         <div className="w-full aspect-square overflow-x-auto flex snap-x snap-mandatory rounded-2xl border border-[#C5AB89]/30 bg-black/20" style={{scrollbarWidth:'thin'}}>
                             {(detailItem.coverImages?.length ? detailItem.coverImages : [detailItem.coverImg]).filter(Boolean).map((src,i)=><img key={i} src={src} alt={`封面 ${i+1}`} className="w-full h-full aspect-square object-contain shrink-0 snap-center" />)}

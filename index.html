@@ -3573,7 +3573,7 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                         musicTypeFilter === 'cd' ? 'bg-[#C5AB89] text-[#161D15] shadow-sm' : 'text-[#D2CABF] hover:text-[#EFF0EA]'
                     }`}
                 >
-                    <img src="./image/icons/CD.png" alt="CD" className="w-3.5 h-3.5 object-contain shrink-0 self-center" />
+                    <img src="./image/icons/music_1.png" alt="CD" className="w-3.5 h-3.5 object-contain shrink-0 self-center" />
                     <span className="whitespace-nowrap leading-none inline-block">CD 實體專輯</span>
                 </button>
                 <button 
@@ -3583,7 +3583,7 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                         musicTypeFilter === 'digital' ? 'bg-[#C5AB89] text-[#161D15] shadow-sm' : 'text-[#D2CABF] hover:text-[#EFF0EA]'
                     }`}
                 >
-                    <img src="./image/icons/album.png" alt="數位音源" className="w-3.5 h-3.5 object-contain shrink-0 self-center" />
+                    <img src="./image/icons/live-streaming.png" alt="數位音源" className="w-3.5 h-3.5 object-contain shrink-0 self-center" />
                     <span className="whitespace-nowrap leading-none inline-block">線上數位音源</span>
                 </button>
             </div>
@@ -3747,7 +3747,7 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
             <div className="music-detail-flip-inner">
                 <div className="music-detail-face rounded-2xl bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] border border-[#C5AB89]/40 shadow-lg p-4 text-[#EFF0EA] space-y-3" onClick={e => { if (e.target.closest('button')) e.stopPropagation(); }}>
                     <h3 className="font-black text-[#C5AB89] flex items-center gap-1.5">
-                        <img src="./image/icons/star.png" alt="星號圖示" className="w-4 h-4 object-contain shrink-0" />
+                        <img src="./image/icons/treasure-chest.png" alt="星號圖示" className="w-4 h-4 object-contain shrink-0" />
                            <span>典藏完整資料</span>
                        </h3>
                         <div className="w-full aspect-square overflow-x-auto flex snap-x snap-mandatory rounded-2xl border border-[#C5AB89]/30 bg-black/20" style={{scrollbarWidth:'thin'}}>
@@ -3782,7 +3782,7 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                               e.stopPropagation(); 
                               const it = detailItem; setDetailItem(null); setDetailPage(0); if (it) onEditMusic(it); }} className="w-full rounded-xl bg-[#C5AB89] text-[#161D15] font-bold py-2">編輯資料</button>
                     </div>
-<div className="music-detail-face music-detail-back rounded-2xl bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] border border-[#C5AB89]/40 shadow-lg p-4 text-[#EFF0EA]" onClick={e => { if (e.target.closest('button')) e.stopPropagation(); }}>
+                        <div className="music-detail-face music-detail-back rounded-2xl bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] border border-[#C5AB89]/40 shadow-lg p-4 text-[#EFF0EA]" onClick={e => { if (e.target.closest('button')) e.stopPropagation(); }}>
                         <h3 className="font-black text-[#C5AB89] mb-3">收錄曲目</h3>
                         <div className="space-y-1">
                             {(detailItem.tracks || []).length ? detailItem.tracks.map((tr,i)=>{ 
@@ -3846,7 +3846,6 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                                 <div className="py-8 text-center text-xs text-[#A3ADA5]">尚無收錄曲目</div>
                             )}
                         </div>
-                        <div className="text-center text-[10px] text-[#A3ADA5] mt-4">點擊面板翻回典藏完整資料</div>
                     </div>
                 </div>
             </div>

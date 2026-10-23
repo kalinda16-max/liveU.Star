@@ -324,8 +324,14 @@
 @keyframes vinylSpin {
     from { transform: translateX(42%) rotate(0deg); }
     to { transform: translateX(42%) rotate(360deg); }
+    
 }
 
+.vinyl-disc {
+    transform: translateX(0) rotate(0deg);
+    /* 採用平滑的漸出曲線，時間 0.5 秒 */
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
     </style>
 </head>
 <body class="bg-[#161D15] text-[#EFF0EA] font-sans antialiased h-full select-none overflow-hidden max-w-[100vw]">

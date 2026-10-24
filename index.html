@@ -294,7 +294,7 @@
         }
 
 
-        /* 音樂典藏詳情面板：加寬、限制視窗高度，並改善手機內部垂直捲動 */
+/* 音樂典藏詳情面板：加寬、限制視窗高度，並改善手機內部垂直捲動 */
         .music-detail-overlay {
             position: fixed;
             inset: 0;
@@ -367,6 +367,14 @@
           .music-detail-face { padding: 12px !important; }
         }
 
+        /* ⬇️ 請補在最下方的修正樣式 ⬇️ */
+        .music-detail-flip:not(.is-flipped) .music-detail-back {
+            pointer-events: none !important;
+        }
+        .music-detail-flip.is-flipped .music-detail-face:not(.music-detail-back) {
+            pointer-events: none !important;
+        }
+        
         /* 音樂典藏專用黑膠：清楚的唱片溝槽、唱片標籤、中心孔與微光反射 */
         .music-vinyl {
             width: 54px; height: 54px; border-radius: 50%; position: relative; flex: 0 0 54px;

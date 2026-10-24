@@ -295,7 +295,6 @@
 
 
 /* ==================== 1. 中間維持不變的黑膠與其他裝飾設定 ==================== */
-/* 1. 音樂典藏專用黑膠：清楚的唱片溝槽、唱片標籤、中心孔與微光反射 */
         .music-vinyl {
             width: 54px; height: 54px; border-radius: 50%; position: relative; flex: 0 0 54px;
             overflow: hidden; isolation: isolate;
@@ -324,6 +323,12 @@
         .music-detail-overlay { padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); overscroll-behavior: contain; }
         .music-edit-panel { box-shadow: 0 12px 36px rgba(0,0,0,.35), 0 0 3px rgba(197,171,137,.8); -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
 
+        @media (max-width: 480px) { 
+            .music-detail-overlay { padding-left: 10px; padding-right: 10px; } 
+            .music-detail-flip { width: 100%; max-width: 100%; height: min(94dvh, 1000px); } 
+            .music-detail-face { padding: 15px !important; } 
+        }
+
         @media (prefers-reduced-motion: reduce) { .music-vinyl { animation-duration: 12s; } }
         @media (min-width: 481px) and (max-width: 900px) { .music-detail-flip { width: min(94vw, 44rem); max-width: 44rem; height: min(86dvh, 760px); } }
 
@@ -343,19 +348,51 @@
             touch-action: pan-y !important;
             scrollbar-width: none !important;
             -ms-overflow-style: none;
-            -webkit-transform: translateZ(0);
-            transform: translateZ(0);
-            background:
-                radial-gradient(circle at 85% 15%, rgba(197, 171, 137, 0.15) 0%, rgba(197, 171, 137, 0.02) 50%, transparent 80%),
-                linear-gradient(145deg, #1e2a22 0%, #16201a 35%, #101612 70%, #0d120f 100%) !important;
-            
+            /*
+             * iOS Safari / 加入主畫面修正：
+             * 典藏面板同時具有 overflow-y:auto、backface-visibility 與 3D 翻面。
+             * 將漸層與內陰影從可捲動的 3D 面板本體拆出，交由獨立偽元素繪製，
+             * 降低 Safari 合成圖層時背景／inset shadow 顯示不一致的機率。
+             */
+            background-color: #1e2a22 !important;
+            background-image: none !important;
+            isolation: isolate;
             border: 1.5px solid rgba(197,171,137,0.35) !important;
             border-radius: 24px;
             padding: 40px;
-            box-shadow: 
-                0 0 15px rgba(197, 171, 137, 0.1),         
-                inset 0 0 25px rgba(0, 0, 0, 0.85),       
-                inset 0 0 2px rgba(197, 171, 137, 0.25);  
+            box-shadow: 0 0 15px rgba(197, 171, 137, 0.1);
+        }
+
+        .music-detail-face::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background-color: #1e2a22;
+            background-image:
+                -webkit-radial-gradient(85% 15%, circle, rgba(197, 171, 137, 0.15) 0%, rgba(197, 171, 137, 0.02) 50%, transparent 80%),
+                -webkit-linear-gradient(145deg, #1e2a22 0%, #16201a 35%, #101612 70%, #0d120f 100%);
+            background-image:
+                radial-gradient(circle at 85% 15%, rgba(197, 171, 137, 0.15) 0%, rgba(197, 171, 137, 0.02) 50%, transparent 80%),
+                linear-gradient(145deg, #1e2a22 0%, #16201a 35%, #101612 70%, #0d120f 100%);
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
+            box-shadow:
+                inset 0 0 14px rgba(0, 0, 0, 0.28),
+                inset 0 0 2px rgba(197, 171, 137, 0.25);
+        }
+
+        .music-detail-face > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 正反面共用同一層漸層與內陰影，避免 Safari 顯示兩面色差。 */
+        .music-detail-face.music-detail-front {
+            background-color: #1e2a22 !important;
+            background-image: none !important;
         }
 
         .music-detail-face::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
@@ -370,8 +407,9 @@
             width: 100%; 
             height: 100%; 
             min-height: 0; 
-            transform-style: preserve-3d; 
-            transition: transform .55s cubic-bezier(.2,.75,.25,1); 
+            -webkit-transform-style: preserve-3d;
+            transform-style: preserve-3d;
+            transition: -webkit-transform .55s cubic-bezier(.2,.75,.25,1), transform .55s cubic-bezier(.2,.75,.25,1); 
         }
         
         .music-detail-flip.is-flipped .music-detail-flip-inner { 
@@ -395,24 +433,6 @@
         }
         .music-detail-flip.is-flipped .music-detail-face:not(.music-detail-back) {
             pointer-events: none !important;
-        }
-
-        /* === ✦ 修正後的基礎類別與手機版斷點（解決電腦版一圈與手機未更新問題） === */
-        .music-detail-flip {
-            position: relative;
-            width: min(92vw, 440px);     /* 電腦版預設寬度 */
-            height: min(85dvh, 720px);   /* 電腦版預設高度，解決塌陷變一圈 */
-            perspective: 1200px;         /* 3D 視距 */
-        }
-
-        @media (max-width: 480px) { 
-            .music-detail-overlay { padding-left: 10px; padding-right: 10px; } 
-            .music-detail-flip { 
-                width: calc(100vw - 20px) !important; 
-                max-width: 100% !important; 
-                height: min(88dvh, 760px) !important; 
-            } 
-            .music-detail-face { padding: 15px !important; } 
         }
         
         /* 音樂典藏專用黑膠：清楚的唱片溝槽、唱片標籤、中心孔與微光反射 */
@@ -444,11 +464,12 @@
             position: relative;
             width: min(92vw, 440px);     /* 賦予電腦版預設寬度 */
             height: min(85dvh, 720px);   /* 賦予電腦版預設高度，避免高度塌陷 */
+            -webkit-perspective: 1200px;
             perspective: 1200px;         /* 3D 翻轉視距 */
         }
         .music-detail-overlay { padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); overscroll-behavior: contain; }
         .music-edit-panel { box-shadow: 0 12px 36px rgba(0,0,0,.35), 0 0 3px rgba(197,171,137,.8); -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
-        @media (max-width: 480px) { .music-detail-overlay { padding-left: 10px; padding-right: 10px; } ..music-detail-flip { width: calc(100vw - 20px) !important; max-width: 100% !important; height: min(88dvh, 760px) !important; } .music-detail-face { padding: 15px !important; } }
+        @media (max-width: 480px) { .music-detail-overlay { padding-left: 10px; padding-right: 10px; } .music-detail-flip { width: calc(100vw - 20px) !important; max-width: 100% !important; height: min(88dvh, 760px) !important; } .music-detail-face { padding: 15px !important; } }
 
 
 /* 1. 基礎黑膠樣式：使用獨立的 translate（平移）與 rotate（旋轉）屬性，互不干擾！ */
@@ -3904,7 +3925,7 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
             <div className={`music-detail-flip ${detailPage === 1 ? 'is-flipped' : ''}`} onTouchStart={e => { const t = e.touches && e.touches[0]; detailTouchStartRef.current = t ? { x: t.clientX, y: t.clientY } : null; detailTouchMovedRef.current = false; }} 
             onTouchMove={e => { const t = e.touches && e.touches[0]; const start = detailTouchStartRef.current; if (t && start && (Math.abs(t.clientY - start.y) > 8 || Math.abs(t.clientX - start.x) > 8)) detailTouchMovedRef.current = true; }} onClick={e => { e.stopPropagation(); if (detailTouchMovedRef.current) { detailTouchMovedRef.current = false; detailTouchStartRef.current = null; return; } if (e.target.closest('button, a, input, textarea, select')) return; setDetailPage(p => p === 0 ? 1 : 0); }} role="button" tabIndex={0} aria-label="點擊翻面查看收錄曲目" onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailPage(p => p === 0 ? 1 : 0); } }}>
             <div className="music-detail-flip-inner">
-                <div className="music-detail-face rounded-2xl border border-[#C5AB89]/70 shadow-lg p-3 text-[#EFF0EA] space-y-2" style={{ background: 'radial-gradient(circle at 50% -12%, rgba(226,197,159,0.45) 0%, rgba(197,171,137,0.15) 30%, transparent 65%), linear-gradient(145deg, #0A0E0B 0%, #050706 35%, #020302 70%, #000000 100%)' }} onClick={e => { if (e.target.closest('button')) e.stopPropagation(); }}>
+                <div className="music-detail-face music-detail-front rounded-2xl border border-[#C5AB89]/70 shadow-lg p-3 text-[#EFF0EA] space-y-2" onClick={e => { if (e.target.closest('button')) e.stopPropagation(); }}>
 
                     <div className="flex items-start justify-between gap-4 pb-3 border-b border-[#C5AB89]/35">
                         <div className="min-w-0 pl-1">

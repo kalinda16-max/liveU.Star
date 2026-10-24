@@ -295,18 +295,53 @@
 
 
         /* 音樂典藏完整資料：與周邊卡片一致的 3D 翻頁模式 */
-        .music-detail-flip { perspective: 1200px; width: min(100%, 27rem); max-width: 27rem; height: min(84dvh, 760px); cursor: pointer; }
+        .music-detail-flip { perspective: 1200px; width: min(96vw, 44rem); max-width: 44rem; height: min(94dvh, 1000px); cursor: pointer; }
         .music-detail-face { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
         .music-cover-rail { touch-action: pan-x pan-y; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
-        .music-vinyl { width: 42px; height: 42px; border-radius: 50%; background: repeating-radial-gradient(circle, #171a17 0 2px, #30362f 3px 4px, #191d19 5px 7px); border: 1px solid rgba(197,171,137,.65); position: relative; flex: 0 0 auto; }
-        .music-vinyl:before { content:''; position:absolute; width:10px; height:10px; border-radius:50%; background:#C5AB89; border:3px solid #293830; inset:0; margin:auto; }
-        .music-vinyl:after { content:''; position:absolute; inset:5px; border:1px solid rgba(197,171,137,.25); border-radius:50%; }
-        .music-vinyl.is-playing { animation: musicVinylSpin 4s linear infinite; }
-        @keyframes musicVinylSpin { to { transform: rotate(360deg); } }
+        /* 音樂典藏專用黑膠：清楚的唱片溝槽、唱片標籤、中心孔與微光反射 */
+        .music-vinyl {
+            width: 54px; height: 54px; border-radius: 50%; position: relative; flex: 0 0 54px;
+            overflow: hidden; isolation: isolate;
+            border: 1px solid rgba(197,171,137,.72);
+            background:
+                radial-gradient(circle at 50% 50%, #171a17 0 7px, transparent 7.5px),
+                repeating-radial-gradient(circle at 50% 50%, #343a34 0 1px, #101310 1.5px 2.6px, #242a24 3px 3.5px, #111411 4px 5px),
+                #111411;
+            box-shadow: inset 0 0 0 2px rgba(0,0,0,.65), 0 2px 7px rgba(0,0,0,.24);
+            animation: musicVinylSpin 5s linear infinite;
+            will-change: transform;
+        }
+        .music-vinyl::before {
+            content: ''; position: absolute; z-index: 1; width: 19px; height: 19px; border-radius: 50%;
+            inset: 0; margin: auto; border: 1px solid rgba(245,224,184,.72);
+            background: radial-gradient(circle at 35% 30%, #e1c59a 0, #b18a55 42%, #735634 100%);
+            box-shadow: 0 0 0 2px #171a17, 0 0 0 3px rgba(197,171,137,.55);
+        }
+        .music-vinyl::after {
+            content: ''; position: absolute; inset: 4px; border-radius: 50%; pointer-events: none;
+            background: conic-gradient(from 20deg, transparent 0 18%, rgba(255,255,255,.12) 21%, transparent 26% 57%, rgba(197,171,137,.1) 62%, transparent 68% 100%);
+            mix-blend-mode: screen;
+        }
+        @keyframes musicVinylSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .music-detail-overlay { padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); overscroll-behavior: contain; }
         .music-edit-panel { box-shadow: 0 12px 36px rgba(0,0,0,.35), 0 0 3px rgba(197,171,137,.8); -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
-        @media (max-width: 480px) { .music-detail-flip { height: min(86dvh, 780px); } .music-detail-face { padding: 15px !important; } }
-        @media (prefers-reduced-motion: reduce) { .music-vinyl.is-playing { animation: none; } }
+        @media (max-width: 480px) { .music-detail-overlay { padding-left: 10px; padding-right: 10px; } .music-detail-flip { width: 100%; max-width: 100%; height: min(94dvh, 1000px); } .music-detail-face { padding: 15px !important; } }
+
+        /* Music archive panel: subtle champagne-gold atmosphere, scoped locally */
+        .music-detail-face {
+          background:
+            radial-gradient(ellipse at 50% -8%, rgba(197,171,137,.16) 0%, rgba(197,171,137,.045) 30%, transparent 58%),
+            linear-gradient(112deg, #293830 0%, #242B22 48%, #171D16 100%) !important;
+          border-color: rgba(197,171,137,.62) !important;
+          box-shadow: inset 0 0 0 1px rgba(197,171,137,.10), 0 0 3px rgba(197,171,137,.28);
+        }
+        .music-detail-face hr,
+        .music-detail-face .music-detail-divider {
+          border-color: rgba(197,171,137,.36) !important;
+        }
+
+        @media (prefers-reduced-motion: reduce) { .music-vinyl { animation-duration: 12s; } }
+        @media (min-width: 481px) and (max-width: 900px) { .music-detail-flip { width: min(96vw, 44rem); max-width: 44rem; height: min(94dvh, 1000px); } }
         .music-detail-flip-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .55s cubic-bezier(.2,.75,.25,1); }
         .music-detail-flip.is-flipped .music-detail-flip-inner { transform: rotateY(180deg); }
         .music-detail-face { position: absolute; inset: 0; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow-y: auto; scrollbar-width: thin; }
@@ -3529,6 +3564,7 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
     const [vaultInfoOpen, setVaultInfoOpen] = useState(false);
     const [detailItem, setDetailItem] = useState(null);
     const [detailPage, setDetailPage] = useState(0);
+    const [detailCoverIndex, setDetailCoverIndex] = useState(0);
     const [playingPreview, setPlayingPreview] = useState(null);
     const [previewPaused, setPreviewPaused] = useState(false);
     const previewAudioRef = useRef(null);
@@ -3630,7 +3666,7 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                     const isExpanded = expandedTrackId === item.id;
 
                     return (
-                        <div key={item.id} onClick={() => setDetailItem(item)} className="bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] border border-[#C5AB89]/50 rounded-2xl p-3.5 shadow-xl shadow-[0_5px_10px_rgba(197,171,137,0.35)] space-y-3 cursor-pointer">
+                        <div key={item.id} onClick={() => { setDetailItem(item); setDetailPage(0); setDetailCoverIndex(0); }} className="bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] border border-[#C5AB89]/50 rounded-2xl p-3.5 shadow-xl shadow-[0_5px_10px_rgba(197,171,137,0.35)] space-y-3 cursor-pointer">
                             <div className="flex gap-3">
                                 {/* CD 封面與黑膠滑出旋轉動畫 */}
                                 <div 
@@ -3764,19 +3800,28 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
             <div className={`music-detail-flip ${detailPage === 1 ? 'is-flipped' : ''}`} onClick={e => { e.stopPropagation(); setDetailPage(p => p === 0 ? 1 : 0); }} role="button" tabIndex={0} aria-label="點擊翻面查看收錄曲目" onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailPage(p => p === 0 ? 1 : 0); } }}>
             <div className="music-detail-flip-inner">
                 <div className="music-detail-face rounded-2xl bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] border border-[#C5AB89]/40 shadow-lg p-4 text-[#EFF0EA] space-y-3" onClick={e => { if (e.target.closest('button')) e.stopPropagation(); }}>
-                    <div className="flex items-start justify-between gap-3 pb-3 border-b border-[#C5AB89]/25">
+                    <div className="flex items-start justify-between gap-4 pb-3 border-b border-[#C5AB89]/35">
                         <div className="min-w-0">
-                            <div className="text-[9px] tracking-[.22em] uppercase text-[#C5AB89]/90">LiveU · Music Archive</div>
-                            <h3 className="mt-1 text-xl leading-tight font-semibold tracking-tight text-[#F0E9DC]">The light of my night sky</h3>
-                            <div className="mt-1 text-sm text-[#AEB8AF]">{detailItem.artist || 'Artist not specified'}</div>
+                            <div className="text-[10px] tracking-[.24em] uppercase text-[#C5AB89]">MUSIC ARCHIVE</div>
+                            <h3 className="mt-1 text-2xl sm:text-3xl leading-tight font-semibold tracking-tight text-[#F0E9DC]">{detailItem.album || 'The light of my night sky'}</h3>
+                            <div className="mt-1.5 text-sm sm:text-base text-[#C5AB89]/90">{detailItem.artist || 'Artist not specified'}</div>
                         </div>
-                        <div className={`music-vinyl ${playingPreview ? 'is-playing' : ''}`} aria-label="黑膠唱片裝飾" />
+                        <div className="music-vinyl mt-1" role="img" aria-label="持續旋轉的黑膠唱片裝飾" />
                     </div>
-                    <div className="music-cover-rail relative w-full overflow-x-auto flex snap-x snap-mandatory rounded-xl border border-[#C5AB89]/50 bg-black/20 p-[4px]" style={{scrollbarWidth:'thin'}} onClick={e=>e.stopPropagation()}>
-                        {(detailItem.coverImages?.length ? detailItem.coverImages : [detailItem.coverImg]).filter(Boolean).map((src,i)=><img key={i} src={src} alt={`典藏封面 ${i+1}`} className="w-full max-h-[42dvh] aspect-square object-contain bg-black/20 rounded-lg shrink-0 snap-center" />)}
-                        {!(detailItem.coverImages?.length || detailItem.coverImg) && <div className="w-full aspect-square flex items-center justify-center text-xs text-[#A3ADA5]">尚未新增封面圖片</div>}
-                    </div>
-                    {(detailItem.coverImages?.length || 0) > 1 && <div className="text-[9px] text-[#A3ADA5] text-right">左右滑動瀏覽封面 · {detailItem.coverImages.length} 張</div>}
+                    {(() => {
+                        const covers = (detailItem.coverImages?.length ? detailItem.coverImages : [detailItem.coverImg]).filter(Boolean);
+                        const safeIndex = Math.min(detailCoverIndex, Math.max(0, covers.length - 1));
+                        return <div className="flex items-center justify-center gap-2 sm:gap-4 py-1" onClick={e=>e.stopPropagation()}>
+                            {covers.length > 1 && <button type="button" aria-label="上一張封面" onClick={e=>{e.stopPropagation();setDetailCoverIndex(i=>(i-1+covers.length)%covers.length);}} className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-full border border-[#C5AB89]/70 text-[#D9C4A6] text-2xl flex items-center justify-center active:bg-[#C5AB89]/15">‹</button>}
+                            <div className="w-full aspect-square rounded-2xl border border-[#C5AB89]/75 bg-black/20 p-[5px] shadow-[0_0_3px_rgba(197,171,137,0.35)]" style={{maxWidth:"min(100%, min(68dvh, 620px))"}}>
+                                <div className="w-full h-full rounded-xl overflow-hidden bg-black/15 flex items-center justify-center">
+                                    {covers.length ? <img key={covers[safeIndex]} src={covers[safeIndex]} alt={`典藏封面 ${safeIndex+1}`} className="block w-full h-full object-contain rounded-xl" /> : <div className="text-xs text-[#A3ADA5]">尚未新增封面圖片</div>}
+                                </div>
+                            </div>
+                            {covers.length > 1 && <button type="button" aria-label="下一張封面" onClick={e=>{e.stopPropagation();setDetailCoverIndex(i=>(i+1)%covers.length);}} className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-full border border-[#C5AB89]/70 text-[#D9C4A6] text-2xl flex items-center justify-center active:bg-[#C5AB89]/15">›</button>}
+                        </div>;
+                    })()}
+                    {(detailItem.coverImages?.length || 0) > 1 && <div className="flex justify-center gap-2" onClick={e=>e.stopPropagation()}>{detailItem.coverImages.map((_,i)=><button key={i} type="button" aria-label={`切換至第 ${i+1} 張封面`} onClick={()=>setDetailCoverIndex(i)} className={`w-2 h-2 rounded-full transition-colors ${i===detailCoverIndex?'bg-[#C5AB89]':'bg-[#C5AB89]/25'}`} />)}</div>}
                     <section className="space-y-3 pt-1">
                         <div><div className="text-[10px] tracking-wider text-[#9EAAA0]">ALBUM</div><div className="text-base font-medium text-[#F0E9DC]">{detailItem.album || '—'}</div></div>
                         <div><div className="text-[10px] tracking-wider text-[#9EAAA0]">VERSION</div><div className="mt-1 inline-flex max-w-full rounded-md border border-[#C5AB89]/30 bg-[#C5AB89]/10 px-2.5 py-1 text-xs text-[#D9C4A6] break-words">{detailItem.version || '未填寫版本'}</div></div>

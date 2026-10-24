@@ -333,6 +333,44 @@
         @media (min-width: 481px) and (max-width: 900px) { .music-detail-flip { width: min(94vw, 44rem); max-width: 44rem; height: min(86dvh, 760px); } }
 
         /* === 音樂典藏詳情面板：背景直接繪製在可捲動面板本體 === */
+        .music-vinyl {
+            width: 54px; height: 54px; border-radius: 50%; position: relative; flex: 0 0 54px;
+            overflow: hidden; isolation: isolate;
+            border: 1px solid rgba(197,171,137,.72);
+            background:
+                radial-gradient(circle at 50% 50%, #171a17 0 7px, transparent 7.5px),
+                repeating-radial-gradient(circle at 50% 50%, #343a34 0 1px, #101310 1.5px 2.6px, #242a24 3px 3.5px, #111411 4px 5px),
+                #111411;
+            box-shadow: inset 0 0 0 2px rgba(0,0,0,.65), 0 2px 7px rgba(0,0,0,.24);
+            animation: musicVinylSpin 5s linear infinite;
+            will-change: transform;
+        }
+        .music-vinyl::before {
+            content: ''; position: absolute; z-index: 1; width: 19px; height: 19px; border-radius: 50%;
+            inset: 0; margin: auto; border: 1px solid rgba(245,224,184,.72);
+            background: radial-gradient(circle at 35% 30%, #e1c59a 0, #b18a55 42%, #735634 100%);
+            box-shadow: 0 0 0 2px #171a17, 0 0 0 3px rgba(197,171,137,.55);
+        }
+        .music-vinyl::after {
+            content: ''; position: absolute; inset: 4px; border-radius: 50%; pointer-events: none;
+            background: conic-gradient(from 20deg, transparent 0 18%, rgba(255,255,255,.12) 21%, transparent 26% 57%, rgba(197,171,137,.1) 62%, transparent 68% 100%);
+            mix-blend-mode: screen;
+        }
+        @keyframes musicVinylSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        .music-detail-overlay { padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); overscroll-behavior: contain; }
+        .music-edit-panel { box-shadow: 0 12px 36px rgba(0,0,0,.35), 0 0 3px rgba(197,171,137,.8); -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+
+        @media (max-width: 480px) { 
+            .music-detail-overlay { padding-left: 10px; padding-right: 10px; } 
+            .music-detail-flip { width: 100%; max-width: 100%; height: min(94dvh, 1000px); } 
+            .music-detail-face { padding: 15px !important; } 
+        }
+
+        @media (prefers-reduced-motion: reduce) { .music-vinyl { animation-duration: 12s; } }
+        @media (min-width: 481px) and (max-width: 900px) { .music-detail-flip { width: min(94vw, 44rem); max-width: 44rem; height: min(86dvh, 760px); } }
+
+        /* === 音樂典藏詳情面板：背景直接繪製在可捲動面板本體 (Mac Safari 完美相容修正) === */
         .music-detail-face {
             position: absolute;
             inset: 0;
@@ -348,35 +386,36 @@
             touch-action: pan-y !important;
             scrollbar-width: none !important;
             -ms-overflow-style: none;
-            background-color: #1e2a22 !important;
-            background-image:
-                -webkit-radial-gradient(85% 15%, circle, rgba(197, 171, 137, 0.15) 0%, rgba(197, 171, 137, 0.02) 50%, transparent 80%),
-                -webkit-linear-gradient(145deg, #1e2a22 0%, #16201a 35%, #101612 70%, #0d120f 100%) !important;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            
+            /* 穩定的漸層背景，移除會導致長捲動跑版的 size 限制 */
+            background-color: #121814 !important;
             background-image:
                 radial-gradient(circle at 85% 15%, rgba(197, 171, 137, 0.15) 0%, rgba(197, 171, 137, 0.02) 50%, transparent 80%),
                 linear-gradient(145deg, #1e2a22 0%, #16201a 35%, #101612 70%, #0d120f 100%) !important;
             background-repeat: no-repeat !important;
-            background-size: 100% 100% !important;
+            background-attachment: local !important;
+            
             border: 1.5px solid rgba(197,171,137,0.35) !important;
             border-radius: 24px;
             padding: 40px;
-            box-shadow:
+            
+            /* 立體內陰影與光澤 */
+            box-shadow: 
                 0 0 15px rgba(197, 171, 137, 0.1),
-                inset 0 0 14px rgba(0, 0, 0, 0.28),
+                inset 0 0 25px rgba(0, 0, 0, 0.85),
                 inset 0 0 2px rgba(197, 171, 137, 0.25);
         }
 
-        /* 正面明確使用相同背景；不使用偽元素，避免長內容捲動時背景圖層只覆蓋視窗高度。 */
+        /* 正面明確使用相同背景，修正原本強制 100% 導致 Mac 失效的問題 */
         .music-detail-face.music-detail-front {
             background-color: #1e2a22 !important;
-            background-image:
-                -webkit-radial-gradient(85% 15%, circle, rgba(197, 171, 137, 0.15) 0%, rgba(197, 171, 137, 0.02) 50%, transparent 80%),
-                -webkit-linear-gradient(145deg, #1e2a22 0%, #16201a 35%, #101612 70%, #0d120f 100%) !important;
             background-image:
                 radial-gradient(circle at 85% 15%, rgba(197, 171, 137, 0.15) 0%, rgba(197, 171, 137, 0.02) 50%, transparent 80%),
                 linear-gradient(145deg, #1e2a22 0%, #16201a 35%, #101612 70%, #0d120f 100%) !important;
             background-repeat: no-repeat !important;
-            background-size: 100% 100% !important;
+            background-attachment: local !important;
         }
 
         .music-detail-face::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
@@ -417,6 +456,14 @@
         }
         .music-detail-flip.is-flipped .music-detail-face:not(.music-detail-back) {
             pointer-events: none !important;
+        }
+        
+        .music-detail-flip {
+            position: relative;
+            width: min(92vw, 440px);     
+            height: min(85dvh, 720px);   
+            -webkit-perspective: 1200px;
+            perspective: 1200px;         
         }
         
         /* 音樂典藏專用黑膠：清楚的唱片溝槽、唱片標籤、中心孔與微光反射 */

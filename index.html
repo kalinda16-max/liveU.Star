@@ -295,7 +295,7 @@
 
 
         /* 音樂典藏完整資料：與周邊卡片一致的 3D 翻頁模式 */
-        .music-detail-flip { perspective: 1200px; width: 100%; max-width: 24rem; height: min(78dvh, 680px); max-height: 80vh; cursor: pointer; }
+        .music-detail-flip { perspective: 1200px; width: 100%; max-width: 24rem; height: min(78dvh, 680px); max-height: 80vh; cursor: pointer; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .music-detail-face { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
         .music-cover-rail { touch-action: pan-x pan-y; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
         /* 音樂典藏專用黑膠：清楚的唱片溝槽、唱片標籤、中心孔與微光反射 */

@@ -3696,7 +3696,7 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
             musicTypeFilter === 'all' 
                 ? 'text-[#EFF0EA] border-[#C5AB89] shadow-[0_0_8px_rgba(197,171,137,0.4)] font-black' 
                 : 'bg-transparent text-[#D2CABF] border-transparent hover:text-[#EFF0EA] hover:bg-white/5'}`}>
-        <img src="./image/icons/treasure.png" alt="CD" className="w-4 h-4 object-contain shrink-0 self-center pointer-events-none" />
+        <img src="./image/icons/treasure01.png" alt="CD" className="w-4 h-4 object-contain shrink-0 self-center pointer-events-none" />
         <span className="whitespace-nowrap leading-none inline-block">全部典藏</span>
     </button>
     
@@ -3881,10 +3881,14 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
             </div>
         </div>
         {vaultInfoOpen && <div className="fixed inset-0 z-[1000000] bg-black/80 flex items-center justify-center p-4" onClick={() => setVaultInfoOpen(false)}><div className="w-full max-w-sm rounded-2xl bg-[#232B25] border border-[#C5AB89]/40 p-5 text-center" onClick={e => e.stopPropagation()}><div className="text-sm font-black text-[#EFF0EA]">音樂典藏庫</div><div className="text-[10px] text-[#C5AB89] mt-1">LiveU Music Vault</div><div className="mt-4 text-xs text-[#A3ADA5]">目前顯示典藏：{filteredMusic.length} 輯</div><div className="text-lg font-black text-[#C5AB89] mt-1">累積投資金額 NT$ {totalValue.toLocaleString()}</div><button className="mt-4 w-full rounded-xl bg-[#C5AB89] text-[#161D15] font-bold py-2" onClick={() => setVaultInfoOpen(false)}>關閉</button></div></div>}
-        {detailItem && <div className="music-detail-overlay fixed inset-0 z-[1000000] bg-black/80 flex items-center justify-center" onClick={() => { setDetailItem(null); setDetailPage(0); }}>
-            <div className={`music-detail-flip ${detailPage === 1 ? 'is-flipped' : ''}`} onTouchStart={e => { const t = e.touches && e.touches[0]; detailTouchStartRef.current = t ? { x: t.clientX, y: t.clientY } : null; detailTouchMovedRef.current = false; }} onTouchMove={e => { const t = e.touches && e.touches[0]; const start = detailTouchStartRef.current; if (t && start && (Math.abs(t.clientY - start.y) > 8 || Math.abs(t.clientX - start.x) > 8)) detailTouchMovedRef.current = true; }} onClick={e => { e.stopPropagation(); if (detailTouchMovedRef.current) { detailTouchMovedRef.current = false; detailTouchStartRef.current = null; return; } if (e.target.closest('button, a, input, textarea, select')) return; setDetailPage(p => p === 0 ? 1 : 0); }} role="button" tabIndex={0} aria-label="點擊翻面查看收錄曲目" onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailPage(p => p === 0 ? 1 : 0); } }}>
+
+        {detailItem && 
+            <div className="music-detail-overlay fixed inset-0 z-[1000000] bg-black/80 flex items-center justify-center" onClick={() => { setDetailItem(null); setDetailPage(0); }}>
+            <div className={`music-detail-flip ${detailPage === 1 ? 'is-flipped' : ''}`} onTouchStart={e => { const t = e.touches && e.touches[0]; detailTouchStartRef.current = t ? { x: t.clientX, y: t.clientY } : null; detailTouchMovedRef.current = false; }} 
+            onTouchMove={e => { const t = e.touches && e.touches[0]; const start = detailTouchStartRef.current; if (t && start && (Math.abs(t.clientY - start.y) > 8 || Math.abs(t.clientX - start.x) > 8)) detailTouchMovedRef.current = true; }} onClick={e => { e.stopPropagation(); if (detailTouchMovedRef.current) { detailTouchMovedRef.current = false; detailTouchStartRef.current = null; return; } if (e.target.closest('button, a, input, textarea, select')) return; setDetailPage(p => p === 0 ? 1 : 0); }} role="button" tabIndex={0} aria-label="點擊翻面查看收錄曲目" onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailPage(p => p === 0 ? 1 : 0); } }}>
             <div className="music-detail-flip-inner">
-                <div className="music-detail-face rounded-2xl bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] border border-[#C5AB89]/40 shadow-lg p-3 text-[#EFF0EA] space-y-2" onClick={e => { if (e.target.closest('button')) e.stopPropagation(); }}>
+                <div className="music-detail-face rounded-2xl border border-[#C5AB89]/70 shadow-lg p-3 text-[#EFF0EA] space-y-2" style={{ background: 'radial-gradient(circle at 50% -12%, rgba(226,197,159,0.45) 0%, rgba(197,171,137,0.15) 30%, transparent 65%), linear-gradient(145deg, #0A0E0B 0%, #050706 35%, #020302 70%, #000000 100%)' }} onClick={e => { if (e.target.closest('button')) e.stopPropagation(); }}>
+
                     <div className="flex items-start justify-between gap-4 pb-3 border-b border-[#C5AB89]/35">
                         <div className="min-w-0">
                             <div className="text-[10px] tracking-[.24em] uppercase text-[#C5AB89]">MUSIC ARCHIVE</div>

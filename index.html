@@ -3563,10 +3563,9 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
         className={`flex-1 py-2 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all duration-150 active:scale-95 border text-center ${
             musicTypeFilter === 'all' 
                 ? 'text-[#EFF0EA] border-[#C5AB89] shadow-[0_0_8px_rgba(197,171,137,0.4)] font-black' 
-                : 'bg-transparent text-[#D2CABF] border-transparent hover:text-[#EFF0EA] hover:bg-white/5'
-        }`}
-    >
-        <span className="whitespace-nowrap leading-none inline-block">✨ 全部典藏</span>
+                : 'bg-transparent text-[#D2CABF] border-transparent hover:text-[#EFF0EA] hover:bg-white/5'}`}>
+        <img src="./image/icons/treasure.png" alt="CD" className="w-4 h-4 object-contain shrink-0 self-center pointer-events-none" />
+        <span className="whitespace-nowrap leading-none inline-block">全部典藏</span>
     </button>
     
     <button 

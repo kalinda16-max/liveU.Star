@@ -427,9 +427,15 @@
             mix-blend-mode: screen;
         }
         @keyframes musicVinylSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .music-detail-flip {
+            position: relative;
+            width: min(92vw, 440px);     /* 賦予電腦版預設寬度 */
+            height: min(85dvh, 720px);   /* 賦予電腦版預設高度，避免高度塌陷 */
+            perspective: 1200px;         /* 3D 翻轉視距 */
+        }
         .music-detail-overlay { padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); overscroll-behavior: contain; }
         .music-edit-panel { box-shadow: 0 12px 36px rgba(0,0,0,.35), 0 0 3px rgba(197,171,137,.8); -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
-        @media (max-width: 480px) { .music-detail-overlay { padding-left: 10px; padding-right: 10px; } .music-detail-flip { width: 100%; max-width: 100%; height: min(94dvh, 1000px); } .music-detail-face { padding: 15px !important; } }
+        @media (max-width: 480px) { .music-detail-overlay { padding-left: 10px; padding-right: 10px; } ..music-detail-flip { width: calc(100vw - 20px) !important; max-width: 100% !important; height: min(88dvh, 760px) !important; } .music-detail-face { padding: 15px !important; } }
 
 
 /* 1. 基礎黑膠樣式：使用獨立的 translate（平移）與 rotate（旋轉）屬性，互不干擾！ */
@@ -2108,10 +2114,6 @@ function AddScheduleModal({ initialData, onSave, onDelete, onClose }) {
                                     <input type="text" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full bg-white/5 backdrop-blur-md text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2 rounded-xl text-xs border border-[rgba(197,171,137,0.4)] shadow-[0_0_5px_rgba(197,171,137,0.1)] focus:outline-none focus:border-[#C5AB89] transition-colors" /></div>
                                 </div>
                                 <div className="space-y-1">
-                                <label className="text-[11px] font-bold text-[#C5AB89] pl-1.5">場館名稱</label>
-                                <input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} required className="w-full bg-white/5 backdrop-blur-md text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2 rounded-xl text-xs border border-[rgba(197,171,137,0.4)] shadow-[0_0_5px_rgba(197,171,137,0.1)] focus:outline-none focus:border-[#C5AB89] transition-colors" /></div>
-                                
-                        <div className="space-y-1">
                                 <label className="text-[11px] font-bold text-[#C5AB89] pl-1.5">場館名稱</label>
                                 <input type="text" value={venue} onChange={(e) => setVenue(e.target.value)} required className="w-full bg-white/5 backdrop-blur-md text-[#EFF0EA] placeholder-[#A3ADA5] px-3 py-2 rounded-xl text-xs border border-[rgba(197,171,137,0.4)] shadow-[0_0_5px_rgba(197,171,137,0.1)] focus:outline-none focus:border-[#C5AB89] transition-colors" /></div>
                                 
@@ -4812,7 +4814,7 @@ function StatsSection({ stats, events }) {
                     <div className="text-[10px] font-extrabold text-[#C5AB89] flex items-center gap-1">
                         <GreyFourPointStar className="w-4 h-4" /> 今年累積花費
                     </div>
-                    <div className={`ffont-mono text-2xl font-black text-[#EFF0EA] whitespace-nowrap overflow-x-auto no-scrollbar mt-1`} 
+                    <div className={`font-mono text-2xl font-black text-[#EFF0EA] whitespace-nowrap overflow-x-auto no-scrollbar mt-1`} 
                     style={{
                             maskImage: 'linear-gradient(to right, black 90%, transparent 100%)',
                             WebkitMaskImage: 'linear-gradient(to right, black 80%, transparent 100%)'

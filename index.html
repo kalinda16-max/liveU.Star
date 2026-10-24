@@ -332,7 +332,7 @@
         @media (prefers-reduced-motion: reduce) { .music-vinyl { animation-duration: 12s; } }
         @media (min-width: 481px) and (max-width: 900px) { .music-detail-flip { width: min(94vw, 44rem); max-width: 44rem; height: min(86dvh, 760px); } }
 
-        /* === 2. 整合並修正後的面板面版樣式（正反面同步墨綠金漸層） === */
+        /* === 音樂典藏詳情面板：背景直接繪製在可捲動面板本體 === */
         .music-detail-face {
             position: absolute;
             inset: 0;
@@ -348,51 +348,35 @@
             touch-action: pan-y !important;
             scrollbar-width: none !important;
             -ms-overflow-style: none;
-            /*
-             * iOS Safari / 加入主畫面修正：
-             * 典藏面板同時具有 overflow-y:auto、backface-visibility 與 3D 翻面。
-             * 將漸層與內陰影從可捲動的 3D 面板本體拆出，交由獨立偽元素繪製，
-             * 降低 Safari 合成圖層時背景／inset shadow 顯示不一致的機率。
-             */
             background-color: #1e2a22 !important;
-            background-image: none !important;
-            isolation: isolate;
+            background-image:
+                -webkit-radial-gradient(85% 15%, circle, rgba(197, 171, 137, 0.15) 0%, rgba(197, 171, 137, 0.02) 50%, transparent 80%),
+                -webkit-linear-gradient(145deg, #1e2a22 0%, #16201a 35%, #101612 70%, #0d120f 100%) !important;
+            background-image:
+                radial-gradient(circle at 85% 15%, rgba(197, 171, 137, 0.15) 0%, rgba(197, 171, 137, 0.02) 50%, transparent 80%),
+                linear-gradient(145deg, #1e2a22 0%, #16201a 35%, #101612 70%, #0d120f 100%) !important;
+            background-repeat: no-repeat !important;
+            background-size: 100% 100% !important;
             border: 1.5px solid rgba(197,171,137,0.35) !important;
             border-radius: 24px;
             padding: 40px;
-            box-shadow: 0 0 15px rgba(197, 171, 137, 0.1);
-        }
-
-        .music-detail-face::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            border-radius: inherit;
-            pointer-events: none;
-            background-color: #1e2a22;
-            background-image:
-                -webkit-radial-gradient(85% 15%, circle, rgba(197, 171, 137, 0.15) 0%, rgba(197, 171, 137, 0.02) 50%, transparent 80%),
-                -webkit-linear-gradient(145deg, #1e2a22 0%, #16201a 35%, #101612 70%, #0d120f 100%);
-            background-image:
-                radial-gradient(circle at 85% 15%, rgba(197, 171, 137, 0.15) 0%, rgba(197, 171, 137, 0.02) 50%, transparent 80%),
-                linear-gradient(145deg, #1e2a22 0%, #16201a 35%, #101612 70%, #0d120f 100%);
-            background-repeat: no-repeat;
-            background-size: 100% 100%;
             box-shadow:
+                0 0 15px rgba(197, 171, 137, 0.1),
                 inset 0 0 14px rgba(0, 0, 0, 0.28),
                 inset 0 0 2px rgba(197, 171, 137, 0.25);
         }
 
-        .music-detail-face > * {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* 正反面共用同一層漸層與內陰影，避免 Safari 顯示兩面色差。 */
+        /* 正面明確使用相同背景；不使用偽元素，避免長內容捲動時背景圖層只覆蓋視窗高度。 */
         .music-detail-face.music-detail-front {
             background-color: #1e2a22 !important;
-            background-image: none !important;
+            background-image:
+                -webkit-radial-gradient(85% 15%, circle, rgba(197, 171, 137, 0.15) 0%, rgba(197, 171, 137, 0.02) 50%, transparent 80%),
+                -webkit-linear-gradient(145deg, #1e2a22 0%, #16201a 35%, #101612 70%, #0d120f 100%) !important;
+            background-image:
+                radial-gradient(circle at 85% 15%, rgba(197, 171, 137, 0.15) 0%, rgba(197, 171, 137, 0.02) 50%, transparent 80%),
+                linear-gradient(145deg, #1e2a22 0%, #16201a 35%, #101612 70%, #0d120f 100%) !important;
+            background-repeat: no-repeat !important;
+            background-size: 100% 100% !important;
         }
 
         .music-detail-face::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }

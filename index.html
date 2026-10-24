@@ -295,6 +295,7 @@
 
 
 /* ==================== 1. 中間維持不變的黑膠與其他裝飾設定 ==================== */
+/* 1. 音樂典藏專用黑膠：清楚的唱片溝槽、唱片標籤、中心孔與微光反射 */
         .music-vinyl {
             width: 54px; height: 54px; border-radius: 50%; position: relative; flex: 0 0 54px;
             overflow: hidden; isolation: isolate;
@@ -322,12 +323,6 @@
         
         .music-detail-overlay { padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); overscroll-behavior: contain; }
         .music-edit-panel { box-shadow: 0 12px 36px rgba(0,0,0,.35), 0 0 3px rgba(197,171,137,.8); -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
-
-        @media (max-width: 480px) { 
-            .music-detail-overlay { padding-left: 10px; padding-right: 10px; } 
-            .music-detail-flip { width: 100%; max-width: 100%; height: min(94dvh, 1000px); } 
-            .music-detail-face { padding: 15px !important; } 
-        }
 
         @media (prefers-reduced-motion: reduce) { .music-vinyl { animation-duration: 12s; } }
         @media (min-width: 481px) and (max-width: 900px) { .music-detail-flip { width: min(94vw, 44rem); max-width: 44rem; height: min(86dvh, 760px); } }
@@ -358,10 +353,10 @@
             border-radius: 24px;
             padding: 40px;
             box-shadow: 
-                0 0 15px rgba(197, 171, 137, 0.1),         /* 外發光：讓金色外框稍微融入背景微光中 */
-                inset 0 0 25px rgba(0, 0, 0, 0.85),       /* 內陰影加深：大幅增強黑膠唱片機的沉穩內陷感 */
-                inset 0 0 2px rgba(197, 171, 137, 0.25);  /* 內緣金線：給粗邊框內側補上一層隱約的高光層次 */
-}
+                0 0 15px rgba(197, 171, 137, 0.1),         
+                inset 0 0 25px rgba(0, 0, 0, 0.85),       
+                inset 0 0 2px rgba(197, 171, 137, 0.25);  
+        }
 
         .music-detail-face::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
         
@@ -400,6 +395,24 @@
         }
         .music-detail-flip.is-flipped .music-detail-face:not(.music-detail-back) {
             pointer-events: none !important;
+        }
+
+        /* === ✦ 修正後的基礎類別與手機版斷點（解決電腦版一圈與手機未更新問題） === */
+        .music-detail-flip {
+            position: relative;
+            width: min(92vw, 440px);     /* 電腦版預設寬度 */
+            height: min(85dvh, 720px);   /* 電腦版預設高度，解決塌陷變一圈 */
+            perspective: 1200px;         /* 3D 視距 */
+        }
+
+        @media (max-width: 480px) { 
+            .music-detail-overlay { padding-left: 10px; padding-right: 10px; } 
+            .music-detail-flip { 
+                width: calc(100vw - 20px) !important; 
+                max-width: 100% !important; 
+                height: min(88dvh, 760px) !important; 
+            } 
+            .music-detail-face { padding: 15px !important; } 
         }
         
         /* 音樂典藏專用黑膠：清楚的唱片溝槽、唱片標籤、中心孔與微光反射 */

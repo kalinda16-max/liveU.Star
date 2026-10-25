@@ -294,201 +294,183 @@
         }
 
         /* ==================== Music Archive detail panel ==================== */
-        .music-vinyl {
-            width: 54px;
-            height: 54px;
-            border-radius: 50%;
-            position: relative;
-            flex: 0 0 54px;
-            overflow: hidden;
-            isolation: isolate;
-            border: 1px solid rgba(197, 171, 137, .72);
-            background:
-                radial-gradient(circle at 50% 50%, #171a17 0 7px, transparent 7.5px),
-                repeating-radial-gradient(circle at 50% 50%, #343a34 0 1px, #101310 1.5px 2.6px, #242a24 3px 3.5px, #111411 4px 5px),
-                #111411;
-            box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .65), 0 2px 7px rgba(0, 0, 0, .24);
-            animation: musicVinylSpin 5s linear infinite;
-            will-change: transform;
-        }
-        .music-vinyl::before {
-            content: '';
-            position: absolute;
-            z-index: 1;
-            width: 19px;
-            height: 19px;
-            border-radius: 50%;
-            inset: 0;
-            margin: auto;
-            border: 1px solid rgba(245, 224, 184, .72);
-            background: radial-gradient(circle at 35% 30%, #e1c59a 0, #b18a55 42%, #735634 100%);
-            box-shadow: 0 0 0 2px #171a17, 0 0 0 3px rgba(197, 171, 137, .55);
-        }
-        .music-vinyl::after {
-            content: '';
-            position: absolute;
-            inset: 4px;
-            border-radius: 50%;
-            pointer-events: none;
-            background: conic-gradient(from 20deg, transparent 0 18%, rgba(255, 255, 255, .12) 21%, transparent 26% 57%, rgba(197, 171, 137, .1) 62%, transparent 68% 100%);
-            mix-blend-mode: screen;
-        }
-        @keyframes musicVinylSpin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+.music-vinyl {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    position: relative;
+    flex: 0 0 54px;
+    overflow: hidden;
+    isolation: isolate;
+    border: 1px solid rgba(197, 171, 137, .72);
+    background:
+        radial-gradient(circle at 50% 50%, #171a17 0 7px, transparent 7.5px),
+        repeating-radial-gradient(circle at 50% 50%, #343a34 0 1px, #101310 1.5px 2.6px, #242a24 3px 3.5px, #111411 4px 5px),
+        #111411;
+    box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .65), 0 2px 7px rgba(0, 0, 0, .24);
+    animation: musicVinylSpin 5s linear infinite;
+    will-change: transform;
+}
+.music-vinyl::before {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    inset: 0;
+    margin: auto;
+    border: 1px solid rgba(245, 224, 184, .72);
+    background: radial-gradient(circle at 35% 30%, #e1c59a 0, #b18a55 42%, #735634 100%);
+    box-shadow: 0 0 0 2px #171a17, 0 0 0 3px rgba(197, 171, 137, .55);
+}
+.music-vinyl::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    pointer-events: none;
+    background: conic-gradient(from 20deg, transparent 0 18%, rgba(255, 255, 255, .12) 21%, transparent 26% 57%, rgba(197, 171, 137, .1) 62%, transparent 68% 100%);
+    mix-blend-mode: screen;
+}
+@keyframes musicVinylSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
 
-        .music-detail-overlay {
-            padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
-            overscroll-behavior: contain;
-        }
-        .music-edit-panel {
-            box-shadow: 0 12px 36px rgba(0, 0, 0, .35), 0 0 3px rgba(197, 171, 137, .8);
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior: contain;
-        }
+.music-detail-overlay {
+    padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+    overscroll-behavior: contain;
+}
+.music-edit-panel {
+    box-shadow: 0 12px 36px rgba(0, 0, 0, .35), 0 0 3px rgba(197, 171, 137, .8);
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
 
-        /* 固定外框與翻轉透視；內容捲動仍由正反面面板處理 */
-        .music-detail-flip {
-            position: relative;
-            width: min(92vw, 440px);
-            height: min(85dvh, 720px);
-            min-height: 0;
-            -webkit-perspective: 1200px;
-            perspective: 1200px;
-        }
-        .music-detail-flip-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            min-height: 0;
-            -webkit-transform-style: preserve-3d;
-            transform-style: preserve-3d;
-            transition: -webkit-transform .55s cubic-bezier(.2, .75, .25, 1), transform .55s cubic-bezier(.2, .75, .25, 1);
-        }
-        .music-detail-flip.is-flipped .music-detail-flip-inner {
-            -webkit-transform: rotateY(180deg);
-            transform: rotateY(180deg);
-        }
+/* 固定外框與翻轉透視 */
+.music-detail-flip {
+    position: relative;
+    width: min(92vw, 440px);
+    height: min(85dvh, 720px);
+    min-height: 0;
+    -webkit-perspective: 1200px;
+    perspective: 1200px;
+    isolation: isolate;
+    border-radius: 26px;
+    filter: drop-shadow(0 16px 28px rgba(0, 0, 0, .72)) drop-shadow(0 3px 8px rgba(0, 0, 0, .55));
+}
+.music-detail-flip-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+    transition: -webkit-transform .55s cubic-bezier(.2, .75, .25, 1), transform .55s cubic-bezier(.2, .75, .25, 1);
+}
+.music-detail-flip.is-flipped .music-detail-flip-inner {
+    -webkit-transform: rotateY(180deg);
+    transform: rotateY(180deg);
+}
 
-        /* 正反面共用固定面板背景；避免 background-attachment: local */
-        .music-detail-face {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            box-sizing: border-box;
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
-            overflow-x: hidden;
-            overflow-y: auto;
-            overscroll-behavior-y: contain;
-            -webkit-overflow-scrolling: touch;
-            touch-action: pan-y;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            background-color: #16201a;
-            background-image:
-                radial-gradient(circle at 85% 15%, rgba(197, 171, 137, .15) 0%, rgba(197, 171, 137, .02) 50%, transparent 80%),
-                linear-gradient(145deg, #1e2a22 0%, #16201a 35%, #101612 70%, #0d120f 100%);
-            background-repeat: no-repeat;
-            background-attachment: scroll;
-            background-size: 100% 100%;
-            border: 1.5px solid rgba(197, 171, 137, .35);
-            border-radius: 24px;
-            padding: 40px;
-            box-shadow: 0 0 15px rgba(197, 171, 137, .1), inset 0 0 25px rgba(0, 0, 0, .85), inset 0 0 2px rgba(197, 171, 137, .25);
-        }
-        /* 強化典藏彈窗的「暗邊立體框」：不依賴 Tailwind shadow utility，兼顧 Safari / 加入主畫面模式 */
-        .music-detail-flip {
-            isolation: isolate;
-            border-radius: 26px;
-            filter: drop-shadow(0 16px 28px rgba(0, 0, 0, .72)) drop-shadow(0 3px 8px rgba(0, 0, 0, .55));
-        }
-        .music-detail-face {
-            border: 2px solid rgba(197, 171, 137, .42) !important;
-            border-radius: 26px !important;
-            background-color: #111812 !important;
-            background-image:
-                linear-gradient(90deg, rgba(0, 0, 0, .34) 0%, transparent 12%, transparent 88%, rgba(0, 0, 0, .38) 100%),
-                linear-gradient(180deg, rgba(0, 0, 0, .24) 0%, transparent 13%, transparent 84%, rgba(0, 0, 0, .42) 100%),
-                radial-gradient(ellipse at 50% 35%, rgba(54, 70, 57, .48) 0%, rgba(25, 36, 28, .22) 48%, rgba(5, 9, 6, .68) 100%),
-                linear-gradient(145deg, #202b23 0%, #16201a 42%, #0c110e 100%) !important;
-            background-repeat: no-repeat !important;
-            background-attachment: scroll !important;
-            background-size: 100% 100% !important;
-            box-shadow:
-                inset 0 0 0 1px rgba(236, 218, 181, .12),
-                inset 0 2px 5px rgba(255, 255, 255, .035),
-                inset 0 0 22px 8px rgba(0, 0, 0, .48),
-                inset 0 -16px 30px rgba(0, 0, 0, .36),
-                0 0 0 1px rgba(197, 171, 137, .16) !important;
-        }
-        .music-detail-face.music-detail-back {
-            background-image:
-                linear-gradient(90deg, rgba(0, 0, 0, .34) 0%, transparent 12%, transparent 88%, rgba(0, 0, 0, .38) 100%),
-                linear-gradient(180deg, rgba(0, 0, 0, .24) 0%, transparent 13%, transparent 84%, rgba(0, 0, 0, .42) 100%),
-                radial-gradient(ellipse at 50% 35%, rgba(54, 70, 57, .48) 0%, rgba(25, 36, 28, .22) 48%, rgba(5, 9, 6, .68) 100%),
-                linear-gradient(145deg, #293830 0%, #202923 50%, #101610 100%) !important;
-        }
+/* 正反面共用面板（已合併 3D 結構與精緻高光質感，無重複宣告） */
+.music-detail-face {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    
+    /* 視覺外觀與質感 */
+    border: 1px solid rgba(212, 185, 145, .55);
+    border-radius: 26px;
+    background-color: #16201a;
+    background-image:
+        radial-gradient(circle at 85% 15%, rgba(197, 171, 137, .18) 0%, rgba(197, 171, 137, .03) 45%, transparent 75%),
+        linear-gradient(90deg, rgba(0, 0, 0, .4) 0%, transparent 15%, transparent 85%, rgba(0, 0, 0, .4) 100%),
+        linear-gradient(180deg, rgba(0, 0, 0, .3) 0%, transparent 15%, transparent 85%, rgba(0, 0, 0, .4) 100%),
+        linear-gradient(145deg, #1e2a22 0%, #16201a 40%, #0d120f 100%);
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    background-size: 100% 100%;
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 235, 200, .25),
+        inset 0 2px 5px rgba(255, 255, 255, .05),
+        inset 0 0 22px 8px rgba(0, 0, 0, .48),
+        inset 0 -16px 30px rgba(0, 0, 0, .36),
+        0 0 5px 2px rgba(197, 171, 137, .22),
+        0 0 2px 1px rgba(236, 218, 181, .3);
+}
 
-        .music-detail-face.music-detail-front {
-            -webkit-transform: rotateY(0deg);
-            transform: rotateY(0deg);
-        }
-        .music-detail-face.music-detail-back {
-            background-image:
-                radial-gradient(circle at 85% 15%, rgba(197, 171, 137, .15) 0%, rgba(197, 171, 137, .02) 50%, transparent 80%),
-                linear-gradient(145deg, #293830 0%, #202923 50%, #161d15 100%);
-            -webkit-transform: rotateY(180deg);
-            transform: rotateY(180deg);
-        }
-        .music-detail-face::-webkit-scrollbar {
-            display: none;
-            width: 0;
-            height: 0;
-        }
-        .music-detail-face hr,
-        .music-detail-face .music-detail-divider {
-            border-color: rgba(197, 171, 137, .36) !important;
-        }
+/* 正面與背面各自的旋轉與背景微調 */
+.music-detail-face.music-detail-front {
+    -webkit-transform: rotateY(0deg);
+    transform: rotateY(0deg);
+}
+.music-detail-face.music-detail-back {
+    -webkit-transform: rotateY(180deg);
+    transform: rotateY(180deg);
+    background-image:
+        radial-gradient(circle at 15% 15%, rgba(197, 171, 137, .15) 0%, transparent 60%),
+        linear-gradient(145deg, #243329 0%, #1a261f 50%, #101612 100%);
+}
 
-        /* 翻面時停用背後一面的點擊，避免點擊穿透 */
-        .music-detail-flip:not(.is-flipped) .music-detail-back {
-            pointer-events: none !important;
-        }
-        .music-detail-flip.is-flipped .music-detail-front {
-            pointer-events: none !important;
-        }
+.music-detail-face::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+}
+.music-detail-face hr,
+.music-detail-face .music-detail-divider {
+    border-color: rgba(197, 171, 137, .36);
+}
 
-        @media (max-width: 640px) {
-            .music-detail-overlay {
-                padding-top: max(22px, env(safe-area-inset-top));
-                padding-bottom: max(16px, env(safe-area-inset-bottom));
-                align-items: center;
-                overflow-y: auto;
-            }
-            .music-detail-flip {
-                width: calc(100vw - 28px);
-                max-width: 100%;
-                height: min(82dvh, 720px);
-                max-height: calc(100dvh - max(38px, env(safe-area-inset-top)) - max(24px, env(safe-area-inset-bottom)));
-            }
-            .music-detail-face {
-                padding: 12px !important;
-            }
-        }
-        @media (min-width: 641px) and (max-width: 900px) {
-            .music-detail-flip {
-                width: min(94vw, 44rem);
-                max-width: 44rem;
-                height: min(86dvh, 760px);
-            }
-        }
-        @media (prefers-reduced-motion: reduce) {
-            .music-vinyl { animation-duration: 12s; }
-            .music-detail-flip-inner { transition-duration: .01ms; }
-        }
+/* 翻面時停用背後一面的點擊，避免點擊穿透 */
+.music-detail-flip:not(.is-flipped) .music-detail-back {
+    pointer-events: none;
+}
+.music-detail-flip.is-flipped .music-detail-front {
+    pointer-events: none;
+}
+
+@media (max-width: 640px) {
+    .music-detail-overlay {
+        padding-top: max(22px, env(safe-area-inset-top));
+        padding-bottom: max(16px, env(safe-area-inset-bottom));
+        align-items: center;
+        overflow-y: auto;
+    }
+    .music-detail-flip {
+        width: calc(100vw - 28px);
+        max-width: 100%;
+        height: min(82dvh, 720px);
+        max-height: calc(100dvh - max(38px, env(safe-area-inset-top)) - max(24px, env(safe-area-inset-bottom)));
+    }
+    .music-detail-face {
+        padding: 12px;
+    }
+}
+@media (min-width: 641px) and (max-width: 900px) {
+    .music-detail-flip {
+        width: min(94vw, 44rem);
+        max-width: 44rem;
+        height: min(86dvh, 760px);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .music-vinyl { animation-duration: 12s; }
+    .music-detail-flip-inner { transition-duration: .01ms; }
+}
 
         /* End Music Archive detail panel */
 
@@ -3945,7 +3927,7 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
             <div className={`music-detail-flip ${detailPage === 1 ? 'is-flipped' : ''}`} onTouchStart={e => { const t = e.touches && e.touches[0]; detailTouchStartRef.current = t ? { x: t.clientX, y: t.clientY } : null; detailTouchMovedRef.current = false; }} 
             onTouchMove={e => { const t = e.touches && e.touches[0]; const start = detailTouchStartRef.current; if (t && start && (Math.abs(t.clientY - start.y) > 8 || Math.abs(t.clientX - start.x) > 8)) detailTouchMovedRef.current = true; }} onClick={e => { e.stopPropagation(); if (detailTouchMovedRef.current) { detailTouchMovedRef.current = false; detailTouchStartRef.current = null; return; } if (e.target.closest('button, a, input, textarea, select')) return; setDetailPage(p => p === 0 ? 1 : 0); }} role="button" tabIndex={0} aria-label="點擊翻面查看收錄曲目" onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailPage(p => p === 0 ? 1 : 0); } }}>
             <div className="music-detail-flip-inner">
-                <div className="music-detail-face music-detail-front rounded-2xl border border-[#C5AB89]/70 shadow-lg p-3 text-[#EFF0EA] space-y-2" onClick={e => { if (e.target.closest('button')) e.stopPropagation(); }}>
+                <div className="music-detail-face music-detail-front rounded-2xl border border-[#C5AB89]/70 p-3 text-[#EFF0EA] space-y-2" onClick={e => { if (e.target.closest('button')) e.stopPropagation(); }}>
 
                     <div className="flex items-start justify-between gap-4 pb-3 border-b border-[#C5AB89]/35">
                         <div className="min-w-0 pl-1">

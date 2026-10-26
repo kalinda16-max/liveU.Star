@@ -1649,7 +1649,7 @@ const handleSaveMerchandise = (data) => {
                                     <div className="flex bg-[#161D15] p-0.5 rounded-lg border border-[#737C75]/40">
                                 <button 
                                    onClick={() => setSchedulePanel('music')} 
-                                   className={`px-2.5 py-1 rounded-md text-[11px] ${schedulePanel === 'music' ? 'bg-[#C5AB89] text-[#161D15] font-bold' : 'text-[#D2CABF]'}`}>音樂典藏
+                                   className={`px-2.5 py-1 rounded-md text-[11px] ${schedulePanel === 'music' ? 'bg-[#C5AB89] text-[#161D15] font-bold' : 'text-[#D2CABF]'}`}>音樂
                                 </button>
                                 <button 
                                    onClick={() => setSchedulePanel('merchandise')} 
@@ -3867,14 +3867,14 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                             </div>
 
                             {isExpanded && (
-                                <div className="bg-black/30 rounded-xl p-2.5 space-y-1.5 border border-white/5 text-xs">
+                                <div className="bg-black/30 rounded-xl p-2.5 space-y-1.5 border border-white/5 text-xs ">
                                     {item.tracks && item.tracks.map((tr, idx) => (
                                         <div key={idx} className="flex items-center justify-between gap-2 text-[11px] py-1.5 border-b border-white/5 last:border-0">
-                                            <div className="flex items-center gap-2 min-w-0">
+                                            <div className="flex items-center gap-2 min-w-0 pl-3">
                                                 <span className="font-mono text-[9px] text-[#C5AB89]">{String(idx + 1).padStart(2, '0')}</span>
                                                 <span className="font-medium text-[#EFF0EA] truncate">{tr.name}</span>
                                             </div>
-                                            <div className="flex items-center gap-2 shrink-0">
+                                            <div className="flex items-center gap-2 shrink-0 mr-3">
                                                 <span className="font-mono text-[9px] text-[#A3ADA5]">{tr.duration || ''}</span>
                                                 {tr.previewUrl ? (
     <div className="flex items-center gap-1 shrink-0">
@@ -4037,7 +4037,7 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                             </div>
                             <div>
                                 <div className="text-[10px] text-[#9EAAA0]">PRICE</div>
-                                <div className="mt-1 text-sm font-semibold tracking-wide text-[#E2CCAA] pl-2">NT$ {Number(detailItem.price||0).toLocaleString()}</div>
+                                <div className="mt-1 text-xs font-semibold tracking-wide text-[#E2CCAA] pl-2">NT$ {Number(detailItem.price||0).toLocaleString()}</div>
                             </div>
                             <div>
                                 <div className="text-[10px] text-[#9EAAA0]">FORMAT</div>
@@ -4083,12 +4083,12 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                                 const isCurrentTrack = playingPreview?.key === trackKey; 
                                 return (
                                     <div key={`${tr.name}-${i}`} className="flex items-center justify-between gap-2 py-2">
-                                        <div className="flex items-center gap-2 min-w-0">
+                                        <div className="flex items-center gap-2 min-w-0 pl-3">
                                             <span className="text-[10px] text-[#C5AB89] font-mono">{String(i+1).padStart(2,'0')}</span>
                                             <span className="text-sm truncate">{tr.name}</span>
                                         </div>
                                         {tr.previewUrl ? (
-                                            <div className="flex items-center gap-1.5 shrink-0">
+                                            <div className="flex items-center gap-1.5 mr-4 shrink-0">
                                                 <button 
                                                     type="button" 
                                                     title={`播放 ${tr.name}`} 

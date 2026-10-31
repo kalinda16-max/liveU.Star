@@ -4079,9 +4079,12 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                 {/* 背面 */}
                 <div className="music-detail-face music-detail-back">
                     <div className="music-detail-box p-3 text-[#EFF0EA]" onClick={e => { if (e.target.closest('button')) e.stopPropagation(); }}>
-                        <div className="flex items-center gap-2 mb-4 mt-4 pl-3">
-                            <img src="./image/icons/treasure-chest.png" alt="" className="w-4 h-4 object-contain" />
-                            <h3 className="font-black text-[#C5AB89]">收錄曲目</h3>
+                        <div className="flex items-center gap-2 mb-5 mt-5 pl-3">
+                            <img src="./image/icons/treasure-chest.png" alt="" className="w-8 h-8 object-contain" />
+                            <div className="flex flex-col">
+                                <h3 className="font-black text-[#C5AB89] leading-tight">收錄曲目</h3>
+                                <span className="text-[10px] text-[#C5AB89]/70 tracking-wider">Track List</span>
+                            </div>
                         </div>
                         <div className="space-y-1">
                             {(detailItem.tracks || []).length ? detailItem.tracks.map((tr,i)=>{ 

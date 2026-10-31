@@ -4369,9 +4369,9 @@ function AddMusicModal({ initialData, onSave, onDelete, onClose }) {
                                     <label className="text-[10px] font-bold text-[#C5AB89] block mb-0.5 ml-2">備註</label>
                                     <textarea value={notes} onChange={e => setNotes(e.target.value)} rows="2" placeholder="看你還忘了什麼" className="w-full resize-y bg-white/5 border border-[#C5AB89]/40 p-2 rounded-xl text-xs leading-relaxed"></textarea>
                                 </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-bold text-[#C5AB89] ml-2 block mb-0">專輯曲目</label>
-                                    <input type="url" value={itunesUrl} onChange={e => setItunesUrl(e.target.value)} placeholder="Apple Music" className="w-full bg-white/5 border border-[#C5AB89]/40 p-2 rounded-xl text-xs" />
+                                <div className="flex flex-col gap-0.5">
+                                    <label className="text-[10px] font-bold text-[#C5AB89] ml-2">專輯曲目</label>
+                                    <input type="url" value={itunesUrl} onChange={e => setItunesUrl(e.target.value)} placeholder="Apple Music" className="w-full bg-white/5 border border-[#C5AB89]/40 p-2 rounded-xl text-xs " />
                                     <button type="button" disabled={itunesLoading} onClick={fetchITunesTracks} className="w-full rounded-xl border border-[#C5AB89]/50 bg-[#C5AB89]/15 py-2 text-xs font-bold text-[#C5AB89] disabled:opacity-50">{itunesLoading ? '搜尋中…' : '自動搜尋並抓取曲目'}</button>
                                     {itunesMessage && <p className="text-[10px] text-[#D2CABF] leading-relaxed">{itunesMessage}</p>}
                                     {tracks.length > 0 && <div className="max-h-28 overflow-y-auto rounded-lg border border-white/10 p-2 text-[10px] text-[#D2CABF]">{tracks.map((tr,i)=><div key={`${tr.name}-${i}`} className="py-1 border-b border-white/5 last:border-0">{i+1}. {tr.name} {tr.duration ? `· ${tr.duration}` : ''}</div>)}</div>}

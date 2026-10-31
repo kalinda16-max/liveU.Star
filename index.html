@@ -3743,7 +3743,7 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
             </button>
 
             {/* 切換 CD / Digital */}
-            <div className="grid grid-cols-3 bg-[#232B25] p-1 rounded-xl border border-[#737C75]/30 gap-1 w-full">
+            <div className="grid grid-cols-3 bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] p-1 rounded-xl border border-[#737C75]/30 gap-1 w-full">
     <button 
         type="button"
         onClick={() => setMusicTypeFilter('all')} 
@@ -3752,18 +3752,12 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                 ? 'text-[#EFF0EA] border-[#C5AB89] shadow-[0_0_8px_rgba(197,171,137,0.4)] font-black' 
                 : 'bg-transparent text-[#D2CABF] border-transparent hover:text-[#EFF0EA] hover:bg-white/5'}`}>
 
-    <div className="flex items-center gap-2 pl-2 w-full overflow-hidden">
-    {/* 左側圖示 */}
+    <div className="flex items-center justify-center gap-1.5">
     <img 
         src="./image/icons/treasure01.png" 
         alt="CD" 
-        className="w-5 h-5 object-contain shrink-0 pointer-events-none" />
-    
-    {/* 右側文字：上下兩行、強制齊左、避免出框 */}
-    <div className="flex flex-col justify-center leading-tight text-left min-w-0">
-        <span className="text-xs font-bold text-[#C5AB89] tracking-wider truncate">全系列</span>
-        <span className="text-[9px] text-[#C5AB89]/70 tracking-widest uppercase truncate mt-0.5">Full Set</span>
-    </div>
+        className="w-4 h-4 object-contain shrink-0 pointer-events-none" />
+    <span className="text-xs font-bold text-[#D2CABF] tracking-wider leading-none">ALL</span>
 </div>
     </button>
     
@@ -3777,7 +3771,7 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
         }`}
     >
         <img src="./image/icons/music_1.png" alt="CD" className="w-4 h-4 object-contain shrink-0 self-center pointer-events-none" />
-        <span className="whitespace-nowrap leading-none inline-block">CD實體專輯</span>
+        <span className="whitespace-nowrap leading-none inline-block">CD or DVD</span>
     </button>
     
     <button 
@@ -3790,7 +3784,7 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
         }`}
     >
         <img src="./image/icons/live-streaming.png" alt="數位音源" className="w-4 h-4 object-contain shrink-0 self-center pointer-events-none" />
-        <span className="whitespace-nowrap leading-none inline-block">線上數位音源</span>
+        <span className="whitespace-nowrap leading-none inline-block">Digital Stream</span>
     </button>
 </div>
 

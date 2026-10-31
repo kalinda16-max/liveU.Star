@@ -346,6 +346,8 @@
     box-shadow: 0 12px 36px rgba(0, 0, 0, .35), 0 0 3px rgba(197, 171, 137, .8);
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
+    transform: scale(.88);
+    transform-origin: center center;
 }
 
 /* 固定外框與翻轉透視 */
@@ -633,10 +635,15 @@
                 if (clean.includes('台') || clean.includes('tw') || clean.includes('taiwan')) return { code: 'TW', name: '台灣', lat: 25.033, lng: 121.565 };
                 if (clean.includes('日') || clean.includes('jp') || clean.includes('japan')) return { code: 'JP', name: '日本', lat: 35.676, lng: 139.650 };
                 if (clean.includes('韓') || clean.includes('kr') || clean.includes('korea')) return { code: 'KR', name: '南韓', lat: 37.566, lng: 126.978 };
-                if (clean.includes('美') || clean === 'us' || clean.includes('america')) return { code: 'US', name: '美國', lat: 40.712, lng: -74.006 };
+                if (clean.includes('美') || clean === 'us' || clean === 'usa' || clean.includes('america') || clean.includes('united states')) return { code: 'US', name: '美國', lat: 40.712, lng: -74.006 };
+                if (clean.includes('香港') || clean === 'hk' || clean.includes('hong kong')) return { code: 'HK', name: '香港', lat: null, lng: null };
+                if (clean.includes('中國') || clean === 'cn' || clean === 'china') return { code: 'CN', name: '中國', lat: null, lng: null };
+                if (clean.includes('泰') || clean === 'th' || clean.includes('thailand')) return { code: 'TH', name: '泰國', lat: null, lng: null };
+                if (clean.includes('英') || clean === 'gb' || clean === 'uk' || clean.includes('united kingdom')) return { code: 'GB', name: '英國', lat: null, lng: null };
+                if (clean.includes('澳') || clean === 'au' || clean.includes('australia')) return { code: 'AU', name: '澳大利亞', lat: null, lng: null };
                 if (clean.includes('新加坡') || clean === 'sg' || clean.includes('singapore')) return { code: 'SG', name: '新加坡', lat: 1.3521, lng: 103.8198 };
                 if (clean.includes('馬來西亞') || clean === 'my' || clean.includes('malaysia')) return { code: 'MY', name: '馬來西亞', lat: 3.139, lng: 101.6869 };
-                return { code: 'OTHER', name: countryInput || '台灣', lat: 25.033, lng: 121.565 };
+                return { code: 'OTHER', name: countryInput || '台灣', lat: null, lng: null };
             }
 
             function parseSpotifyEmbedUrl(urlOrUri) {
@@ -1832,6 +1839,7 @@ const handleSaveMerchandise = (data) => {
                 const [doorTime, setDoorTime] = useState(initialData?.doorTime || '');
 
                 const [itunesUrl, setItunesUrl] = useState(initialData?.itunesUrl || initialData?.spotifyUrl || '');
+                const [spotifyUrl, setSpotifyUrl] = useState(initialData?.spotifyUrl || initialData?.itunesUrl || '');
                 const [tracks, setTracks] = useState(initialData?.tracks || []);
                 const [itunesLoading, setItunesLoading] = useState(false);
                 const [itunesMessage, setItunesMessage] = useState('');
@@ -1883,16 +1891,25 @@ const handleSaveMerchandise = (data) => {
                 };
 
                 const handleVenueChange = (e) => {
-                    const val = e.target.value; 
+                    const val = e.target.value;
                     setVenue(val);
-                    const matchedKey = Object.keys(venueDb).find(k => k.toLowerCase().trim() === val.toLowerCase().trim());
+                    const normalizedVenue = val.toLowerCase().trim();
+                    const matchedKey = Object.keys(venueDb).find(
+                        k => k.toLowerCase().trim() === normalizedVenue
+                    );
+
                     if (matchedKey) {
                         const m = venueDb[matchedKey];
-                        setVenueAddress(m.address); 
-                        setCity(m.city); 
-                        setCountryName(m.country);
-                        setLat(m.lat);
-                        setLng(m.lng);
+                        setVenueAddress(m.address || '');
+                        setCity(m.city || '');
+                        setCountryName(m.country || '');
+                        setLat(Number.isFinite(Number(m.lat)) ? Number(m.lat) : null);
+                        setLng(Number.isFinite(Number(m.lng)) ? Number(m.lng) : null);
+                    } else {
+                        // 自訂場館不沿用上一個場館的座標，避免地圖標記跑位。
+                        setVenueAddress('');
+                        setLat(null);
+                        setLng(null);
                     }
                 };
 
@@ -1900,8 +1917,8 @@ const handleSaveMerchandise = (data) => {
                     e.preventDefault();
                     const resolved = resolveCountryInfo(countryName);
 
-                    const finalLat = lat !== null ? Number(lat) : resolved.lat;
-                    const finalLng = lng !== null ? Number(lng) : resolved.lng;
+                    const finalLat = lat !== null && lat !== '' && Number.isFinite(Number(lat)) ? Number(lat) : null;
+                    const finalLng = lng !== null && lng !== '' && Number.isFinite(Number(lng)) ? Number(lng) : null;
 
                     onSave({
                         id: initialData?.id || null, title, type, date, time, doorTime,
@@ -1914,7 +1931,7 @@ const handleSaveMerchandise = (data) => {
                     onClose();
                 };
 
-return (
+return ReactDOM.createPortal((
         <>
             <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-4 pt-14 pb-20 z-[999999] overflow-hidden">
                 <div className="bg-[#232B25]/90 backdrop-blur-2xl text-[#EFF0EA] w-full max-w-sm rounded-3xl p-4 shadow-[0_0_30px_rgba(197,171,137,0.2)] border border-[#C5AB89]/40 space-y-3 max-h-[620px] flex flex-col">
@@ -2121,9 +2138,8 @@ return (
                 />
             )}
         </>
-    );
+    ), document.body);
 }
-
 function AddScheduleModal({ initialData, onSave, onDelete, onClose }) {
                 const [title, setTitle] = useState(initialData?.title || '');
                 const [organizer, setOrganizer] = useState(initialData?.organizer || '');

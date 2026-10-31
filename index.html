@@ -1893,9 +1893,22 @@ const handleSaveMerchandise = (data) => {
                 const handleVenueChange = (e) => {
                     const val = e.target.value;
                     setVenue(val);
-                    const normalizedVenue = val.toLowerCase().trim();
-                    const matchedKey = Object.keys(venueDb).find(
-                        k => k.toLowerCase().trim() === normalizedVenue
+                    // 場館名稱比對：支援 TICC、台北國際會議中心等常見寫法，
+                    // 並忽略大小寫、空白與一般標點差異。
+                    const normalizeVenueName = (name) => (name || '')
+                        .toLowerCase()
+                        .replace(/[\s\-_.()（）【】［］:：]/g, '')
+                        .trim();
+                    const normalizedVenue = normalizeVenueName(val);
+                    const venueAliases = {
+                        'ticc': ['ticc台北國際會議中心', '台北國際會議中心', '臺北國際會議中心'],
+                        '台北國際會議中心': ['ticc台北國際會議中心', '台北國際會議中心', '臺北國際會議中心'],
+                        '臺北國際會議中心': ['ticc台北國際會議中心', '台北國際會議中心', '臺北國際會議中心']
+                    };
+                    const aliases = venueAliases[normalizedVenue] || [];
+                    const matchedKey = Object.keys(venueDb).find(k =>
+                        normalizeVenueName(k) === normalizedVenue ||
+                        aliases.some(alias => normalizeVenueName(k) === normalizeVenueName(alias))
                     );
 
                     if (matchedKey) {
@@ -2417,10 +2430,12 @@ function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }
                 const visited = useMemo(() => Object.keys(countryMap), [countryMap]);
                 const venueCounts = useMemo(() => {
                     const counts = {};
+                    const normalizeCountVenue = (name) => (name || '').toLowerCase().replace(/[\s\-_.()（）【】［］:：]/g, '').replace(/臺/g, '台');
                     events.forEach(e => {
-                        if (e.status === 'cancelled') return;
+                        if (e.status === 'cancelled' || e.status === 'wishlist') return;
                         if (e.venue) {
-                            counts[e.venue] = (counts[e.venue] || 0) + 1;
+                            const key = normalizeCountVenue(e.venue);
+                            counts[key] = (counts[key] || 0) + 1;
                         }
                     });
                     return counts;
@@ -2593,24 +2608,41 @@ function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }
                             .addTo(trajectoryLayerRef.current);
                     }
 
+                    // 場館標記依「標準化場館名稱」合併，避免同一場館因大小寫、台/臺、TICC 前綴或舊座標而分散。
+                    const normalizeMapVenue = (name) => (name || '')
+                        .toLowerCase()
+                        .replace(/[\s\-_.()（）【】［］:：]/g, '')
+                        .replace(/臺/g, '台');
+                    const getCanonicalVenue = (name) => {
+                        const n = normalizeMapVenue(name);
+                        if (n.includes('ticc') || n.includes('台北國際會議中心')) return 'ticc台北國際會議中心';
+                        return n;
+                    };
+                    const groupedMarkers = new Map();
                     events.forEach((evt) => {
-                            if (evt.status === 'cancelled') return;
-                        const latVal = parseFloat(evt.lat);
-                        const lngVal = parseFloat(evt.lng);
+                        if (evt.status === 'cancelled' || evt.status === 'wishlist') return;
+                        const venueKey = getCanonicalVenue(evt.venue);
+                        const isTicc = venueKey === 'ticc台北國際會議中心';
+                        const latVal = isTicc ? 25.03352715086782 : parseFloat(evt.lat);
+                        const lngVal = isTicc ? 121.56088925106721 : parseFloat(evt.lng);
+                        if (!Number.isFinite(latVal) || !Number.isFinite(lngVal)) return;
+                        const groupKey = venueKey || `${latVal.toFixed(6)},${lngVal.toFixed(6)}`;
+                        if (!groupedMarkers.has(groupKey)) {
+                            groupedMarkers.set(groupKey, { lat: latVal, lng: lngVal, count: 0, venue: evt.venue || '' });
+                        }
+                        groupedMarkers.get(groupKey).count += 1;
+                    });
 
-                        if (isNaN(latVal) || isNaN(lngVal)) return;
- 
-                        const visitCount = evt.venue ? (venueCounts[evt.venue] || 1) : 1;
-
-                        const marker = L.marker([latVal, lngVal], {
-                            icon: L.divIcon({ 
-                                className: 'custom-div-icon', 
-                                html: `<div class="custom-numeric-marker w-7 h-7 flex items-center justify-center">${visitCount}</div>`, 
-                                iconSize: [28, 28], 
-                                iconAnchor: [14, 14] 
+                    groupedMarkers.forEach(({ lat, lng, count, venue }) => {
+                        const marker = L.marker([lat, lng], {
+                            icon: L.divIcon({
+                                className: 'custom-div-icon',
+                                html: `<div class="custom-numeric-marker w-7 h-7 flex items-center justify-center">${count}</div>`,
+                                iconSize: [28, 28],
+                                iconAnchor: [14, 14]
                             })
                         });
-                        
+                        if (venue) marker.bindTooltip(`${venue} · ${count} 場`, { direction: 'top' });
                         markersLayerRef.current.addLayer(marker);
                     });
                 }, [events, venueCounts]);

@@ -3753,9 +3753,11 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                 : 'bg-transparent text-[#D2CABF] border-transparent hover:text-[#EFF0EA] hover:bg-white/5'}`}>
 
     <div className="flex items-center gap-1.5 transform -translate-x-1">
-        <img src="./image/icons/treasure01.png" alt="CD" className="w-4 h-4 object-contain shrink-0 self-center pointer-events-none" />
-        <span className="whitespace-nowrap leading-none inline-block">Full Collection</span>
-    </div>
+    <img src="./image/icons/treasure01.png" alt="CD" className="w-4 h-4 object-contain shrink-0 self-center pointer-events-none" />
+    <span className="whitespace-nowrap leading-none inline-block font-bold">
+        完整收藏 <span className="text-[9px] opacity-70 font-normal">COLLECTION</span>
+    </span>
+</div>
     </button>
     
     <button 

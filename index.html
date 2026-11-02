@@ -1447,7 +1447,7 @@ function BackupModal({ events, schedules, merchandiseLogs, userProfile, onClose,
                         book: activeEvents.filter(e => e.type === 'book').length,
                         drama: activeEvents.filter(e => e.type === 'drama').length,
                     };
-                    const uniqueArtistsCount = new Set(activeEvents.map(e => e.artist).filter(Boolean)).size;
+                    const uniqueArtistsCount = new Set(activeEvents.filter(e => e.type === 'concert').map(e => e.artist).filter(Boolean)).size;
                     return {
                         totalEvents: activeEvents.length,
                         attendedCount: attended.length,
@@ -4682,7 +4682,8 @@ function StatsSection({ stats, events }) {
         const counts = {};
         const avatarMap = {};
         events.forEach(e => {
-            if (e.status === 'cancelled') return;
+            // 藝人次數排名只統計「演唱會」分類，排除其他藝文分類與已取消紀錄。
+            if (e.status === 'cancelled' || e.type !== 'concert') return;
             if (e.artist) {
                 counts[e.artist] = (counts[e.artist] || 0) + 1;
                 if (e.coverImg && !avatarMap[e.artist]) {

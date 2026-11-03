@@ -3839,13 +3839,13 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                 return matchType && matchArtist && matchSearch;
             })
             .sort((a, b) => {
-                // 只依發行日期由舊到新；沒有有效發行日期的資料排在最後，不改用購買日期代替。
+                // 依發行日期由新到舊；沒有有效發行日期的資料排在最後，不改用購買日期代替。
                 const dateA = toReleaseDateValue(a.releaseDate || a.release_date);
                 const dateB = toReleaseDateValue(b.releaseDate || b.release_date);
                 if (dateA === null && dateB !== null) return 1;
                 if (dateA !== null && dateB === null) return -1;
                 if (dateA === null && dateB === null) return 0;
-                return dateA - dateB;
+                return dateB - dateA;
             });
     }, [musicLogs, musicTypeFilter, selectedArtist, searchQuery]);
 

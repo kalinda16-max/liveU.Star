@@ -3804,9 +3804,29 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
     }, [musicLogs]);
 
     const filteredMusic = useMemo(() => {
-        const toDateValue = (value) => {
-            if (!value) return null;
-            const timestamp = Date.parse(String(value).trim());
+        // 將使用者輸入的發行日期正規化；可辨識 2004.07.14 Release、
+        // 2004-07-14、2004/07/14、2004年7月14日，以及 YYYY-MM / YYYY 格式。
+        const toReleaseDateValue = (value) => {
+            if (value === null || value === undefined) return null;
+            let raw = String(value).trim();
+            if (!raw) return null;
+
+            // 移除日期後方的 Release / 發行 等文字，不讓文字尾綴破壞日期解析。
+            raw = raw.replace(/\s*(?:release(?:\s*date)?|發行日期|發行)\s*$/i, '').trim();
+            const match = raw.match(/^(\d{4})\s*(?:年|[.\-/])\s*(\d{1,2})(?:\s*(?:月|[.\-/])\s*(\d{1,2})\s*日?)?$/)
+                || raw.match(/^(\d{4})(?:年)?$/);
+
+            if (match) {
+                const year = Number(match[1]);
+                const month = match[2] ? Number(match[2]) : 1;
+                const day = match[3] ? Number(match[3]) : 1;
+                const date = new Date(Date.UTC(year, month - 1, day));
+                // 避免 2004.02.31 這類不存在的日期被自動進位。
+                if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+                return Date.UTC(year, month - 1, day);
+            }
+
+            const timestamp = Date.parse(raw);
             return Number.isFinite(timestamp) ? timestamp : null;
         };
 
@@ -3819,23 +3839,13 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                 return matchType && matchArtist && matchSearch;
             })
             .sort((a, b) => {
-                // 先依發行日期由舊到新；沒有發行日期時以購買日期作為排序依據。
-                const dateA = toDateValue(a.releaseDate || a.release_date) ?? toDateValue(a.purchaseDate || a.purchase_date);
-                const dateB = toDateValue(b.releaseDate || b.release_date) ?? toDateValue(b.purchaseDate || b.purchase_date);
-
-                // 沒有任何日期的資料固定排在最後。
+                // 只依發行日期由舊到新；沒有有效發行日期的資料排在最後，不改用購買日期代替。
+                const dateA = toReleaseDateValue(a.releaseDate || a.release_date);
+                const dateB = toReleaseDateValue(b.releaseDate || b.release_date);
                 if (dateA === null && dateB !== null) return 1;
                 if (dateA !== null && dateB === null) return -1;
-                if (dateA !== null && dateB !== null && dateA !== dateB) return dateA - dateB;
-
-                // 發行日期相同時，再依購買日期由舊到新。
-                const purchaseA = toDateValue(a.purchaseDate || a.purchase_date);
-                const purchaseB = toDateValue(b.purchaseDate || b.purchase_date);
-                if (purchaseA === null && purchaseB !== null) return 1;
-                if (purchaseA !== null && purchaseB === null) return -1;
-                if (purchaseA !== null && purchaseB !== null && purchaseA !== purchaseB) return purchaseA - purchaseB;
-
-                return 0;
+                if (dateA === null && dateB === null) return 0;
+                return dateA - dateB;
             });
     }, [musicLogs, musicTypeFilter, selectedArtist, searchQuery]);
 

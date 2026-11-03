@@ -3813,6 +3813,33 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
         });
     }, [musicLogs, musicTypeFilter, selectedArtist, searchQuery]);
 
+    // 音樂典藏依「發行日期」由最舊到最新排列；未填或格式無法辨識的日期放在最後。
+    const sortedFilteredMusic = useMemo(() => {
+        const getReleaseDateValue = (value) => {
+            const raw = String(value || '').trim();
+            if (!raw) return Number.POSITIVE_INFINITY;
+
+            // 支援 YYYY、YYYY-MM、YYYY-MM-DD，以及以 / 或 . 分隔的日期。
+            const normalized = raw.replace(/[/.]/g, '-');
+            const parts = normalized.match(/^(\d{4})(?:-(\d{1,2}))?(?:-(\d{1,2}))?$/);
+            if (parts) {
+                const year = Number(parts[1]);
+                const month = Number(parts[2] || 1);
+                const day = Number(parts[3] || 1);
+                const timestamp = Date.UTC(year, month - 1, day);
+                return Number.isFinite(timestamp) ? timestamp : Number.POSITIVE_INFINITY;
+            }
+
+            const timestamp = Date.parse(raw);
+            return Number.isFinite(timestamp) ? timestamp : Number.POSITIVE_INFINITY;
+        };
+
+        return filteredMusic
+            .map((item, index) => ({ item, index, dateValue: getReleaseDateValue(item.releaseDate || item.release_date) }))
+            .sort((a, b) => (a.dateValue - b.dateValue) || (a.index - b.index))
+            .map(entry => entry.item);
+    }, [filteredMusic]);
+
     const totalValue = useMemo(() => {
         return filteredMusic.reduce((sum, m) => sum + (Number(m.price) || 0), 0);
     }, [filteredMusic]);
@@ -3896,7 +3923,7 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
 
             {/* 專輯卡片 */}
             <div className="space-y-3">
-                {filteredMusic.map((item) => {
+                {sortedFilteredMusic.map((item) => {
                     const isPlaying = playingCdId === item.id;
                     const isExpanded = expandedTrackId === item.id;
 

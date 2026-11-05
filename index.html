@@ -2451,27 +2451,25 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
                     </div>
 
                     {/* 2. 中間資訊區：完全融入外框，不使用內嵌卡片 */}
-                    <div className="px-5 pt-3 pb-5 space-y-4 overflow-y-auto overflow-x-hidden flex-1 min-h-0 text-xs">
+                    <div className="px-5 pt-3 pb-5 space-y-3.5 overflow-y-auto overflow-x-hidden flex-1 min-h-0 text-xs">
 
                         {/* 演出藝人 / 主辦單位 */}
                         <div className="grid grid-cols-2 gap-x-5">
 
-                            <div className="min-w-0">
-                                <span className="block text-[10px] tracking-wider text-[#A5B0A5] uppercase mb-0.5">
+                            <div className="min-w-0 flex flex-col gap-0">
+                                <span className="text-[10px] tracking-wider text-[#A5B0A5] uppercase">
                                     ARTIST
                                 </span>
-
-                                <p className="text-[9px] text-[#EFF0EA] break-words">
+                                <p className="text-[11px] text-[#EFF0EA] break-words">
                                     {event.artist || '未填寫'}
                                 </p>
                             </div>
 
-                            <div className="min-w-0">
-                                <span className="block text-[10px] tracking-wider text-[#A5B0A5] uppercase mb-0.5">
+                            <div className="min-w-0 flex flex-col gap-0">
+                                <span className="text-[10px] tracking-wider text-[#A5B0A5] uppercase">
                                     ORGANIZER
                                 </span>
-
-                                <p className="text-[9px] text-[#EFF0EA] break-words">
+                                <p className="text-[11px] text-[#EFF0EA] break-words">
                                     {event.organizer || '未填寫'}
                                 </p>
                             </div>
@@ -2480,50 +2478,50 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
 
                         {/* 演出日期 / 票價 */}
                         <div className="grid grid-cols-2 gap-x-5">
-                            <div className="min-w-0">
-                                <span className="block text-[10px] tracking-wider text-[#A5B0A5] uppercase mb-0.5">EVENT DATE</span>
-                                <p className="text-[9px] text-[#EFF0EA] font-mono">{event.date || '未填寫'}</p>
+                            <div className="min-w-0 flex flex-col gap-0">
+                                <span className="text-[10px] tracking-wider text-[#A5B0A5] uppercase">EVENT DATE</span>
+                                <p className="text-[11px] text-[#EFF0EA] font-mono">{event.date || '未填寫'}</p>
                             </div>
-                            <div className="min-w-0">
-                                <span className="block text-[10px] tracking-wider text-[#A5B0A5] uppercase mb-0.5">PRICE</span>
-                                <p className="text-[9px] text-[#E2C9A1] font-semibold">NT$ {Number(event.cost || 0).toLocaleString()}</p>
+                            <div className="min-w-0 flex flex-col gap-0">
+                                <span className="text-[10px] tracking-wider text-[#A5B0A5] uppercase">PRICE</span>
+                                <p className="text-[11px] text-[#E2C9A1] font-semibold">NT$ {Number(event.cost || 0).toLocaleString()}</p>
                             </div>
                         </div>
 
                         {/* 入場時間 / 開演時間 */}
                         <div className="grid grid-cols-2 gap-x-5">
-                            <div>
-                                <span className="block text-[10px] tracking-wider text-[#A5B0A5] uppercase mb-0.5">DOOR TIME</span>
-                                <p className="text-[9px] text-[#EFF0EA]">{event.doorTime || '未填寫'}</p>
+                            <div className="flex flex-col gap-0">
+                                <span className="text-[10px] tracking-wider text-[#A5B0A5] uppercase">DOOR TIME</span>
+                                <p className="text-[11px] text-[#EFF0EA]">{event.doorTime || '未填寫'}</p>
                             </div>
-                            <div>
-                                <span className="block text-[10px] tracking-wider text-[#A5B0A5] uppercase mb-0.5">START TIME</span>
-                                <p className="text-[9px] text-[#EFF0EA]">{event.time || '未填寫'}</p>
+                            <div className="flex flex-col gap-0">
+                                <span className="text-[10px] tracking-wider text-[#A5B0A5] uppercase">START TIME</span>
+                                <p className="text-[11px] text-[#EFF0EA]">{event.time || '未填寫'}</p>
                             </div>
                         </div>
 
                         {/* 座位資訊 */}
                         {event.detailSeat && (
-                            <div>
-                                <span className="block text-[10px] tracking-wider text-[#A5B0A5] uppercase mb-0.5">SEAT INFORMATION</span>
-                                <p className="text-[9px] text-[#EFF0EA] break-words">{event.detailSeat}</p>
+                            <div className="flex flex-col gap-0">
+                                <span className="text-[10px] tracking-wider text-[#A5B0A5] uppercase">SEAT INFORMATION</span>
+                                <p className="text-[11px] text-[#EFF0EA] break-words">{event.detailSeat}</p>
                             </div>
                         )}
 
                         {/* 場館資訊 */}
-                       <div>
-                            <div className="flex items-baseline gap-2 mb-1">
+                        <div className="flex flex-col gap-0">
+                            <div className="flex items-baseline gap-2">
                                 <span className="text-[10px] tracking-wider text-[#A5B0A5] uppercase">VENUE</span>
                                 <span className="text-[10px] text-[#E2C9A1]">{event.countryName || '台灣'}</span>
                             </div>
-                            <p className="text-[9px] text-[#EFF0EA] break-words">{event.venue || '未填寫'}</p>
-                            <p className="text-[8px] text-[#A5B0A5] mt-1 break-words">{event.venueAddress || ''}</p>
+                            <p className="text-[11px] text-[#EFF0EA] break-words">{event.venue || '未填寫'}</p>
+                            <p className="text-[9px] text-[#A5B0A5] mt-0.5 break-words">{event.venueAddress || ''}</p>
                         </div>
 
                         {/* Spotify 音樂預覽 */}
                         {spotifyEmbed && (
-                            <div>
-                                <span className="block text-[10px] tracking-wider text-[#A5B0A5] mb-0.5">MUSIC PREVIEW</span>
+                            <div className="flex flex-col gap-1">
+                                <span className="text-[10px] tracking-wider text-[#A5B0A5] uppercase">MUSIC PREVIEW</span>
                                 <iframe
                                     src={spotifyEmbed}
                                     width="100%"
@@ -2539,16 +2537,16 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
 
                         {/* 心得筆記 */}
                         {event.notes && (
-                            <div>
-                                <span className="block text-[10px] tracking-wider text-[#A5B0A5] mb-0.5">NOTES</span>
-                                <p className="text-[9px] leading-relaxed text-[#EFF0EA] whitespace-pre-wrap break-words">{event.notes}</p>
+                            <div className="flex flex-col gap-0">
+                                <span className="text-[10px] tracking-wider text-[#A5B0A5] uppercase">NOTES</span>
+                                <p className="text-[11px] leading-relaxed text-[#EFF0EA] whitespace-pre-wrap break-words">{event.notes}</p>
                             </div>
                         )}
 
                         {/* 補充照片 */}
                         {extraImgs.length > 0 && (
-                            <div>
-                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] mb-0.5">GALLERY</span>
+                            <div className="flex flex-col gap-1.5">
+                                <span className="text-[10px] tracking-wider text-[#A5B0A5] uppercase">GALLERY</span>
                                 <div className="grid grid-cols-2 gap-2">
                                     {extraImgs.map((img, idx) => (
                                         <div

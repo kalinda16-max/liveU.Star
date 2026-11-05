@@ -487,7 +487,63 @@
     .music-detail-flip-inner { transition-duration: .01ms; }
 }
 
-        /* End Music Archive detail panel */
+        
+
+/* =========================================================
+   演出紀錄詳細面板
+   單一金色外框，不建立內嵌框線
+   ========================================================= */
+
+.concert-detail-box {
+    position: relative;
+    width: 100%;
+    max-width: 24rem;
+    max-height: 75vh;
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    border: 1px solid rgba(252, 159, 77, .42);
+    border-radius: 26px;
+
+    background-color: #111812;
+    background-image:
+        linear-gradient(90deg, rgba(0, 0, 0, .34) 0%, transparent 12%, transparent 88%, rgba(0, 0, 0, .38) 100% ),
+        linear-gradient(180deg, rgba(0, 0, 0, .24) 0%, transparent 15%, transparent 84%, rgba(0, 0, 0, .42) 100% ),
+        radial-gradient(ellipse at 50% 35%, rgba(54, 70, 57, .48) 0%, rgba(25, 36, 28, .22) 48%, rgba(5, 9, 6, .68) 100% ),
+        linear-gradient(145deg, #202b23 0%, #16201a 42%, #0c110e 100% );
+
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+
+    box-shadow:
+        inset 0 0 0 1px rgba(200, 140, 80, .15),
+        inset 0 1px 0 0 rgba(200, 140, 80, .45),     /* 無模糊的實線 1 */
+        inset 0 1px 0 0 rgba(255, 215, 160, .30),    /* 無模糊的實線 2 */
+        inset 0 1px 0 0 rgba(255, 215, 160, .90),
+        0 0 6px rgba(224, 168, 107, .5);
+}
+
+/* 內層透明排版容器 */
+.concert-detail-content {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+
 
         /* 1. 基礎黑膠樣式：使用獨立的 translate（平移）與 rotate（旋轉）屬性，互不干擾！ */
 .vinyl-disc {
@@ -2277,173 +2333,303 @@ function AddScheduleModal({ initialData, onSave, onDelete, onClose }) {
                 );
             }
 
+
+
+
 function EventDetailModal({ event, onClose, onDelete, onEdit }) {
     useEffect(() => {
         if (window.lucide) {
-            try { window.lucide.createIcons(); } catch (e) {}
+            try {
+                window.lucide.createIcons();
+            } catch (e) {}
         }
     }, [event]);
 
     if (!event) return null;
+
     const cat = CATEGORIES[event.type] || CATEGORIES.concert;
     const spotifyEmbed = parseSpotifyEmbedUrl(event.spotifyUrl);
 
+    const extraImgs = Array.isArray(event.extraImgs)
+        ? event.extraImgs
+        : [];
+
     return (
         <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-4 pt-14 pb-20 z-[999999] overflow-hidden">
-            <style>{`
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 5px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: #232B25;
-                    border-radius: 9999px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #737C75;
-                    border-radius: 9999px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: #737C75;
-                }
-            `}</style>
 
-            {/* Apple 晶透玻璃 Outer Shell */}
-            <div className="w-full max-w-sm my-auto rounded-3xl bg-gradient-to-b from-[#1E2024]/85 via-[#141517]/85 to-[#0A0B0C]/85 backdrop-blur-2xl text-[#EFF0EA] border border-[#E2C9A1]/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),inset_0_1px_0_rgba(0,0,0,0.4),0_3px_8px_rgba(0,0,0,0.85),0_0_5px_rgba(226,201,161,0.80),0_0_5px_rgba(226,201,161,0.70)] overflow-hidden flex flex-col max-h-[75vh]">
+            {/* 唯一外框：演出紀錄金色漸層面板 */}
+            <div className="concert-detail-box w-full max-w-sm">
 
-                {/* 1. 封面圖區 */}
-                <div className="relative h-48 bg-[#1F2023]/40 shrink-0 overflow-hidden flex items-center justify-center border-b border-[#E2C9A1]/20">
-                    {event.coverImg ? (
-                        <img src={event.coverImg} alt={event.title} className="w-full h-full object-cover" />
-                    ) : (
-                        <div className="w-full h-full bg-[#1A1A1A]/20" />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#141517] via-[#141517]/50 to-transparent flex items-end p-4 pointer-events-none">
-                        <div>
-                            {/* ✨ 加回分類標籤與圖示 */}
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${cat.badgeBg} inline-flex items-center gap-1 mb-1 shadow`}>
-                                <CategoryIcon cat={cat} sizeClass="w-3 h-3" />
-                                {cat.label}
-                            </span>
-                            <h2 className="text-white font-black text-base leading-snug drop-shadow">{event.title}</h2>
-                        </div>
-                    </div>
-                </div>
+                <div className="concert-detail-content text-[#EFF0EA]">
 
-                {/* 2. 內容滾動區 */}
-                <div className="p-4 space-y-3 overflow-y-auto flex-1 text-xs custom-scrollbar">
-                    
-                    {/* 第一組：演出藝人 & 主辦單位 */}
-                    <div className="grid grid-cols-2 gap-2 bg-gradient-to-b from-[#E2C9A1]/15 via-[#E2C9A1]/5 to-transparent backdrop-blur-xl p-3.5 rounded-2xl border border-[#E2C9A1]/30 shadow-[0_0_5px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.5)] min-w-0">
-                        <div className="min-w-0">
-                            <span className="text-[10px] text-[#C5AB89] font-bold block">演出藝人</span>
-                            <p className="font-bold text-[#EADDC9] break-words">{event.artist || '未填寫'}</p>
-                        </div>
-                        <div className="min-w-0">
-                            <span className="text-[10px] text-[#C5AB89] font-bold block">主辦單位</span>
-                            <p className="font-bold text-[#EADDC9] break-words whitespace-normal leading-relaxed">{event.organizer || '未填寫'}</p>
-                        </div>
-                    </div>
+                    <style>{`
+                        .concert-detail-scroll::-webkit-scrollbar {
+                            width: 4px;
+                        }
 
-                    {/* 第二組：演出日期 & 票價花費 */}
-                    <div className="grid grid-cols-2 gap-2 bg-gradient-to-b from-[#E2C9A1]/15 via-[#E2C9A1]/5 to-transparent backdrop-blur-xl p-3.5 rounded-2xl border border-[#E2C9A1]/30 shadow-[0_0_5px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.5)]">
-                        <div>
-                            <span className="text-[10px] text-[#C5AB89] font-bold block">演出日期</span>
-                            <span className="font-mono font-bold text-[#EADDC9]">{event.date}</span>
-                        </div>
-                        <div>
-                            <span className="text-[10px] text-[#C5AB89] font-bold block">票價花費</span>
-                            <span className="font-mono font-bold text-[#EADDC9]">NT$ {Number(event.cost || 0).toLocaleString()}</span>
-                        </div>
-                    </div>
+                        .concert-detail-scroll::-webkit-scrollbar-track {
+                            background: transparent;
+                        }
 
-                    {/* 第三組：入場時間 & 開演時間 */}
-                    <div className="grid grid-cols-2 gap-2 bg-gradient-to-b from-[#E2C9A1]/15 via-[#E2C9A1]/5 to-transparent backdrop-blur-xl p-3.5 rounded-2xl border border-[#E2C9A1]/30 shadow-[0_0_5px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.5)]">
-                        <div>
-                            <span className="text-[10px] text-[#C5AB89] font-bold block">入場時間</span>
-                            <span className="font-mono font-bold text-[#EADDC9]">{event.doorTime || '未填寫'}</span>
-                        </div>
-                        <div>
-                            <span className="text-[10px] text-[#C5AB89] font-bold block">開演時間</span>
-                            <span className="font-mono font-bold text-[#EADDC9]">{event.time || '未填寫'}</span>
-                        </div>
-                    </div>
+                        .concert-detail-scroll::-webkit-scrollbar-thumb {
+                            background: rgba(163, 173, 165, .45);
+                            border-radius: 9999px;
+                        }
 
-                    {/* 座位＆票區資訊 (若有填寫才顯示) */}
-                    {event.detailSeat && (
-                        <div className="bg-gradient-to-b from-[#E2C9A1]/15 via-[#E2C9A1]/5 to-transparent backdrop-blur-xl p-3.5 rounded-2xl border border-[#E2C9A1]/30 shadow-[0_0_5px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.5)]">
-                            <span className="text-[10px] text-[#C5AB89] font-bold block">座位＆票區資訊</span>
-                            <p className="font-bold text-[#EADDC9] break-words">{event.detailSeat}</p>
-                        </div>
-                    )}
+                        .concert-detail-scroll::-webkit-scrollbar-thumb:hover {
+                            background: rgba(197, 171, 137, .7);
+                        }
 
-                    {/* 舉辦場館與國家 */}
-                    <div className="bg-gradient-to-b from-[#E2C9A1]/15 via-[#E2C9A1]/5 to-transparent backdrop-blur-xl p-3.5 rounded-2xl border border-[#E2C9A1]/30 shadow-[0_0_5px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.5)]">
-                        <span className="text-[10px] text-[#C5AB89] font-bold block">舉辦場館與國家 <span className="text-[#EADDC9] font-bold">{event.countryName || '台灣'}</span></span>
-                        <p className="font-bold text-sm text-[#EADDC9] break-words">{event.venue}</p>
-                        <p className="text-[11px] text-[#C5AB89]/80 break-words">{event.venueAddress}</p>
-                    </div>
+                        .concert-detail-scroll {
+                            scrollbar-width: thin;
+                            scrollbar-color: rgba(163, 173, 165, .45) transparent;
+                        }
+                    `}</style>
 
-                    {/* Spotify 音樂預覽 */}
-                    {spotifyEmbed && (
-                        <div className="bg-gradient-to-b from-[#E2C9A1]/15 via-[#E2C9A1]/5 to-transparent backdrop-blur-xl p-3.5 rounded-2xl border border-[#E2C9A1]/30 shadow-[0_0_5px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.5)]">
-                            <span className="text-[10px] text-[#C5AB89] font-bold block px-1 mb-1">🎵 Spotify 音樂預覽</span>
-                            <iframe src={spotifyEmbed} width="100%" height="80" frameBorder="0" allowTransparency="true" allow="encrypted-media" className="rounded-xl opacity-90"></iframe>
-                        </div>
-                    )}
+                    {/* 1. 封面區 */}
+                    <div className="relative h-48 shrink-0 overflow-hidden flex items-center justify-center bg-transparent">
 
-                    {/* 心得筆記 */}
-                    {event.notes && (
-                        <div className="bg-gradient-to-b from-[#E2C9A1]/15 via-[#E2C9A1]/5 to-transparent backdrop-blur-xl p-3.5 rounded-2xl border border-[#E2C9A1]/30 shadow-[0_0_5px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.5)]">
-                            <span className="text-[10px] text-[#C5AB89] font-bold block">備註</span>
-                            <p className="leading-relaxed text-[#EADDC9] whitespace-pre-wrap break-words">{event.notes}</p>
-                        </div>
-                    )}
+                        {event.coverImg ? (
+                            <img
+                                src={event.coverImg}
+                                alt={event.title || '演出封面'}
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <div className="w-full h-full bg-transparent" />
+                        )}
 
-                    {/* 補充照片 */}
-                    {event.extraImgs && event.extraImgs.length > 0 && (
-                        <div className="bg-gradient-to-b from-[#E2C9A1]/15 via-[#E2C9A1]/5 to-transparent backdrop-blur-xl p-3.5 rounded-2xl border border-[#E2C9A1]/30 shadow-[0_0_5px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.5)]">
-                            <span className="text-[10px] text-[#C5AB89] font-bold block mb-1.5">補充照片</span>
-                            <div className="grid grid-cols-2 gap-2">
-                                {event.extraImgs.map((img, idx) => (
-                                    <div key={idx} className="w-full h-28 rounded-xl overflow-hidden border border-[#C5AB89]/40 shadow">
-                                        <img src={img} alt={`Detail Extra ${idx}`} className="w-full h-full object-cover" />
-                                    </div>
-                                ))}
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#111812] via-[#111812]/40 to-transparent flex items-end p-5 pointer-events-none">
+
+                            <div>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${cat.badgeBg} inline-flex items-center gap-1 mb-1 shadow`}>
+                                    <CategoryIcon cat={cat} sizeClass="w-3 h-3" />
+                                    {cat.label}
+                                </span>
+
+                                <h2 className="text-white font-black text-base leading-snug drop-shadow">
+                                    {event.title}
+                                </h2>
                             </div>
+
                         </div>
-                    )}
+                    </div>
+
+                    {/* 2. 中間資訊區：完全融入外框，不使用內嵌卡片 */}
+                    <div className="px-5 pt-3 pb-5 space-y-4 overflow-y-auto overflow-x-hidden flex-1 min-h-0 text-xs">
+
+                        {/* 演出藝人 / 主辦單位 */}
+                        <div className="grid grid-cols-2 gap-x-5">
+
+                            <div className="min-w-0">
+                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] uppercase mb-2">
+                                    ARTIST
+                                </span>
+
+                                <p className="text-[16px] text-[#EFF0EA] break-words">
+                                    {event.artist || '未填寫'}
+                                </p>
+                            </div>
+
+                            <div className="min-w-0">
+                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] uppercase mb-2">
+                                    ORGANIZER
+                                </span>
+
+                                <p className="text-[16px] text-[#EFF0EA] break-words">
+                                    {event.organizer || '未填寫'}
+                                </p>
+                            </div>
+
+                        </div>
+
+                        {/* 演出日期 / 票價 */}
+                        <div className="grid grid-cols-2 gap-x-5">
+
+                            <div className="min-w-0">
+                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] uppercase mb-2">
+                                    EVENT DATE
+                                </span>
+
+                                <p className="text-[16px] text-[#EFF0EA] font-mono">
+                                    {event.date || '未填寫'}
+                                </p>
+                            </div>
+
+                            <div className="min-w-0">
+                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] uppercase mb-2">
+                                    PRICE
+                                </span>
+
+                                <p className="text-[16px] text-[#E2C9A1] font-semibold">
+                                    NT$ {Number(event.cost || 0).toLocaleString()}
+                                </p>
+                            </div>
+
+                        </div>
+
+                        {/* 入場時間 / 開演時間 */}
+                        <div className="grid grid-cols-2 gap-x-5">
+
+                            <div>
+                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] uppercase mb-2">
+                                    DOOR TIME
+                                </span>
+
+                                <p className="text-[16px] text-[#EFF0EA]">
+                                    {event.doorTime || '未填寫'}
+                                </p>
+                            </div>
+
+                            <div>
+                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] uppercase mb-2">
+                                    START TIME
+                                </span>
+
+                                <p className="text-[16px] text-[#EFF0EA]">
+                                    {event.time || '未填寫'}
+                                </p>
+                            </div>
+
+                        </div>
+
+                        {/* 座位資訊 */}
+                        {event.detailSeat && (
+                            <div>
+                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] uppercase mb-2">
+                                    SEAT INFORMATION
+                                </span>
+
+                                <p className="text-[16px] text-[#EFF0EA] break-words">
+                                    {event.detailSeat}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* 場館資訊 */}
+                        <div>
+                            <span className="block text-[11px] tracking-wider text-[#A5B0A5] uppercase mb-2">
+                                VENUE
+                            </span>
+
+                            <p className="text-[16px] text-[#EFF0EA] break-words">
+                                {event.venue || '未填寫'}
+                            </p>
+
+                            <p className="text-[12px] text-[#A5B0A5] mt-1 break-words">
+                                {event.venueAddress || ''}
+                            </p>
+
+                            <p className="text-[13px] text-[#E2C9A1] mt-2">
+                                {event.countryName || '台灣'}
+                            </p>
+                        </div>
+
+                        {/* Spotify 音樂預覽 */}
+                        {spotifyEmbed && (
+                            <div>
+                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] mb-2">
+                                    MUSIC PREVIEW
+                                </span>
+
+                                <iframe
+                                    src={spotifyEmbed}
+                                    width="100%"
+                                    height="80"
+                                    frameBorder="0"
+                                    allowTransparency="true"
+                                    allow="encrypted-media"
+                                    title="Spotify Music Preview"
+                                    className="rounded-xl opacity-90"
+                                />
+                            </div>
+                        )}
+
+                        {/* 心得筆記 */}
+                        {event.notes && (
+                            <div>
+                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] mb-2">
+                                    NOTES
+                                </span>
+
+                                <p className="text-[15px] leading-relaxed text-[#EFF0EA] whitespace-pre-wrap break-words">
+                                    {event.notes}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* 補充照片 */}
+                        {extraImgs.length > 0 && (
+                            <div>
+                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] mb-3">
+                                    GALLERY
+                                </span>
+
+                                <div className="grid grid-cols-2 gap-2">
+
+                                    {extraImgs.map((img, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="w-full h-28 rounded-xl overflow-hidden border border-[#C5AB89]/30"
+                                        >
+                                            <img
+                                                src={img}
+                                                alt={`Detail Extra ${idx + 1}`}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    ))}
+
+                                </div>
+                            </div>
+                        )}
+
+                    </div>
+
+                    {/* 3. 底部按鈕：透明背景，融入同一面板 */}
+                    <div className="py-3.5 px-5 flex items-center gap-2.5 shrink-0">
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                onEdit(event);
+                                onClose();
+                            }}
+                            className="flex-1 h-10 rounded-xl bg-gradient-to-b from-[#E2C9A1]/25 to-[#E2C9A1]/10 hover:from-[#E2C9A1]/35 hover:to-[#E2C9A1]/20 text-[#EADDC9] font-semibold text-xs border border-[#E2C9A1]/40 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] active:scale-[0.98] transition-all flex items-center justify-center gap-1"
+                        >
+                            編輯紀錄
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                onDelete(event.id);
+                                onClose();
+                            }}
+                            className="w-10 h-10 rounded-xl bg-gradient-to-b from-red-500/20 to-red-950/30 hover:from-red-500/30 hover:to-red-900/40 text-red-300 border border-red-500/30 backdrop-blur-md flex items-center justify-center shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] active:scale-[0.98] transition-all"
+                            title="刪除紀錄"
+                        >
+                            <i data-lucide="trash-2" className="w-4 h-4"></i>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="flex-1 h-10 rounded-xl bg-gradient-to-b from-[#1E2024]/80 to-[#141517]/80 hover:from-[#25282E]/80 hover:to-[#1A1C20]/80 text-[#EADDC9]/70 hover:text-[#EADDC9] font-semibold text-xs border border-[#E2C9A1]/20 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] active:scale-[0.98] transition-all flex items-center justify-center"
+                        >
+                            關閉
+                        </button>
+
+                    </div>
+
                 </div>
-
-                {/* 3. 底部按鈕欄 (半透明玻璃底色 + 精緻三鍵) */}
-                <div className="py-3.5 px-5 bg-[#141517]/80 backdrop-blur-xl border-t border-[#E2C9A1]/15 flex items-center gap-2.5 shrink-0">
-                    <button 
-                        type="button"
-                        onClick={() => { onEdit(event); onClose(); }} 
-                        className="flex-1 h-10 rounded-xl bg-gradient-to-b from-[#E2C9A1]/25 to-[#E2C9A1]/10 hover:from-[#E2C9A1]/35 hover:to-[#E2C9A1]/20 text-[#EADDC9] font-semibold text-xs border border-[#E2C9A1]/40 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] active:scale-[0.98] transition-all flex items-center justify-center gap-1">編輯紀錄
-                    </button>
-                    
-                    <button 
-                        type="button"
-                        onClick={() => { onDelete(event.id); onClose(); }} 
-                        className="w-10 h-10 rounded-xl bg-gradient-to-b from-red-500/20 to-red-950/30 hover:from-red-500/30 hover:to-red-900/40 text-red-300 border border-red-500/30 backdrop-blur-md flex items-center justify-center shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] active:scale-[0.98] transition-all" 
-                        title="刪除紀錄"
-                    >
-                        <i data-lucide="trash-2" className="w-4 h-4"></i>
-                    </button>
-
-                    <button 
-                        type="button"
-                        onClick={onClose} 
-                        className="flex-1 h-10 rounded-xl bg-gradient-to-b from-[#1E2024]/80 to-[#141517]/80 hover:from-[#25282E]/80 hover:to-[#1A1C20]/80 text-[#EADDC9]/70 hover:text-[#EADDC9] font-semibold text-xs border border-[#E2C9A1]/20 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] active:scale-[0.98] transition-all flex items-center justify-center"
-                    >
-                        關閉
-                    </button>
-                </div>
-
             </div>
         </div>
     );
 }
+
+
+
 
 function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }) {
                 const mapRef = useRef(null);

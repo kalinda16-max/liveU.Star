@@ -526,6 +526,34 @@
         0 0 6px rgba(224, 168, 107, .5);
 }
 
+.concert-detail-box::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 26px;
+    padding: 1px; /* 框線粗細 (1px) */
+    
+    /* 這裡就是框線顏色的來源：頂端強烈白金光，向下漸層過渡為原本的暗金 */
+    background: conic-gradient(
+        from 0deg at 50% 50%,
+        rgba(255, 190, 120, 0.95) 0deg,   /* 頂部：亮橘金光 */
+        rgba(252, 159, 77, 0.5) 90deg,    /* 右側：過渡色 */
+        rgba(200, 110, 50, 0.35) 180deg,  /* 底部：沉穩暗橘 */
+        rgba(252, 159, 77, 0.5) 270deg,   /* 左側：過渡色 */
+        rgba(255, 190, 120, 0.95) 360deg  /* 回到頂部 */
+    );
+    
+    /* 只留下 1px 的 border 範圍，中間挖空 */
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    
+    pointer-events: none;
+    z-index: 10;
+}
+
 /* 內層透明排版容器 */
 .concert-detail-content {
     position: relative;
@@ -2359,10 +2387,6 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
 
             {/* 唯一外框：演出紀錄金色漸層面板 */}
             <div className="concert-detail-box w-full max-w-sm relative">
-
-            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#FFD7A0]/80 to-transparent pointer-events-none z-10" />
-
-            <div className="absolute top-0 bottom-0 left-0 h-32 w-[1px] bg-gradient-to-b from-[#FFD7A0]/90 via-transparent to-transparent pointer-events-none z-10" />
 
                 <div className="concert-detail-content text-[#EFF0EA]">
 

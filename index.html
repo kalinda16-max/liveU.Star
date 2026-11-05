@@ -4336,21 +4336,56 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                             const covers = (detailItem.coverImages?.length ? detailItem.coverImages : [detailItem.coverImg]).filter(Boolean);
                             const safeIndex = Math.min(detailCoverIndex, Math.max(0, covers.length - 1));
                             return (
-                                <div className="flex items-center justify-center gap-2 sm:gap-4 py-1" onClick={e=>e.stopPropagation()}>
-                                    {covers.length > 1 && (
-                                        <button type="button" aria-label="上一張封面" onClick={e=>{e.stopPropagation();setDetailCoverIndex(i=>(i-1+covers.length)%covers.length);}} className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-full border border-[#C5AB89]/70 text-[#D9C4A6] text-2xl flex items-center justify-center active:bg-[#C5AB89]/15">‹</button>
-                                    )}
-                                    <div className="w-full aspect-square rounded-2xl border-2 border-[#C5AB89]/80 bg-[#161D15] p-[7px] grid place-items-center overflow-hidden shadow-[0_0_8px_rgba(197,171,137,0.22)] mx-auto shrink-0" style={{ maxWidth: "min(100%, min(42dvh, 340px))" }}>
-                                        <div className="w-full aspect-square rounded-xl border border-[#C5AB89]/25 overflow-hidden bg-black/15 flex items-center justify-center relative">
-                                            {covers.length ? <img key={covers[safeIndex]} src={covers[safeIndex]} alt={`典藏封面 ${safeIndex+1}`} className="block w-full h-full object-cover" /> : <div className="text-xs text-[#A3ADA5]">尚未新增封面圖片</div>}
-                                        </div>
-                                    </div>
-                                    {covers.length > 1 && (
-                                        <button type="button" aria-label="下一張封面" onClick={e=>{e.stopPropagation();setDetailCoverIndex(i=>(i+1)%covers.length);}} className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-full border border-[#C5AB89]/70 text-[#D9C4A6] text-2xl flex items-center justify-center active:bg-[#C5AB89]/15">›</button>
-                                    )}
-                                </div>
-                            );
-                        })()}
+        <div className="flex flex-col items-center gap-2 py-1" onClick={e=>e.stopPropagation()}>
+            {/* 左右滑動容器 */}
+            <div 
+                className="w-full flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-none items-center justify-start mx-auto shrink-0"
+                style={{ 
+                    maxWidth: "min(100%, min(42dvh, 340px))",
+                    scrollBehavior: 'smooth',
+                    WebkitOverflowScrolling: 'touch'
+                }}
+                onScroll={(e) => {
+                    // 根據捲動位置自動更新目前的 cover 索引，讓下方的圓點同步
+                    const container = e.currentTarget;
+                    const index = Math.round(container.scrollLeft / container.clientWidth);
+                    if (!isNaN(index) && index !== detailCoverIndex) {
+                        setDetailCoverIndex(index);
+                    }
+                }}
+            >
+                {covers.length ? (
+                    covers.map((imgUrl, i) => (
+                        <div 
+                            key={imgUrl} 
+                            className="w-full shrink-0 snap-center aspect-square rounded-2xl border-2 border-[#C5AB89]/80 bg-[#161D15] p-[7px] grid place-items-center overflow-hidden shadow-[0_0_8px_rgba(197,171,137,0.22)]"
+                        >
+                            <div className="w-full aspect-square rounded-xl border border-[#C5AB89]/25 overflow-hidden bg-black/15 flex items-center justify-center relative">
+                                <img src={imgUrl} alt={`典藏封面 ${i+1}`} className="block w-full h-full object-cover" />
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="w-full aspect-square rounded-2xl border-2 border-[#C5AB89]/80 bg-[#161D15] p-[7px] grid place-items-center overflow-hidden">
+                        <div className="text-xs text-[#A3ADA5]">尚未新增封面圖片</div>
+                    </div>
+                )}
+            </div>
+
+            {/* 如果有多張圖片，顯示下方指示圓點 */}
+            {covers.length > 1 && (
+                <div className="flex justify-center gap-1.5 mt-1">
+                    {covers.map((_, i) => (
+                        <div 
+                            key={i} 
+                            className={`h-1.5 rounded-full transition-all duration-200 ${i === detailCoverIndex ? 'w-4 bg-[#C5AB89]' : 'w-1.5 bg-[#C5AB89]/30'}`} 
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+})()}
                         {(detailItem.coverImages?.length || 0) > 1 && (
                             <div className="flex justify-center gap-2" onClick={e=>e.stopPropagation()}>
                                 {detailItem.coverImages.map((_,i)=>(

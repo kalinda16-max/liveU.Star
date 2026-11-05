@@ -521,7 +521,7 @@
     box-shadow:
         inset 0 0 0 1px rgba(200, 140, 80, .15),
         inset 0 1px 0 0 rgba(200, 140, 80, .45),     /* 無模糊的實線 1 */
-        inset 0 1px 0 0 rgba(255, 215, 160, .30),    /* 無模糊的實線 2 */
+        inset 0 0 2px 0 rgba(255, 215, 160, .30),    /* 無模糊的實線 2 */
         inset 0 1px 0 0 rgba(255, 215, 160, .90),
         0 0 6px rgba(224, 168, 107, .5);
 }
@@ -2358,7 +2358,11 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
         <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-4 pt-14 pb-20 z-[999999] overflow-hidden">
 
             {/* 唯一外框：演出紀錄金色漸層面板 */}
-            <div className="concert-detail-box w-full max-w-sm">
+            <div className="concert-detail-box w-full max-w-sm relative">
+
+            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#FFD7A0]/80 to-transparent pointer-events-none z-10" />
+
+            <div className="absolute top-0 bottom-0 left-0 h-32 w-[1px] bg-gradient-to-b from-[#FFD7A0]/90 via-transparent to-transparent pointer-events-none z-10" />
 
                 <div className="concert-detail-content text-[#EFF0EA]">
 
@@ -2621,7 +2625,6 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
                         </button>
 
                     </div>
-
                 </div>
             </div>
         </div>

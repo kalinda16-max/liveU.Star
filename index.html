@@ -534,14 +534,17 @@
     padding: 1px; /* 框線粗細 (1px) */
     
     /* 這裡就是框線顏色的來源：頂端強烈白金光，向下漸層過渡為原本的暗金 */
-    background: conic-gradient(
-        from 0deg at 50% 50%,
-        rgba(255, 190, 120, 0.95) 0deg,   /* 頂部：亮橘金光 */
-        rgba(252, 159, 77, 0.5) 90deg,    /* 右側：過渡色 */
-        rgba(200, 110, 50, 0.35) 180deg,  /* 底部：沉穩暗橘 */
-        rgba(252, 159, 77, 0.5) 270deg,   /* 左側：過渡色 */
-        rgba(255, 190, 120, 0.95) 360deg  /* 回到頂部 */
-    );
+    background: 
+        /* 1. 頂部主光：中央最亮，兩側向角落自然過渡 */
+        linear-gradient(90deg, rgba(252, 159, 77, 0.8) 0%, rgba(255, 190, 120, 0.95) 50%, rgba(252, 159, 77, 0.8) 100%),
+        /* 2. 右側邊框 */
+        linear-gradient(180deg, rgba(252, 159, 77, 0.8) 0%, rgba(200, 110, 50, 0.4) 100%),
+        /* 3. 底部邊框 */
+        linear-gradient(270deg, rgba(200, 110, 50, 0.4) 0%, rgba(200, 110, 50, 0.4) 100%),
+        /* 4. 左側邊框 */
+        linear-gradient(0deg, rgba(252, 159, 77, 0.8) 0%, rgba(252, 159, 77, 0.8) 100%);
+        
+    background-size: 100% 100%;
     
     /* 只留下 1px 的 border 範圍，中間挖空 */
     -webkit-mask: 
@@ -4364,20 +4367,7 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                         <div className="w-full h-full flex items-center justify-center text-xs text-[#A3ADA5]">尚未新增封面圖片</div>
                     )}
                 </div>
-
             </div>
-
-            {/* 下方指示圓點 */}
-            {covers.length > 1 && (
-                <div className="flex justify-center gap-1.5 mt-1">
-                    {covers.map((_, i) => (
-                        <div 
-                            key={i} 
-                            className={`h-1.5 rounded-full transition-all duration-200 ${i === detailCoverIndex ? 'w-4 bg-[#C5AB89]' : 'w-1.5 bg-[#C5AB89]/30'}`} 
-                        />
-                    ))}
-                </div>
-            )}
         </div>
     );
 })()}

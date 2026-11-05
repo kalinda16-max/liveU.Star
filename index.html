@@ -2457,21 +2457,21 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
                         <div className="grid grid-cols-2 gap-x-5">
 
                             <div className="min-w-0">
-                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] uppercase mb-2">
+                                <span className="block text-[10px] tracking-wider text-[#A5B0A5] uppercase mb-0.5">
                                     ARTIST
                                 </span>
 
-                                <p className="text-[16px] text-[#EFF0EA] break-words">
+                                <p className="text-[9px] text-[#EFF0EA] break-words">
                                     {event.artist || '未填寫'}
                                 </p>
                             </div>
 
                             <div className="min-w-0">
-                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] uppercase mb-2">
+                                <span className="block text-[10px] tracking-wider text-[#A5B0A5] uppercase mb-0.5">
                                     ORGANIZER
                                 </span>
 
-                                <p className="text-[16px] text-[#EFF0EA] break-words">
+                                <p className="text-[9px] text-[#EFF0EA] break-words">
                                     {event.organizer || '未填寫'}
                                 </p>
                             </div>
@@ -2481,47 +2481,49 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
                         {/* 演出日期 / 票價 */}
                         <div className="grid grid-cols-2 gap-x-5">
                             <div className="min-w-0">
-                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] uppercase mb-2">EVENT DATE</span>
-                                <p className="text-[16px] text-[#EFF0EA] font-mono">{event.date || '未填寫'}</p>
+                                <span className="block text-[10px] tracking-wider text-[#A5B0A5] uppercase mb-0.5">EVENT DATE</span>
+                                <p className="text-[9px] text-[#EFF0EA] font-mono">{event.date || '未填寫'}</p>
                             </div>
                             <div className="min-w-0">
-                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] uppercase mb-2">PRICE</span>
-                                <p className="text-[16px] text-[#E2C9A1] font-semibold">NT$ {Number(event.cost || 0).toLocaleString()}</p>
+                                <span className="block text-[10px] tracking-wider text-[#A5B0A5] uppercase mb-0.5">PRICE</span>
+                                <p className="text-[9px] text-[#E2C9A1] font-semibold">NT$ {Number(event.cost || 0).toLocaleString()}</p>
                             </div>
                         </div>
 
                         {/* 入場時間 / 開演時間 */}
                         <div className="grid grid-cols-2 gap-x-5">
                             <div>
-                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] uppercase mb-2">DOOR TIME</span>
-                                <p className="text-[16px] text-[#EFF0EA]">{event.doorTime || '未填寫'}</p>
+                                <span className="block text-[10px] tracking-wider text-[#A5B0A5] uppercase mb-0.5">DOOR TIME</span>
+                                <p className="text-[9px] text-[#EFF0EA]">{event.doorTime || '未填寫'}</p>
                             </div>
                             <div>
-                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] uppercase mb-2">START TIME</span>
-                                <p className="text-[16px] text-[#EFF0EA]">{event.time || '未填寫'}</p>
+                                <span className="block text-[10px] tracking-wider text-[#A5B0A5] uppercase mb-0.5">START TIME</span>
+                                <p className="text-[9px] text-[#EFF0EA]">{event.time || '未填寫'}</p>
                             </div>
                         </div>
 
                         {/* 座位資訊 */}
                         {event.detailSeat && (
                             <div>
-                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] uppercase mb-2">SEAT INFORMATION</span>
-                                <p className="text-[16px] text-[#EFF0EA] break-words">{event.detailSeat}</p>
+                                <span className="block text-[10px] tracking-wider text-[#A5B0A5] uppercase mb-0.5">SEAT INFORMATION</span>
+                                <p className="text-[9px] text-[#EFF0EA] break-words">{event.detailSeat}</p>
                             </div>
                         )}
 
                         {/* 場館資訊 */}
-                        <div>
-                            <span className="block text-[11px] tracking-wider text-[#A5B0A5] uppercase mb-2">VENUE</span>
+                       <div>
+                            <div className="flex items-baseline gap-2 mb-1">
+                                <span className="text-[11px] tracking-wider text-[#A5B0A5] uppercase">VENUE</span>
+                                <span className="text-[12px] text-[#E2C9A1]">{event.countryName || '台灣'}</span>
+                            </div>
                             <p className="text-[16px] text-[#EFF0EA] break-words">{event.venue || '未填寫'}</p>
                             <p className="text-[12px] text-[#A5B0A5] mt-1 break-words">{event.venueAddress || ''}</p>
-                            <p className="text-[13px] text-[#E2C9A1] mt-2">{event.countryName || '台灣'}</p>
                         </div>
 
                         {/* Spotify 音樂預覽 */}
                         {spotifyEmbed && (
                             <div>
-                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] mb-2">MUSIC PREVIEW</span>
+                                <span className="block text-[10px] tracking-wider text-[#A5B0A5] mb-0.5">MUSIC PREVIEW</span>
                                 <iframe
                                     src={spotifyEmbed}
                                     width="100%"
@@ -2538,15 +2540,15 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
                         {/* 心得筆記 */}
                         {event.notes && (
                             <div>
-                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] mb-2">NOTES</span>
-                                <p className="text-[15px] leading-relaxed text-[#EFF0EA] whitespace-pre-wrap break-words">{event.notes}</p>
+                                <span className="block text-[10px] tracking-wider text-[#A5B0A5] mb-0.5">NOTES</span>
+                                <p className="text-[9px] leading-relaxed text-[#EFF0EA] whitespace-pre-wrap break-words">{event.notes}</p>
                             </div>
                         )}
 
                         {/* 補充照片 */}
                         {extraImgs.length > 0 && (
                             <div>
-                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] mb-3">GALLERY</span>
+                                <span className="block text-[11px] tracking-wider text-[#A5B0A5] mb-0.5">GALLERY</span>
                                 <div className="grid grid-cols-2 gap-2">
                                     {extraImgs.map((img, idx) => (
                                         <div
@@ -2572,7 +2574,7 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
                                 onEdit(event);
                                 onClose();
                             }}
-                            className="w-10 h-10 rounded-xl bg-gradient-to-b from-[#E2C9A1]/25 to-[#E2C9A1]/10 hover:from-[#E2C9A1]/35 hover:to-[#E2C9A1]/20 text-[#EADDC9] border border-[#E2C9A1]/40 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] active:scale-[0.98] transition-all flex items-center justify-center"
+                            className="w-10 h-10 rounded-xl bg-transparent hover:bg-[#E2C9A1]/10 text-[#EADDC9] border border-[#E2C9A1]/40 backdrop-blur-md active:scale-[0.98] transition-all flex items-center justify-center"
                             title="編輯紀錄"
                             aria-label="編輯紀錄"
                         >
@@ -2586,7 +2588,7 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
                                 onDelete(event.id);
                                 onClose();
                             }}
-                            className="w-10 h-10 rounded-xl bg-gradient-to-b from-red-500/20 to-red-950/30 hover:from-red-500/30 hover:to-red-900/40 text-red-300 border border-red-500/30 backdrop-blur-md flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] active:scale-[0.98] transition-all"
+                            className="w-10 h-10 rounded-xl bg-transparent hover:bg-red-500/10 text-red-300 border border-red-500/30 backdrop-blur-md flex items-center justify-center active:scale-[0.98] transition-all"
                             title="刪除紀錄"
                             aria-label="刪除紀錄"
                         >

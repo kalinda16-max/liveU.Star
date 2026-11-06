@@ -352,8 +352,10 @@
 .music-detail-flip {
     position: relative;
     width: min(92vw, 440px);
-    height: min(85dvh, 720px);
+    height: var(--music-detail-height, 360px);
+    max-height: calc(100dvh - max(38px, env(safe-area-inset-top)) - max(24px, env(safe-area-inset-bottom)));
     min-height: 0;
+    transition: height .55s cubic-bezier(.2, .75, .25, 1);
     -webkit-perspective: 1200px;
     perspective: 1200px;
     isolation: isolate;
@@ -468,7 +470,7 @@
     .music-detail-flip {
         width: calc(100vw - 28px);
         max-width: 100%;
-        height: min(82dvh, 720px);
+        height: var(--music-detail-height, 360px);
         max-height: calc(100dvh - max(38px, env(safe-area-inset-top)) - max(24px, env(safe-area-inset-bottom)));
     }
     .music-detail-box {
@@ -479,12 +481,14 @@
     .music-detail-flip {
         width: min(94vw, 44rem);
         max-width: 44rem;
-        height: min(86dvh, 760px);
+        height: var(--music-detail-height, 360px);
+        max-height: 75dvh;
     }
 }
 @media (prefers-reduced-motion: reduce) {
     .music-vinyl { animation-duration: 12s; }
-    .music-detail-flip-inner { transition-duration: .01ms; }
+    .music-detail-flip-inner,
+    .music-detail-flip { transition-duration: .01ms; }
 }
 
         
@@ -3950,11 +3954,71 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
     const [detailItem, setDetailItem] = useState(null);
     const [detailPage, setDetailPage] = useState(0);
     const [detailCoverIndex, setDetailCoverIndex] = useState(0);
+    // 正反兩頁分別保存高度；翻到哪一頁，就使用該頁自己的內容高度。
+    const [detailPanelHeights, setDetailPanelHeights] = useState({ front: 360, back: 260 });
+    const detailFrontBoxRef = useRef(null);
+    const detailBackBoxRef = useRef(null);
     const detailTouchStartRef = useRef(null);
     const detailTouchMovedRef = useRef(false);
     const [playingPreview, setPlayingPreview] = useState(null);
     const [previewPaused, setPreviewPaused] = useState(false);
     const previewAudioRef = useRef(null);
+
+    // 正反兩面各自量測內容高度；目前顯示哪一面，就讓卡片使用該面的高度。
+    // 內容超過最大高度時，保留面板內部捲動，不影響 3D 翻頁結構。
+    useEffect(() => {
+        if (!detailItem) return;
+
+        const measureDetailPanel = () => {
+            const measureBox = (box) => {
+                if (!box) return 260;
+                const previousHeight = box.style.height;
+                const previousBottom = box.style.bottom;
+                box.style.height = 'auto';
+                box.style.bottom = 'auto';
+                const measuredHeight = Math.ceil(box.scrollHeight);
+                box.style.height = previousHeight;
+                box.style.bottom = previousBottom;
+                return measuredHeight;
+            };
+
+            const frontHeight = measureBox(detailFrontBoxRef.current);
+            const backHeight = measureBox(detailBackBoxRef.current);
+            const viewportHeight = window.visualViewport?.height || window.innerHeight;
+            const safeAvailableHeight = Math.max(220, viewportHeight - 72);
+            const maxHeight = Math.min(Math.floor(viewportHeight * 0.75), safeAvailableHeight);
+            const clampHeight = value => Math.max(220, Math.min(value, maxHeight));
+            const nextHeights = {
+                front: clampHeight(frontHeight),
+                back: clampHeight(backHeight)
+            };
+
+            setDetailPanelHeights(current => (
+                Math.abs(current.front - nextHeights.front) > 2 ||
+                Math.abs(current.back - nextHeights.back) > 2
+            ) ? nextHeights : current);
+        };
+
+        measureDetailPanel();
+        const frame = requestAnimationFrame(measureDetailPanel);
+        window.addEventListener('resize', measureDetailPanel);
+        window.visualViewport?.addEventListener('resize', measureDetailPanel);
+
+        const imageElements = [
+            ...(detailFrontBoxRef.current?.querySelectorAll('img') || []),
+            ...(detailBackBoxRef.current?.querySelectorAll('img') || [])
+        ];
+        imageElements.forEach(img => {
+            if (!img.complete) img.addEventListener('load', measureDetailPanel, { once: true });
+        });
+
+        return () => {
+            cancelAnimationFrame(frame);
+            window.removeEventListener('resize', measureDetailPanel);
+            window.visualViewport?.removeEventListener('resize', measureDetailPanel);
+            imageElements.forEach(img => img.removeEventListener('load', measureDetailPanel));
+        };
+    }, [detailItem]);
 
     const artistList = useMemo(() => {
         const set = new Set(musicLogs.map(m => m.artist).filter(Boolean));
@@ -4233,6 +4297,7 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
     >
         <div 
             className={`music-detail-flip ${detailPage === 1 ? 'is-flipped' : ''}`} 
+            style={{ '--music-detail-height': `${detailPage === 1 ? detailPanelHeights.back : detailPanelHeights.front}px` }}
             onTouchStart={e => { 
                 const t = e.touches && e.touches[0]; 
                 detailTouchStartRef.current = t ? { x: t.clientX, y: t.clientY } : null; 
@@ -4269,7 +4334,7 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                 
                 {/* 正面 */}
                 <div className="music-detail-face music-detail-front">
-                    <div className="music-detail-box p-3 text-[#EFF0EA] space-y-2" onClick={e => { if (e.target.closest('button')) e.stopPropagation(); }}>
+                    <div ref={detailFrontBoxRef} className="music-detail-box p-3 text-[#EFF0EA] space-y-2" onClick={e => { if (e.target.closest('button')) e.stopPropagation(); }}>
                         <div className="flex items-start justify-between pb-3 pr-3">
                             <div className="min-w-0 pl-2">
                                 <div className="mt-1.5 text-sm sm:text-base text-[#C5AB89]/90 pl-1">{detailItem.artist || 'Artist not specified'}</div>
@@ -4378,7 +4443,7 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
 
                 {/* 背面 */}
                 <div className="music-detail-face music-detail-back">
-                    <div className="music-detail-box p-3 text-[#EFF0EA]" onClick={e => { if (e.target.closest('button')) e.stopPropagation(); }}>
+                    <div ref={detailBackBoxRef} className="music-detail-box p-3 text-[#EFF0EA]" onClick={e => { if (e.target.closest('button')) e.stopPropagation(); }}>
                         <div className="flex items-center gap-2 mb-5 mt-5 pl-3">
                             <img src="./image/icons/treasure-chest.png" alt="" className="w-8 h-8 object-contain" />
                             <div className="flex flex-col">

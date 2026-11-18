@@ -3054,6 +3054,15 @@ function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }
                 );
             }
 
+const CATEGORY_CODES = {
+    concert: 'CON',    // 演唱會
+    exhibition: 'EXH', // 展覽
+    movie: 'MOV',      // 電影
+    musical: 'MUS',    // 音樂劇
+    reading: 'BOK',    // 閱讀/書籍
+    other: 'EVT'       // 其他
+};
+
 function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCategory, searchQuery, setSearchQuery, viewMode, onDelete, onEdit, getGoogleMapsUrl, onOpenAddModal }) {
                 const [detailEvent, setDetailEvent] = useState(null);
                 const [calendarDate, setCalendarDate] = useState(new Date());
@@ -3126,8 +3135,10 @@ function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCatego
                             <p className="text-xs text-[#EFF0EA] font-extrabold">暫無藝文紀錄</p>
                         </div>
                     ) : (
-                        events.map((evt) => {
+                        events.map((evt, index) => {
                             const cat = CATEGORIES[evt.type] || CATEGORIES.concert;
+                            const typeCode = CATEGORY_CODES[evt.type] || 'VT';
+                            
                             return (
                                 <div key={evt.id} onClick={() => setDetailEvent(evt)} className="my-2 m-2 relative drop-shadow-[0_0_5px_rgba(197,171,137,0.40)] cursor-pointer hover:scale-[1.01] transition-all">
                                     <div className="relative bg-[#232B25]/90 backdrop-blur-xl text-[#161D15] rounded-2xl flex overflow-hidden border border-[#C5AB89]/50 shadow-[inset_0_0_15px_rgba(255,255,255,0.03)]"
@@ -3145,12 +3156,13 @@ function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCatego
                                         }}
                                     >
                                         <div className="flex w-full bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] rounded-2xl overflow-hidden">
-                                          {/* 左側：封面圖與主要資訊 */}
-                                          <div className="flex-1 p-3.5 pl-5 flex items-start gap-2 min-w-0 pr-3">
-                                            {/* 封面圖片區塊 */}
+                                          {/* 左側：封面圖與主要資訊（改用 items-stretch 讓左右高度一致） */}
+                                          <div className="flex-1 p-3.5 pl-5 flex items-stretch gap-2.5 min-w-0 pr-3">
+                                            
+                                            {/* 封面圖片區塊：改為 w-20 配合 h-full，會隨著文字區塊變多自動拉高 */}
                                             <div 
                                                 onClick={(e) => { e.stopPropagation(); setDetailEvent(evt); }}
-                                                className="w-20 h-24 rounded-xl overflow-hidden shrink-0 border border-[#C5AB89] bg-white/5 relative cursor-pointer hover:opacity-95 flex items-center justify-center shadow-[0_0_3px_rgba(197,171,137,0.80)]"
+                                                className="w-20 h-full min-h-[96px] rounded-xl overflow-hidden shrink-0 border border-[#C5AB89] bg-white/5 relative cursor-pointer hover:opacity-95 flex items-center justify-center shadow-[0_0_3px_rgba(197,171,137,0.80)]"
                                             >
                                                 {evt.coverImg ? (
                                                     <img src={evt.coverImg} alt={evt.title} className="w-full h-full object-cover" />
@@ -3162,7 +3174,7 @@ function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCatego
                                             </div>
                                             
                                             {/* 中間文字資訊區塊 */}
-                                            <div className="flex-1 flex flex-col justify-between min-h-24 min-w-0">
+                                            <div className="flex-1 flex flex-col justify-between min-w-0">
                                                 <div className="space-y-1">
                                                     <div className="flex items-center justify-between text-[10px] font-mono font-bold text-[#A3ADA5]">
                                                         <div className="flex items-center gap-1.5 shrink-0">
@@ -3180,9 +3192,8 @@ function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCatego
                                                 <h3 className="font-extrabold text-xs text-[#EFF0EA] leading-snug whitespace-pre-line break-words">{evt.title}</h3>
                                                 </div>
 
-                                                {/* 底部：左側改放場館名稱（帶等比縮放），右側改放星等評分 */}
-                                                <div className="flex items-end justify-between mt-1 pr-1 min-h-[16px]">
-                                                    {/* 左側：場館名稱與圖示（支援超長自動縮小） */}
+                                                {/* 底部：場館名稱與星等評分 */}
+                                                <div className="flex items-end justify-between mt-2 pr-1 min-h-[16px]">
                                                     <div className="flex items-center h-3.5 min-w-0">
                                                         <div 
                                                             className="text-[10px] text-[#A3ADA5] font-bold flex items-center gap-0.5 overflow-hidden origin-left"
@@ -3198,7 +3209,6 @@ function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCatego
                                                         </div>
                                                     </div>
 
-                                                    {/* 右側：星等評分 */}
                                                     <div className="flex items-center gap-0.25 h-3.5 shrink-0" title={`評分：${evt.rating || 5} 顆星`}>
                                                         {[1, 2, 3, 4, 5].map((star) => (
                                                             <svg
@@ -3218,33 +3228,42 @@ function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCatego
                                             </div>
                                           </div>
 
-                                          {/* 中間虛線分隔 */}
-                                           <div className="w-[95px] bg-white/[0.08] border-l border-white/5 p-2.5 flex flex-col justify-between items-center text-center shrink-0 shadow-[inset_1px_0_0_rgba(255,255,255,0.05)]">
+                                          {/* 中間虛線分隔與右側票根 */}
+                                           <div className="w-[95px] bg-white/[0.08] border-l border-dashed border-[#C5AB89]/50 p-2.5 flex flex-col justify-between items-center text-center shrink-0 shadow-[inset_1px_0_0_rgba(255,255,255,0.05)]">
                                               <span className="text-[8px] font-mono font-black text-[#A3ADA5]">ADMIT ONE</span>
                                               
-                                              {/* 金額與純裝飾條碼 */}
-                                              <div className="w-full flex flex-col items-center gap-1 -mt-2">
-                                                  <div className="font-mono text-[10px] font-black text-[#EFF0EA]">{evt.cost ? `$${Number(evt.cost).toLocaleString()}` : 'FREE'}</div>
+                                              {/* 金額、條碼與下方代碼 */}
+                                              <div className="w-full flex flex-col items-center gap-1 -mt-1">
+                                                  <div className="font-mono text-[10px] font-black text-[#EFF0EA]">
+                                                      {evt.cost ? `$${Number(evt.cost).toLocaleString()}` : 'FREE'}
+                                                  </div>
+                                                  
                                                   <svg 
-                                                      className="w-full h-6 text-[#C5AB89]/60" 
-                                                      viewBox="0 0 100 18" 
+                                                      className="w-full h-5 text-[#C5AB89]/70" 
+                                                      viewBox="0 0 100 20" 
                                                       preserveAspectRatio="none"
                                                       fill="currentColor" 
                                                       aria-hidden="true"
                                                   >
-                                                      <rect x="6" y="0" width="1" height="18" />
-                                                      <rect x="12" y="0" width="3.5" height="18" />
-                                                      <rect x="21" y="0" width="1.5" height="18" />
-                                                      <rect x="28" y="0" width="2.5" height="18" />
-                                                      <rect x="36" y="0" width="1" height="18" />
-                                                      <rect x="42" y="0" width="3" height="18" />
-                                                      <rect x="51" y="0" width="1.5" height="18" />
-                                                      <rect x="58" y="0" width="2" height="18" />
-                                                      <rect x="65" y="0" width="1" height="18" />
-                                                      <rect x="71" y="0" width="3.5" height="18" />
-                                                      <rect x="80" y="0" width="1.5" height="18" />
-                                                      <rect x="87" y="0" width="2.5" height="18" />
+                                                      <rect x="13" y="0" width="4" height="20" />
+                                                      <rect x="20" y="0" width="1" height="20" />
+                                                      <rect x="24" y="0" width="2.5" height="20" />
+                                                      <rect x="30" y="0" width="3" height="20" />
+                                                      <rect x="36" y="0" width="1" height="20" />
+                                                      <rect x="40" y="0" width="2" height="20" />
+                                                      <rect x="45" y="0" width="3.5" height="20" />
+                                                      <rect x="52" y="0" width="1.5" height="20" />
+                                                      <rect x="57" y="0" width="2.5" height="20" />
+                                                      <rect x="63" y="0" width="4" height="20" />
+                                                      <rect x="70" y="0" width="1" height="20" />
+                                                      <rect x="74" y="0" width="2" height="20" />
+                                                      <rect x="79" y="0" width="3" height="20" />
+                                                      <rect x="85" y="0" width="1.5" height="20" />
                                                   </svg>
+
+                                                  <div className="font-mono text-[8px] font-bold text-[#A3ADA5] tracking-tight">
+                                                      {`TKT-${typeCode}-${String(index + 1).padStart(2, '0')}`}
+                                                  </div>
                                               </div>
 
                                               {evt.detailSeat ? (

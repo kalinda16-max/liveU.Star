@@ -3139,9 +3139,12 @@ function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCatego
                             const cat = CATEGORIES[evt.type] || CATEGORIES.concert;
                             const typeCode = CATEGORY_CODES[evt.type] || 'VT';
                             
-                            // 核心修改：從全部資料 (allEvents) 中過濾出同類別的項目，
-                            // 並按照加入順序（最舊的在前、最新的在後）計算出這張票是第幾號
-                            const sameCategoryEvents = [...allEvents].filter(e => e.type === evt.type);
+                            // 核心修改：將同分類的項目抓出後，強制以日期「由舊到新」排序
+                            // 這樣最舊/最早的一筆永遠是第 1 個 (01)，之後依序遞增
+                            const sameCategoryEvents = [...allEvents]
+                                .filter(e => e.type === evt.type)
+                                .sort((a, b) => new Date(a.date) - new Date(b.date));
+                            
                             const categoryIndex = sameCategoryEvents.findIndex(e => e.id === evt.id) + 1;
 
                             return (
@@ -3249,8 +3252,6 @@ function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCatego
                                                       fill="currentColor" 
                                                       aria-hidden="true"
                                                   >
-                                                      <rect x="2" y="0" width="3" height="20" />
-                                                      <rect x="8" y="0" width="1.5" height="20" />
                                                       <rect x="13" y="0" width="4" height="20" />
                                                       <rect x="20" y="0" width="1" height="20" />
                                                       <rect x="24" y="0" width="2.5" height="20" />
@@ -3265,11 +3266,10 @@ function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCatego
                                                       <rect x="74" y="0" width="2" height="20" />
                                                       <rect x="79" y="0" width="3" height="20" />
                                                       <rect x="85" y="0" width="1.5" height="20" />
-                                                      <rect x="90" y="0" width="3" height="20" />
-                                                      <rect x="95" y="0" width="2" height="20" />
+
                                                   </svg>
 
-                                                  {/* 獨立分類編號：最舊的為 01，新新增的為 02 */}
+                                                  {/* 依照日期由舊到新排序後的專屬代碼 */}
                                                   <div className="font-mono text-[8px] font-bold text-[#A3ADA5] tracking-tight">
                                                       {`TKT-${typeCode}-${String(categoryIndex).padStart(2, '0')}`}
                                                   </div>

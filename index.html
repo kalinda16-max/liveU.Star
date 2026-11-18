@@ -3135,10 +3135,15 @@ function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCatego
                             <p className="text-xs text-[#EFF0EA] font-extrabold">暫無藝文紀錄</p>
                         </div>
                     ) : (
-                        events.map((evt, index) => {
+                        events.map((evt) => {
                             const cat = CATEGORIES[evt.type] || CATEGORIES.concert;
                             const typeCode = CATEGORY_CODES[evt.type] || 'VT';
                             
+                            // 核心修改：從全部資料 (allEvents) 中過濾出同類別的項目，
+                            // 並按照加入順序（最舊的在前、最新的在後）計算出這張票是第幾號
+                            const sameCategoryEvents = [...allEvents].filter(e => e.type === evt.type);
+                            const categoryIndex = sameCategoryEvents.findIndex(e => e.id === evt.id) + 1;
+
                             return (
                                 <div key={evt.id} onClick={() => setDetailEvent(evt)} className="my-2 m-2 relative drop-shadow-[0_0_5px_rgba(197,171,137,0.40)] cursor-pointer hover:scale-[1.01] transition-all">
                                     <div className="relative bg-[#232B25]/90 backdrop-blur-xl text-[#161D15] rounded-2xl flex overflow-hidden border border-[#C5AB89]/50 shadow-[inset_0_0_15px_rgba(255,255,255,0.03)]"
@@ -3156,10 +3161,9 @@ function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCatego
                                         }}
                                     >
                                         <div className="flex w-full bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] rounded-2xl overflow-hidden">
-                                          {/* 左側：封面圖與主要資訊（改用 items-stretch 讓左右高度一致） */}
+                                          {/* 左側：封面圖與主要資訊 */}
                                           <div className="flex-1 p-3.5 pl-5 flex items-stretch gap-2.5 min-w-0 pr-3">
-                                            
-                                            {/* 封面圖片區塊：改為 w-20 配合 h-full，會隨著文字區塊變多自動拉高 */}
+                                            {/* 封面圖片區塊 */}
                                             <div 
                                                 onClick={(e) => { e.stopPropagation(); setDetailEvent(evt); }}
                                                 className="w-20 h-full min-h-[96px] rounded-xl overflow-hidden shrink-0 border border-[#C5AB89] bg-white/5 relative cursor-pointer hover:opacity-95 flex items-center justify-center shadow-[0_0_3px_rgba(197,171,137,0.80)]"
@@ -3245,6 +3249,8 @@ function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCatego
                                                       fill="currentColor" 
                                                       aria-hidden="true"
                                                   >
+                                                      <rect x="2" y="0" width="3" height="20" />
+                                                      <rect x="8" y="0" width="1.5" height="20" />
                                                       <rect x="13" y="0" width="4" height="20" />
                                                       <rect x="20" y="0" width="1" height="20" />
                                                       <rect x="24" y="0" width="2.5" height="20" />
@@ -3259,10 +3265,13 @@ function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCatego
                                                       <rect x="74" y="0" width="2" height="20" />
                                                       <rect x="79" y="0" width="3" height="20" />
                                                       <rect x="85" y="0" width="1.5" height="20" />
+                                                      <rect x="90" y="0" width="3" height="20" />
+                                                      <rect x="95" y="0" width="2" height="20" />
                                                   </svg>
 
+                                                  {/* 獨立分類編號：最舊的為 01，新新增的為 02 */}
                                                   <div className="font-mono text-[8px] font-bold text-[#A3ADA5] tracking-tight">
-                                                      {`TKT-${typeCode}-${String(index + 1).padStart(2, '0')}`}
+                                                      {`TKT-${typeCode}-${String(categoryIndex).padStart(2, '0')}`}
                                                   </div>
                                               </div>
 

@@ -602,6 +602,60 @@
     from { rotate: 0deg; }
     to { rotate: 360deg; }
 }
+
+        /* ==================== 場館管理：iPhone 主畫面優先 ==================== */
+        .venue-manager-overlay {
+            position: fixed !important;
+            inset: 0 !important;
+            z-index: 2147483000 !important;
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            padding: 0;
+            background: rgba(0,0,0,.82);
+            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+            overscroll-behavior: contain;
+        }
+        .venue-manager-panel {
+            width: 100%;
+            max-width: 560px;
+            height: 100%;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #161D15;
+            color: #EFF0EA;
+            border-left: 1px solid rgba(197,171,137,.35);
+            border-right: 1px solid rgba(197,171,137,.35);
+        }
+        .venue-manager-scroll {
+            min-height: 0;
+            flex: 1 1 auto;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            padding-bottom: max(18px, env(safe-area-inset-bottom));
+        }
+        .venue-manager-input {
+            width: 100%; min-width: 0; min-height: 42px;
+            padding: 10px 12px; border-radius: 12px;
+            color: #EFF0EA; background: rgba(255,255,255,.06);
+            border: 1px solid rgba(197,171,137,.35);
+            font-size: 13px; outline: none;
+        }
+        .venue-manager-input:focus { border-color: #C5AB89; }
+        .venue-manager-input::placeholder { color: #A3ADA5; }
+        .venue-manager-action {
+            min-height: 42px; padding: 9px 13px; border-radius: 12px;
+            font-size: 12px; font-weight: 800; touch-action: manipulation;
+        }
+        @media (min-width: 641px) {
+            .venue-manager-overlay { align-items: center; padding: 24px; }
+            .venue-manager-panel { height: min(88dvh, 820px); border: 1px solid rgba(197,171,137,.45); border-radius: 24px; overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,.55); }
+        }
     </style>
 </head>
 <body class="bg-[#161D15] text-[#EFF0EA] font-sans antialiased h-full select-none overflow-hidden max-w-[100vw]">
@@ -1375,6 +1429,194 @@ function BackupModal({ events, schedules, merchandiseLogs, musicLogs, userProfil
                             }
                         ];
 
+            function VenueManagerModal({ venueDb, onClose, onDatabaseChange, showAlert }) {
+                const [query, setQuery] = useState('');
+                const [searchText, setSearchText] = useState('');
+                const [searchResults, setSearchResults] = useState([]);
+                const [isSearching, setIsSearching] = useState(false);
+                const [searchError, setSearchError] = useState('');
+                const [editingKey, setEditingKey] = useState(null);
+                const [name, setName] = useState('');
+                const [address, setAddress] = useState('');
+                const [city, setCity] = useState('');
+                const [country, setCountry] = useState('台灣');
+                const [lat, setLat] = useState('');
+                const [lng, setLng] = useState('');
+                const [formError, setFormError] = useState('');
+                const lastSearchAt = useRef(0);
+                const fileInputRef = useRef(null);
+
+                const venueEntries = Object.entries(venueDb || {}).sort((a,b) => a[0].localeCompare(b[0], 'zh-Hant'));
+                const filteredEntries = venueEntries.filter(([key, item]) => {
+                    const q = query.trim().toLowerCase();
+                    return !q || `${key} ${item.address || ''} ${item.city || ''} ${item.country || ''}`.toLowerCase().includes(q);
+                });
+
+                const resetForm = () => {
+                    setEditingKey(null); setName(''); setAddress(''); setCity(''); setCountry('台灣');
+                    setLat(''); setLng(''); setFormError(''); setSearchResults([]); setSearchError('');
+                };
+
+                const startEdit = (key, item) => {
+                    setEditingKey(key); setName(key); setAddress(item.address || ''); setCity(item.city || '');
+                    setCountry(item.country || '台灣'); setLat(item.lat ?? ''); setLng(item.lng ?? '');
+                    setFormError(''); setSearchResults([]); setSearchError('');
+                    document.getElementById('venue-manager-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                };
+
+                const chooseSearchResult = (result) => {
+                    const a = result.address || {};
+                    const cityValue = a.city || a.town || a.municipality || a.county || a.state || '';
+                    const countryValue = a.country || '';
+                    const countryMap = { 'Taiwan':'台灣', '日本':'日本', 'Japan':'日本', 'South Korea':'南韓', '대한민국':'南韓', 'Hong Kong':'香港', '香港':'香港', 'Singapore':'新加坡', 'Thailand':'泰國', 'Malaysia':'馬來西亞', 'United States':'美國', 'United Kingdom':'英國', 'Australia':'澳大利亞' };
+                    setName(name || (result.name || result.display_name?.split(',')[0] || ''));
+                    setAddress(result.display_name || '');
+                    setCity(cityValue);
+                    setCountry(countryMap[countryValue] || countryValue || country);
+                    setLat(String(result.lat ?? ''));
+                    setLng(String(result.lon ?? ''));
+                    setSearchResults([]);
+                    setSearchError('已帶入搜尋結果，請確認場館名稱與地址後儲存。');
+                    setFormError('');
+                    document.getElementById('venue-manager-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                };
+
+                const searchVenue = async () => {
+                    const q = searchText.trim();
+                    if (!q) { setSearchError('請先輸入場館名稱或地址。'); return; }
+                    setIsSearching(true); setSearchError(''); setSearchResults([]);
+                    try {
+                        const wait = Math.max(0, 1100 - (Date.now() - lastSearchAt.current));
+                        if (wait) await new Promise(resolve => setTimeout(resolve, wait));
+                        lastSearchAt.current = Date.now();
+                        const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&q=${encodeURIComponent(q)}`;
+                        const response = await fetch(url, { headers: { 'Accept':'application/json' } });
+                        if (!response.ok) throw new Error(`搜尋服務回應 ${response.status}`);
+                        const results = await response.json();
+                        setSearchResults(Array.isArray(results) ? results : []);
+                        if (!results?.length) setSearchError('找不到結果。可以改用「場館名稱＋城市／國家」搜尋，或手動填寫資料。');
+                    } catch (error) {
+                        console.error('場館搜尋失敗：', error);
+                        setSearchError('目前無法連線到免費地圖搜尋服務，請稍後再試，或手動填寫地址與座標。');
+                    } finally { setIsSearching(false); }
+                };
+
+                const saveVenue = async () => {
+                    const cleanName = name.trim();
+                    if (!cleanName) { setFormError('請填寫場館名稱。'); return; }
+                    const cleanLat = lat === '' ? null : Number(lat);
+                    const cleanLng = lng === '' ? null : Number(lng);
+                    if ((cleanLat !== null && (!Number.isFinite(cleanLat) || cleanLat < -90 || cleanLat > 90)) ||
+                        (cleanLng !== null && (!Number.isFinite(cleanLng) || cleanLng < -180 || cleanLng > 180))) {
+                        setFormError('經緯度格式不正確，請確認緯度介於 -90～90、經度介於 -180～180。'); return;
+                    }
+                    if ((cleanLat === null) !== (cleanLng === null)) { setFormError('經緯度請同時填寫，或同時留白。'); return; }
+                    const duplicate = Object.keys(venueDb).find(k => k.toLowerCase() === cleanName.toLowerCase() && k !== editingKey);
+                    if (duplicate) { setFormError(`已經有「${duplicate}」這個場館名稱，請直接編輯原資料。`); return; }
+                    const next = { ...venueDb };
+                    if (editingKey && editingKey !== cleanName) delete next[editingKey];
+                    next[cleanName] = { address: address.trim(), city: city.trim(), country: country.trim(), lat: cleanLat, lng: cleanLng };
+                    await onDatabaseChange(next);
+                    resetForm();
+                    showAlert(editingKey ? '場館資料已更新' : '場館已新增');
+                };
+
+                const deleteVenue = async (key) => {
+                    if (!window.confirm(`確定刪除「${key}」？既有活動紀錄不會被刪除，但地圖可能改用活動內原本儲存的座標。`)) return;
+                    const next = { ...venueDb }; delete next[key];
+                    await onDatabaseChange(next);
+                    if (editingKey === key) resetForm();
+                    showAlert('場館資料已刪除');
+                };
+
+                const exportDatabase = () => {
+                    const content = `/* LiveU 場館資料庫\n * 由「場館管理」匯出。請以此檔案完整取代 GitHub 專案中的 venues.js。\n * 資料結構維持 window.VENUE_DATABASE，供活動紀錄與星跡 Map 共用。\n */\nwindow.VENUE_DATABASE = ${JSON.stringify(venueDb, null, 4)};\n`;
+                    const blob = new Blob([content], { type: 'text/javascript;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a'); a.href = url; a.download = 'venues.js';
+                    document.body.appendChild(a); a.click(); a.remove();
+                    setTimeout(() => URL.revokeObjectURL(url), 1500);
+                    showAlert('已匯出 venues.js，請更新 GitHub 專案中的同名檔案');
+                };
+
+                return (
+                    <div className="venue-manager-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+                        <section className="venue-manager-panel" role="dialog" aria-modal="true" aria-label="場館管理">
+                            <header className="px-4 pt-3 pb-3 border-b border-[#737C75]/40 bg-[#121812] flex items-center justify-between shrink-0" style={{ paddingTop: 'max(14px, env(safe-area-inset-top))' }}>
+                                <div>
+                                    <div className="text-[10px] tracking-[.22em] text-[#C5AB89] font-black">LIVEU DATABASE</div>
+                                    <h2 className="text-lg font-black text-[#EFF0EA] mt-0.5">場館管理</h2>
+                                    <p className="text-[10px] text-[#A3ADA5] mt-0.5">共 {venueEntries.length} 個場館 · 活動紀錄與星跡 Map 共用</p>
+                                </div>
+                                <button type="button" onClick={onClose} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[#EFF0EA]" aria-label="關閉"><i data-lucide="x" className="w-5 h-5"></i></button>
+                            </header>
+                            <div className="venue-manager-scroll px-4 py-4 space-y-4">
+                                <div className="rounded-2xl border border-[#C5AB89]/35 bg-[#232B25] p-3 space-y-2">
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div className="text-xs font-black text-[#C5AB89]">免費搜尋場館地址</div>
+                                        <span className="text-[9px] text-[#A3ADA5]">手動按搜尋，不會即時追蹤輸入</span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <input className="venue-manager-input flex-1" value={searchText} onChange={e => setSearchText(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); searchVenue(); } }} placeholder="例：東京巨蛋 Tokyo Dome" />
+                                        <button type="button" onClick={searchVenue} disabled={isSearching} className="venue-manager-action bg-[#C5AB89] text-[#161D15] shrink-0 disabled:opacity-50">{isSearching ? '搜尋中…' : '搜尋'}</button>
+                                    </div>
+                                    {searchError && <p className="text-[10px] text-[#D2CABF] leading-relaxed">{searchError}</p>}
+                                    {searchResults.length > 0 && <div className="space-y-2 pt-1">
+                                        {searchResults.map((r, i) => <button type="button" key={`${r.place_id || i}`} onClick={() => chooseSearchResult(r)} className="w-full text-left rounded-xl border border-white/10 bg-black/20 p-3 active:bg-white/10">
+                                            <div className="text-xs font-bold text-[#EFF0EA] leading-relaxed">{r.name || r.display_name?.split(',')[0]}</div>
+                                            <div className="text-[10px] text-[#A3ADA5] leading-relaxed mt-1">{r.display_name}</div>
+                                            <div className="text-[9px] text-[#C5AB89] mt-1">座標：{Number(r.lat).toFixed(6)}, {Number(r.lon).toFixed(6)} · 點選帶入</div>
+                                        </button>)}
+                                    </div>}
+                                    <p className="text-[9px] text-[#8F9A91] leading-relaxed">地圖搜尋資料 © OpenStreetMap contributors · 搜尋結果請自行核對正確場館及入口位置。</p>
+                                </div>
+
+                                <div id="venue-manager-form" className="rounded-2xl border border-[#C5AB89]/35 bg-[#1D261F] p-3 space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-sm font-black text-[#C5AB89]">{editingKey ? '編輯場館' : '新增場館'}</h3>
+                                        {editingKey && <button type="button" onClick={resetForm} className="text-[10px] text-[#A3ADA5] underline">取消編輯</button>}
+                                    </div>
+                                    <div className="space-y-1"><label className="text-[10px] text-[#D2CABF]">場館名稱 *</label><input className="venue-manager-input" value={name} onChange={e => setName(e.target.value)} placeholder="輸入正式場館名稱" /></div>
+                                    <div className="space-y-1"><label className="text-[10px] text-[#D2CABF]">地址</label><textarea className="venue-manager-input resize-y" rows="2" value={address} onChange={e => setAddress(e.target.value)} placeholder="可從上方搜尋結果帶入，也可手動輸入" /></div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="space-y-1"><label className="text-[10px] text-[#D2CABF]">國家／地區</label><input className="venue-manager-input" value={country} onChange={e => setCountry(e.target.value)} placeholder="台灣" /></div>
+                                        <div className="space-y-1"><label className="text-[10px] text-[#D2CABF]">城市</label><input className="venue-manager-input" value={city} onChange={e => setCity(e.target.value)} placeholder="台北" /></div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="space-y-1"><label className="text-[10px] text-[#D2CABF]">緯度 Latitude</label><input className="venue-manager-input" inputMode="decimal" value={lat} onChange={e => setLat(e.target.value)} placeholder="25.033000" /></div>
+                                        <div className="space-y-1"><label className="text-[10px] text-[#D2CABF]">經度 Longitude</label><input className="venue-manager-input" inputMode="decimal" value={lng} onChange={e => setLng(e.target.value)} placeholder="121.565000" /></div>
+                                    </div>
+                                    {formError && <p className="text-[10px] text-red-300">{formError}</p>}
+                                    <div className="flex gap-2">
+                                        <button type="button" onClick={saveVenue} className="venue-manager-action flex-1 bg-[#C5AB89] text-[#161D15]">{editingKey ? '儲存修改' : '新增場館'}</button>
+                                        <button type="button" onClick={resetForm} className="venue-manager-action px-4 bg-white/10 text-[#EFF0EA]">清空</button>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between gap-2">
+                                        <h3 className="text-sm font-black text-[#C5AB89]">場館清單 <span className="text-[#A3ADA5] font-normal">({filteredEntries.length})</span></h3>
+                                        <button type="button" onClick={exportDatabase} className="venue-manager-action bg-[#737C75]/35 border border-[#737C75]/50 text-[#EFF0EA] flex items-center gap-1.5"><i data-lucide="download" className="w-3.5 h-3.5"></i>匯出 venues.js</button>
+                                    </div>
+                                    <input className="venue-manager-input" value={query} onChange={e => setQuery(e.target.value)} placeholder="搜尋已建立的場館／城市／地址" />
+                                    {filteredEntries.length === 0 ? <p className="text-center text-xs text-[#A3ADA5] py-6">沒有符合的場館</p> : <div className="space-y-2">
+                                        {filteredEntries.map(([key, item]) => <div key={key} className="rounded-xl border border-white/10 bg-white/[.04] p-3 flex items-start gap-2">
+                                            <div className="min-w-0 flex-1"><div className="text-xs font-bold text-[#EFF0EA] break-words">{key}</div><div className="text-[10px] text-[#A3ADA5] leading-relaxed mt-1 break-words">{[item.city, item.country].filter(Boolean).join(' · ')}{item.address ? `｜${item.address}` : '｜尚未填寫地址'}</div><div className="text-[9px] text-[#8F9A91] mt-1">{item.lat != null && item.lng != null ? `${item.lat}, ${item.lng}` : '尚無座標'}</div></div>
+                                            <div className="flex gap-1 shrink-0"><button type="button" onClick={() => startEdit(key, item)} className="w-9 h-9 rounded-lg bg-[#737C75]/35 text-[#EFF0EA] flex items-center justify-center" aria-label={`編輯 ${key}`}><i data-lucide="pencil" className="w-4 h-4"></i></button><button type="button" onClick={() => deleteVenue(key)} className="w-9 h-9 rounded-lg bg-red-500/10 text-red-300 flex items-center justify-center" aria-label={`刪除 ${key}`}><i data-lucide="trash-2" className="w-4 h-4"></i></button></div>
+                                        </div>)}
+                                    </div>}
+                                </div>
+
+                                <div className="rounded-xl border border-[#737C75]/40 bg-[#232B25]/70 p-3 space-y-1">
+                                    <div className="text-[10px] font-bold text-[#C5AB89]">資料同步說明</div>
+                                    <p className="text-[10px] text-[#A3ADA5] leading-relaxed">新增／修改／刪除會先儲存在這台 iPhone 的瀏覽器資料庫。要讓其他裝置及 GitHub Pages 版本也取得相同資料，請按「匯出 venues.js」，再用匯出的檔案取代 GitHub 專案中的 venues.js。這樣不需要付費服務，也保留未來改接雲端資料庫的空間。</p>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                );
+            }
+
             function App() {
             // 1. 資料 State（改為預設空值/預設物件，準備從 IndexedDB 載入）
                 const [events, setEvents] = useState([]);
@@ -1400,6 +1642,8 @@ function BackupModal({ events, schedules, merchandiseLogs, musicLogs, userProfil
                 const [selectedArtist, setSelectedArtist] = useState('all');
                 const [isAddMerchModalOpen, setIsAddMerchModalOpen] = useState(false);
                 const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
+                const [isVenueManagerOpen, setIsVenueManagerOpen] = useState(false);
+                const [venueVersion, setVenueVersion] = useState(0);
                 const [editingEvent, setEditingEvent] = useState(null);
                 const [editingSchedule, setEditingSchedule] = useState(null);
                 const [editingMerchandise, setEditingMerchandise] = useState(null);
@@ -1414,6 +1658,13 @@ function BackupModal({ events, schedules, merchandiseLogs, musicLogs, userProfil
                             const savedMerchandiseLogs = await getFromIDB('merchandiseLogs');
                             const savedMusicLogs = await getFromIDB('musicLogs');
                             const savedProfile = await getFromIDB('userProfile');
+                            const savedVenueDatabase = await getFromIDB('venueDatabase');
+                            if (savedVenueDatabase && typeof savedVenueDatabase === 'object' && !Array.isArray(savedVenueDatabase)) {
+                                Object.keys(venueDb).forEach(key => delete venueDb[key]);
+                                Object.assign(venueDb, savedVenueDatabase);
+                                window.VENUE_DATABASE = venueDb;
+                                setVenueVersion(v => v + 1);
+                            }
 
                             if (savedEvents) {
                                 setEvents(savedEvents);
@@ -1485,6 +1736,14 @@ function BackupModal({ events, schedules, merchandiseLogs, musicLogs, userProfil
                 });
 
                 const showAlert = (msg) => { setAlertMsg(msg); setTimeout(() => setAlertMsg(null), 3000); };
+
+                const handleVenueDatabaseChange = async (nextDatabase) => {
+                    Object.keys(venueDb).forEach(key => delete venueDb[key]);
+                    Object.assign(venueDb, nextDatabase || {});
+                    window.VENUE_DATABASE = venueDb;
+                    setVenueVersion(v => v + 1);
+                    await saveToIDB('venueDatabase', venueDb);
+                };
 
                 const handleImportData = (data) => {
                     if (data.events && Array.isArray(data.events)) setEvents(data.events);
@@ -1815,9 +2074,14 @@ const handleSaveMerchandise = (data) => {
                             </div>
                         )}
                                 {activeTab === 'stats' && (
-                                    <button onClick={() => setIsBackupModalOpen(true)} className="w-8 h-8 rounded-lg bg-[#737C75]/40 text-[#EFF0EA] flex items-center justify-center shadow hover:bg-[#737C75]/60 transition-colors" title="備份資料">
-                                        <i data-lucide="database" className="w-4 h-4"></i>
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                        <button onClick={() => setIsVenueManagerOpen(true)} className="w-8 h-8 rounded-lg bg-[#C5AB89]/90 text-[#161D15] flex items-center justify-center shadow hover:bg-[#C5AB89] transition-colors" title="場館管理" aria-label="場館管理">
+                                            <i data-lucide="map-pinned" className="w-4 h-4"></i>
+                                        </button>
+                                        <button onClick={() => setIsBackupModalOpen(true)} className="w-8 h-8 rounded-lg bg-[#737C75]/40 text-[#EFF0EA] flex items-center justify-center shadow hover:bg-[#737C75]/60 transition-colors" title="備份資料">
+                                            <i data-lucide="database" className="w-4 h-4"></i>
+                                        </button>
+                                    </div>
                                 )}
                             </div>
                         </header>
@@ -1829,7 +2093,7 @@ const handleSaveMerchandise = (data) => {
                             {activeTab === 'schedule' && (schedulePanel === 'music'
                                 ? <MusicCollectionSection musicLogs={musicLogs} musicTypeFilter={musicTypeFilter} setMusicTypeFilter={setMusicTypeFilter} selectedArtist={selectedArtist} setSelectedArtist={setSelectedArtist} searchQuery={searchQuery} setSearchQuery={setSearchQuery} onEditMusic={(item) => setEditingMusic(item)} />
                                 : <ScheduleSection activePanel="merchandise" schedules={schedules} merchandiseLogs={merchandiseLogs} onDelete={handleDeleteSchedule} onEdit={(sch) => setEditingSchedule(sch)} onSaveSchedule={handleSaveSchedule} onToggleMerchandise={handleToggleMerchandise} onDeleteMerchandise={handleDeleteMerchandise} onEditMerchandise={(item) => setEditingMerchandise(item)} onOpenAddModal={() => setIsAddScheduleModalOpen(true)} onOpenMerchandiseModal={() => setIsAddMerchModalOpen(true)} />)}
-                            {activeTab === 'map' && <LeafletMapSection events={events} stats={stats} getGoogleMapsUrl={getGoogleMapsUrl} onDelete={handleDeleteEvent} onEdit={(evt) => setEditingEvent(evt)} />}
+                            {activeTab === 'map' && <LeafletMapSection events={events} stats={stats} venueVersion={venueVersion} getGoogleMapsUrl={getGoogleMapsUrl} onDelete={handleDeleteEvent} onEdit={(evt) => setEditingEvent(evt)} />}
                             {activeTab === 'stats' && <StatsSection stats={stats} events={events} />}
                         </main>
 
@@ -1855,6 +2119,7 @@ const handleSaveMerchandise = (data) => {
                             </div>
                         </nav>
 
+                        {isVenueManagerOpen && <VenueManagerModal venueDb={venueDb} onClose={() => setIsVenueManagerOpen(false)} onDatabaseChange={handleVenueDatabaseChange} showAlert={showAlert} />}
                         {isBackupModalOpen && <BackupModal events={events} schedules={schedules} merchandiseLogs={merchandiseLogs} musicLogs={musicLogs} userProfile={userProfile} onClose={() => setIsBackupModalOpen(false)} onImport={handleImportData} showAlert={showAlert} />}
                         {isEditProfileOpen && <EditProfileModal userProfile={userProfile} setUserProfile={setUserProfile} onClose={() => setIsEditProfileOpen(false)} showAlert={showAlert} />}
                         {(isAddModalOpen || editingEvent) && <AddEventModal initialData={editingEvent} onSave={handleSaveEvent} onClose={() => { setIsAddModalOpen(false); setEditingEvent(null); }} />}
@@ -2607,7 +2872,7 @@ function EventDetailModal({ event, onClose, onDelete, onEdit }) {
 
 
 
-function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }) {
+function LeafletMapSection({ events, stats, venueVersion, getGoogleMapsUrl, onDelete, onEdit }) {
                 const mapRef = useRef(null);
                 const mapInst = useRef(null);
                 const markersLayerRef = useRef(L.layerGroup());
@@ -2842,7 +3107,7 @@ function LeafletMapSection({ events, stats, getGoogleMapsUrl, onDelete, onEdit }
                         if (venue) marker.bindTooltip(`${venue} · ${count} 場`, { direction: 'top' });
                         markersLayerRef.current.addLayer(marker);
                     });
-                }, [events, venueCounts]);
+                }, [events, venueCounts, venueVersion]);
 
                 const handleCloseCountryModal = () => {
                     if (geoJsonLayerRef.current) {

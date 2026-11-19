@@ -1571,17 +1571,16 @@ function BackupModal({ events, schedules, merchandiseLogs, musicLogs, userProfil
                         <section className="venue-manager-panel" role="dialog" aria-modal="true" aria-label="場館管理">
                             <header className="px-4 pt-3 pb-3 border-b border-[#737C75]/40 bg-[#121812] flex items-center justify-between shrink-0" style={{ paddingTop: 'max(14px, env(safe-area-inset-top))' }}>
                                 <div>
-                                    <div className="text-[10px] tracking-[.22em] text-[#C5AB89] font-black">LIVEU DATABASE</div>
+                                    <div className="text-[10px] tracking-[.22em] text-[#C5AB89] font-black">LiveU DATABASE</div>
                                     <h2 className="text-lg font-black text-[#EFF0EA] mt-0.5">場館管理</h2>
-                                    <p className="text-[10px] text-[#A3ADA5] mt-0.5">共 {venueEntries.length} 個場館 · 活動紀錄與星跡 Map 共用</p>
+                                    <p className="text-[10px] text-[#A3ADA5] mt-0.5">共 {venueEntries.length} 個場館</p>
                                 </div>
-                                <button type="button" onClick={onClose} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[#EFF0EA]" aria-label="關閉"><i data-lucide="x" className="w-5 h-5"></i></button>
+                                <button type="button" onClick={onClose} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[#EFF0EA]" aria-label="關閉"><i data-lucide="x" className="w-3 h-3"></i></button>
                             </header>
                             <div className="venue-manager-scroll px-4 py-4 space-y-4">
                                 <div className="rounded-2xl border border-[#C5AB89]/35 bg-[#232B25] p-3 space-y-2">
                                     <div className="flex items-center justify-between gap-2">
-                                        <div className="text-xs font-black text-[#C5AB89]">免費搜尋場館地址</div>
-                                        <span className="text-[9px] text-[#A3ADA5]">手動按搜尋，不會即時追蹤輸入</span>
+                                        <div className="text-xs font-black text-[#C5AB89] pl-3">搜尋場館地址</div>
                                     </div>
                                     <div className="flex gap-2">
                                         <input className="venue-manager-input flex-1" value={searchText} onChange={e => setSearchText(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); searchVenue(); } }} placeholder="例：東京巨蛋 Tokyo Dome" />
@@ -1595,23 +1594,24 @@ function BackupModal({ events, schedules, merchandiseLogs, musicLogs, userProfil
                                             <div className="text-[9px] text-[#C5AB89] mt-1">座標：{Number(r.lat).toFixed(6)}, {Number(r.lon).toFixed(6)} · 點選帶入</div>
                                         </button>)}
                                     </div>}
-                                    <p className="text-[9px] text-[#8F9A91] leading-relaxed">地圖搜尋資料 © OpenStreetMap contributors · 搜尋結果請自行核對正確場館及入口位置。</p>
                                 </div>
 
                                 <div id="venue-manager-form" className="rounded-2xl border border-[#C5AB89]/35 bg-[#1D261F] p-3 space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="text-sm font-black text-[#C5AB89]">{editingKey ? '編輯場館' : '新增場館'}</h3>
-                                        {editingKey && <button type="button" onClick={resetForm} className="text-[10px] text-[#A3ADA5] underline">取消編輯</button>}
-                                    </div>
-                                    <div className="space-y-1"><label className="text-[10px] text-[#D2CABF]">場館名稱 *</label><input className="venue-manager-input" value={name} onChange={e => setName(e.target.value)} placeholder="輸入正式場館名稱" /></div>
-                                    <div className="space-y-1"><label className="text-[10px] text-[#D2CABF]">地址</label><textarea className="venue-manager-input resize-y" rows="2" value={address} onChange={e => setAddress(e.target.value)} placeholder="可從上方搜尋結果帶入，也可手動輸入" /></div>
+                                    {editingKey && (
+                                     <div className="flex items-center justify-between ">
+                                            <h3 className="text-sm font-black text-[#C5AB89] pl-3">編輯場館</h3>
+                                            <button type="button" onClick={resetForm} className="text-[10px] text-[#A3ADA5] underline">取消編輯</button>
+                                        </div>
+                                    )}
+                                    <div className="space-y-1"><label className="text-[11px] font-black text-[#D2CABF] pl-3">場館名稱 *</label><input className="venue-manager-input" value={name} onChange={e => setName(e.target.value)} placeholder="輸入正式場館名稱" /></div>
+                                    <div className="space-y-1"><label className="text-[11px] font-black text-[#D2CABF] pl-3">地址</label><textarea className="venue-manager-input resize-y" rows="2" value={address} onChange={e => setAddress(e.target.value)} placeholder="可從上方搜尋結果帶入，也可手動輸入" /></div>
                                     <div className="grid grid-cols-2 gap-2">
-                                        <div className="space-y-1"><label className="text-[10px] text-[#D2CABF]">國家／地區</label><input className="venue-manager-input" value={country} onChange={e => setCountry(e.target.value)} placeholder="台灣" /></div>
-                                        <div className="space-y-1"><label className="text-[10px] text-[#D2CABF]">城市</label><input className="venue-manager-input" value={city} onChange={e => setCity(e.target.value)} placeholder="台北" /></div>
+                                        <div className="space-y-1"><label className="text-[11px] font-black text-[#D2CABF] pl-3">國家</label><input className="venue-manager-input" value={country} onChange={e => setCountry(e.target.value)} placeholder="台灣" /></div>
+                                        <div className="space-y-1"><label className="text-[11px] font-black text-[#D2CABF] pl-3">城市</label><input className="venue-manager-input" value={city} onChange={e => setCity(e.target.value)} placeholder="台北" /></div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
-                                        <div className="space-y-1"><label className="text-[10px] text-[#D2CABF]">緯度 Latitude</label><input className="venue-manager-input" inputMode="decimal" value={lat} onChange={e => setLat(e.target.value)} placeholder="25.033000" /></div>
-                                        <div className="space-y-1"><label className="text-[10px] text-[#D2CABF]">經度 Longitude</label><input className="venue-manager-input" inputMode="decimal" value={lng} onChange={e => setLng(e.target.value)} placeholder="121.565000" /></div>
+                                        <div className="space-y-1"><label className="text-[11px] font-black text-[#D2CABF] pl-3">緯度 Latitude</label><input className="venue-manager-input" inputMode="decimal" value={lat} onChange={e => setLat(e.target.value)} placeholder="25.033000" /></div>
+                                        <div className="space-y-1"><label className="text-[11px] font-black text-[#D2CABF] pl-3">經度 Longitude</label><input className="venue-manager-input" inputMode="decimal" value={lng} onChange={e => setLng(e.target.value)} placeholder="121.565000" /></div>
                                     </div>
                                     {formError && <p className="text-[10px] text-red-300">{formError}</p>}
                                     <div className="flex gap-2">
@@ -1622,7 +1622,10 @@ function BackupModal({ events, schedules, merchandiseLogs, musicLogs, userProfil
 
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between gap-2">
-                                        <h3 className="text-sm font-black text-[#C5AB89]">場館清單 <span className="text-[#A3ADA5] font-normal">({filteredEntries.length})</span></h3>
+                                       <div className="pl-3">
+                                            <h3 className="text-sm font-black text-[#C5AB89]">場館清單 <span className="text-[#A3ADA5] font-normal">({filteredEntries.length})</span></h3>
+                                            <p className="text-[10px] text-[#A3ADA5] leading-relaxed mt-0.5">Venue List</p>
+                                        </div>
                                         <button type="button" onClick={exportDatabase} className="venue-manager-action bg-[#737C75]/35 border border-[#737C75]/50 text-[#EFF0EA] flex items-center gap-1.5"><i data-lucide="download" className="w-3.5 h-3.5"></i>匯出 venues.js</button>
                                     </div>
                                     <input className="venue-manager-input" value={query} onChange={e => setQuery(e.target.value)} placeholder="搜尋已建立的場館／城市／地址" />

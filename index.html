@@ -609,30 +609,41 @@
             inset: 0 !important;
             z-index: 2147483000 !important;
             display: flex;
-            align-items: stretch;
+            align-items: center;
             justify-content: center;
-            padding: 0;
+            /* iPhone 主畫面模式：避開動態島／狀態列與底部 Home Indicator */
+            padding:
+                max(16px, env(safe-area-inset-top, 0px))
+                12px
+                max(16px, env(safe-area-inset-bottom, 0px));
             background: rgba(0,0,0,.82);
             -webkit-backdrop-filter: blur(8px);
             backdrop-filter: blur(8px);
             overscroll-behavior: contain;
+            overflow: hidden;
         }
         .venue-manager-panel {
-            width: 100%;
-            max-width: 560px;
-            height: 100%;
+            width: min(100%, 560px);
+            height: min(820px, 100%);
+            max-height: 100%;
             min-height: 0;
             display: flex;
             flex-direction: column;
             overflow: hidden;
             background: #161D15;
             color: #EFF0EA;
-            border-left: 1px solid rgba(197,171,137,.35);
-            border-right: 1px solid rgba(197,171,137,.35);
+            border: 1px solid rgba(197,171,137,.45);
+            border-radius: 22px;
+            box-shadow: 0 24px 70px rgba(0,0,0,.55);
+        }
+        /* 管理面板本身已避開 iOS 安全區，標題列不再重複增加安全區高度 */
+        .venue-manager-panel > header {
+            padding-top: 12px !important;
         }
         .venue-manager-scroll {
             min-height: 0;
             flex: 1 1 auto;
+            overscroll-behavior-y: contain;
             overflow-y: auto;
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
@@ -652,9 +663,25 @@
             min-height: 42px; padding: 9px 13px; border-radius: 12px;
             font-size: 12px; font-weight: 800; touch-action: manipulation;
         }
+        @media (max-width: 640px) {
+            .venue-manager-overlay {
+                /* 使用動態視窗高度，並將安全區域留在面板外 */
+                padding-top: max(16px, env(safe-area-inset-top, 0px));
+                padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+            }
+            .venue-manager-panel {
+                width: 100%;
+                height: 100%;
+                max-height: 100%;
+                border-radius: 20px;
+            }
+        }
         @media (min-width: 641px) {
-            .venue-manager-overlay { align-items: center; padding: 24px; }
-            .venue-manager-panel { height: min(88dvh, 820px); border: 1px solid rgba(197,171,137,.45); border-radius: 24px; overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,.55); }
+            .venue-manager-overlay { padding: 24px; }
+            .venue-manager-panel { height: min(88dvh, 820px); border-radius: 24px; }
+        }
+        @supports (height: 100dvh) {
+            .venue-manager-overlay { height: 100dvh; }
         }
     </style>
 </head>

@@ -1603,7 +1603,7 @@ function BackupModal({ events, schedules, merchandiseLogs, musicLogs, userProfil
                                             <button type="button" onClick={resetForm} className="text-[10px] text-[#A3ADA5] underline">取消編輯</button>
                                         </div>
                                     )}
-                                    <div className="space-y-1"><label className="text-[11px] font-black text-[#D2CABF] pl-3">場館名稱 *</label><input className="venue-manager-input" value={name} onChange={e => setName(e.target.value)} placeholder="輸入正式場館名稱" /></div>
+                                    <div className="space-y-1"><label className="text-[11px] font-black text-[#D2CABF] pl-3">場館名稱</label><input className="venue-manager-input" value={name} onChange={e => setName(e.target.value)} placeholder="輸入正式場館名稱" /></div>
                                     <div className="space-y-1"><label className="text-[11px] font-black text-[#D2CABF] pl-3">地址</label><textarea className="venue-manager-input resize-y" rows="2" value={address} onChange={e => setAddress(e.target.value)} placeholder="可從上方搜尋結果帶入，也可手動輸入" /></div>
                                     <div className="grid grid-cols-2 gap-2">
                                         <div className="space-y-1"><label className="text-[11px] font-black text-[#D2CABF] pl-3">國家</label><input className="venue-manager-input" value={country} onChange={e => setCountry(e.target.value)} placeholder="台灣" /></div>

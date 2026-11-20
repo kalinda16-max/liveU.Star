@@ -1194,7 +1194,84 @@
                 // 否則在 iOS Safari / WebView 中可能被父面板裁切或藏在其 stacking context 後面。
                 return ReactDOM.createPortal(cropperModal, document.body);
             }
+            function CoverFocalPicker({ coverImg, value = '50% 50%', onChange }) {
+  const boxRef = React.useRef(null);
+  const [dragging, setDragging] = React.useState(false);
 
+  // 解析 "72% 50%" -> { x: 72, y: 50 }
+  const parsePos = (posStr) => {
+    const parts = (posStr || '50% 50%').replace(/%/g, '').trim().split(/\s+/);
+    const x = Number.isFinite(parseFloat(parts[0])) ? parseFloat(parts[0]) : 50;
+    const y = Number.isFinite(parseFloat(parts[1])) ? parseFloat(parts[1]) : 50;
+    return { x, y };
+  };
+
+  const { x, y } = parsePos(value);
+
+  const updateFromClientPoint = (clientX, clientY) => {
+    const el = boxRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const rawX = ((clientX - rect.left) / rect.width) * 100;
+    const rawY = ((clientY - rect.top) / rect.height) * 100;
+    const clampedX = Math.round(Math.max(0, Math.min(100, rawX)));
+    const clampedY = Math.round(Math.max(0, Math.min(100, rawY)));
+    onChange(`${clampedX}% ${clampedY}%`);
+  };
+
+  if (!coverImg) return null;
+
+  return (
+    <div className="space-y-2 relative">
+      <div className="flex items-center gap-3">
+        {/* 模擬票券左側縮圖框（w-20 h-24） */}
+        <div
+          ref={boxRef}
+          onPointerDown={(e) => {
+            e.currentTarget.setPointerCapture(e.pointerId);
+            setDragging(true);
+            updateFromClientPoint(e.clientX, e.clientY);
+          }}
+          onPointerMove={(e) => {
+            if (!dragging) return;
+            updateFromClientPoint(e.clientX, e.clientY);
+          }}
+          onPointerUp={() => setDragging(false)}
+          onPointerCancel={() => setDragging(false)}
+          className="w-20 h-24 rounded-xl overflow-hidden shrink-0 border border-[#C5AB89] relative cursor-crosshair touch-none select-none bg-[#161D15]"
+        >
+          <img
+            src={coverImg}
+            alt="焦點預覽"
+            style={{ objectPosition: `${x}% ${y}%` }}
+            className="w-full h-full object-cover pointer-events-none"
+          />
+          {/* 焦點準星標記 */}
+          <div
+            style={{ left: `${x}%`, top: `${y}%` }}
+            className="w-3.5 h-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[#EFF0EA] bg-[#C5AB89]/80 shadow-[0_0_6px_rgba(0,0,0,0.8)] pointer-events-none absolute"
+          />
+        </div>
+
+        <div className="text-[11px] font-mono text-[#A3ADA5] space-y-1 pr-14">
+          <div>焦點座標：{x}% , {y}%</div>
+          <div className="text-[10px] text-[#A3ADA5]/80">
+            支援滑鼠與 iOS 觸控，<br />
+            儲存後會同步套用至小面板縮圖。
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onChange('50% 50%')}
+        className="absolute bottom-0 right-3 text-[11px] text-[#C5AB89] hover:underline font-bold"
+      >
+        重設置中
+      </button>
+    </div>
+  );
+}
             /* 皇冠 Icon 與星星 Icon 渲染組件 */
             function RankIcon({ rank }) {
                 if (rank === 1) {
@@ -2271,6 +2348,7 @@ const handleSaveMerchandise = (data) => {
                 const [countryName, setCountryName] = useState(initialData?.countryName || '台灣');
                 const [cost, setCost] = useState(initialData?.cost || '');
                 const [detailSeat, setDetailSeat] = useState(initialData?.detailSeat || '');
+                const [coverPosition, setCoverPosition] = useState(initialData?.coverPosition || '50% 50%');
                 
                 const [organizer, setOrganizer] = useState(initialData?.organizer || '');
                 const [doorTime, setDoorTime] = useState(initialData?.doorTime || '');
@@ -2361,7 +2439,7 @@ const handleSaveMerchandise = (data) => {
                         artist: artist || '', organizer: organizer || '',
                         city: city || '台北', countryCode: resolved.code, countryName: resolved.name,
                         lat: finalLat, lng: finalLng, status, rating,
-                        cost: Number(cost) || 0, detailSeat, coverImg, extraImgs, spotifyUrl, notes
+                        cost: Number(cost) || 0, detailSeat, coverImg, coverPosition, extraImgs, spotifyUrl, notes
                     });
                     onClose();
                 };
@@ -2392,6 +2470,11 @@ return ReactDOM.createPortal((
                                 )}
                                 <input type="file" ref={fileRef} onChange={handleFileChange} accept="image/*" className="hidden" />
                             </div>
+                                        <CoverFocalPicker
+                                            coverImg={coverImg}
+                                            value={coverPosition}
+                                            onChange={setCoverPosition}
+                                        />
                         </div>
                         <div className="space-y-1">
                             <label className="text-[11px] font-bold text-[#C5AB89] pl-1.5">活動分類</label>
@@ -3467,7 +3550,7 @@ function ArchiveSection({ events, allEvents, selectedCategory, setSelectedCatego
                                                 className="w-20 h-full min-h-[96px] rounded-xl overflow-hidden shrink-0 border border-[#C5AB89] bg-white/5 relative cursor-pointer hover:opacity-95 flex items-center justify-center shadow-[0_0_3px_rgba(197,171,137,0.80)]"
                                             >
                                                 {evt.coverImg ? (
-                                                    <img src={evt.coverImg} alt={evt.title} className="w-full h-full object-cover" />
+                                                    <img src={evt.coverImg} alt={evt.title} style={{ objectPosition: evt.coverPosition || '50% 50%' }} className="w-full h-full object-cover" />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center">
                                                         <CategoryIcon cat={cat} sizeClass="w-6 h-6 text-[#CCB9AA]" />

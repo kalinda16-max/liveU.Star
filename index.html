@@ -291,6 +291,21 @@
             right: 14px;
         }
 
+/* Music Archive collection cards */
+.music-archive-card {
+    isolation: isolate;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, .28), inset 0 0 0 1px rgba(255, 226, 184, .08);
+    background-repeat: no-repeat;
+}
+.music-archive-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(115deg, rgba(2, 13, 12, .12), transparent 62%, rgba(2, 13, 12, .18));
+}
+
 /* ==================== Music Archive detail panel ==================== */
 .music-vinyl {
     width: 54px;
@@ -4506,6 +4521,38 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
         return filteredMusic.reduce((sum, m) => sum + (Number(m.price) || 0), 0);
     }, [filteredMusic]);
 
+    // 典藏編號依發行日期由舊到新固定編排；顯示順序則由最新到最舊。
+    // 編號以完整典藏資料計算，不受目前篩選條件影響。
+    const archiveNumberById = useMemo(() => {
+        const getReleaseTimestamp = (value) => {
+            if (value === null || value === undefined) return null;
+            let raw = String(value).trim();
+            if (!raw) return null;
+            raw = raw.replace(/\s*(?:release(?:\s*date)?|發行日期|發行)\s*$/i, '').trim();
+            const match = raw.match(/^(\d{4})\s*(?:年|[.\-/])\s*(\d{1,2})(?:\s*(?:月|[.\-/])\s*(\d{1,2})\s*日?)?$/)
+                || raw.match(/^(\d{4})(?:年)?$/);
+            if (match) {
+                const year = Number(match[1]);
+                const month = match[2] ? Number(match[2]) : 1;
+                const day = match[3] ? Number(match[3]) : 1;
+                const date = new Date(Date.UTC(year, month - 1, day));
+                if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+                return Date.UTC(year, month - 1, day);
+            }
+            const timestamp = Date.parse(raw);
+            return Number.isFinite(timestamp) ? timestamp : null;
+        };
+        const ordered = [...musicLogs].sort((a, b) => {
+            const da = getReleaseTimestamp(a.releaseDate || a.release_date);
+            const db = getReleaseTimestamp(b.releaseDate || b.release_date);
+            if (da === null && db !== null) return 1;
+            if (da !== null && db === null) return -1;
+            if (da === null && db === null) return 0;
+            return da - db;
+        });
+        return new Map(ordered.map((item, index) => [item.id, index + 1]));
+    }, [musicLogs]);
+
     return (
         <>
         <div className="p-3.5 pb-20 space-y-3.5">
@@ -4583,141 +4630,78 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                 ))}
             </div>
 
-            {/* 專輯卡片 */}
-            <div className="space-y-3">
-                {filteredMusic.map((item) => {
-                    const isPlaying = playingCdId === item.id;
-                    const isExpanded = expandedTrackId === item.id;
+            {/* 音樂典藏小面板：依參考圖呈現橫向典藏封面卡 */}
+            <div className="space-y-4">
+    {filteredMusic.map((item) => {
+        const trackCount = item.tracks ? item.tracks.length : 0;
+        const archiveNo = String(archiveNumberById.get(item.id) || 0).padStart(3, '0');
+        const cover = item.coverImg || (item.coverImages && item.coverImages[0]) || '';
+        const releaseLabel = item.type === 'cd' ? 'STANDARD ALBUM' : 'DIGITAL RELEASE';
 
-                    return (
-                        <div key={item.id} onClick={() => { setDetailItem(item); setDetailPage(0); setDetailCoverIndex(0); }} className="bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] border border-[#C5AB89]/50 rounded-2xl p-3.5 shadow-xl shadow-[0_5px_10px_rgba(197,171,137,0.35)] space-y-3 cursor-pointer">
-                            <div className="flex gap-3">
-                                {/* CD 封面與黑膠滑出旋轉動畫 */}
-                                <div 
-                                    onClick={(e) => { 
-                                        e.stopPropagation(); 
-                                        setPlayingCdId(prev => (prev === item.id ? null : item.id)); 
-                                    }}
-                                    className="relative w-24 h-24 shrink-0 cursor-pointer group flex items-center"
-                                >
-                                    {/* 🎵 1. 黑膠唱片本體（藏在封面後面） */}
-                                    <div className={`vinyl-disc absolute right-1 w-20 h-20 rounded-full bg-black border-[0.5px] border-[#F4E3B2] shadow-xl flex items-center justify-center z-0 ${isPlaying ? 'is-spinning' : ''}`}>
-                                        <div className="absolute inset-0.5 rounded-full border border-white/5"></div>
-                                        <div className="absolute inset-1.5 rounded-full border border-white/10"></div>
-                                        <div className="absolute inset-3 rounded-full border border-white/10"></div>
-                                        <div className="w-7 h-7 rounded-full bg-[#C5AB89] border-3.5 border-black flex items-center justify-center">
-                                            <div className="w-2 h-2 rounded-full bg-[#161D15]"></div>
-                                        </div>
-                                    </div>
-
-                                    {/* 💿 2. 專輯封面圖片（蓋在黑膠上方） */}
-                                    <div className="relative w-24 h-24 rounded-xl overflow-hidden border border-[#C5AB89]/50 shadow-md z-10 bg-[#232B25]">
-                                        <img src={item.coverImg} alt={item.album} className="w-full h-full object-cover" />
-                                    </div>
-                                </div>
-
-                                {/* 專輯基本資料 */}
-                                <div className="flex-1 min-w-0 flex flex-col justify-between">
-                                    <div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[10px] font-extrabold text-[#C5AB89] truncate">{item.artist}</span>
-                                            <button 
-                                               type="button" 
-                                               aria-label={`編輯 ${item.album || '音樂典藏'}`} 
-                                               title="編輯資料" 
-                                               onClick={(e) => { e.preventDefault(); 
-                                               e.stopPropagation(); if (item) onEditMusic(item); }} 
-                                               className="relative z-10 p-1 text-[#D2CABF] hover:text-[#C5AB89]"><i data-lucide="pencil" className="w-3.5 h-3.5"></i></button>
-                                        </div>
-                                        <h3 className="font-extrabold text-sm text-[#EFF0EA] break-words whitespace-normal mt-0.5">{item.album}</h3>
-                                    </div>
-
-                                    <div className="flex items-center justify-between text-[10px] font-mono text-[#D2CABF] pt-2 border-t border-white/10">
-                                        <span className="truncate pr-2">{item.version || '普通盤'}</span>
-                                        <span className="font-bold text-[#C5AB89] shrink-0 pr-3">NT$ {Number(item.price || 0).toLocaleString()}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center justify-between pt-1">
-                                <button 
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); setExpandedTrackId(isExpanded ? null : item.id); }}
-                                    className="text-[10px] text-[#C5AB89] font-bold flex items-center gap-1 outline-none focus:outline-none focus:ring-0"
-                                >
-                                    <i data-lucide={isExpanded ? "chevron-up" : "chevron-down"} className="w-3.5 h-3.5"></i>{isExpanded ? '收合專輯曲目' : `查看收錄曲目 (${item.tracks ? item.tracks.length : 0})`}
-                                </button>
-                                <span className="text-[9px] text-[#A3ADA5] font-mono pr-2">{item.channel}</span>
-                            </div>
-
-                            {isExpanded && (
-                                <div className="bg-black/30 rounded-xl p-2.5 space-y-1.5 border border-white/5 text-xs ">
-                                    {item.tracks && item.tracks.map((tr, idx) => (
-                                        <div key={idx} className="flex items-center justify-between gap-2 text-[11px] py-1.5 border-b border-white/5 last:border-0">
-                                            <div className="flex items-center gap-2 min-w-0 pl-3">
-                                                <span className="font-mono text-[9px] text-[#C5AB89]">{String(idx + 1).padStart(2, '0')}</span>
-                                                <span className="font-medium text-[#EFF0EA] truncate">{tr.name}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 shrink-0 mr-3">
-                                                <span className="font-mono text-[9px] text-[#A3ADA5]">{tr.duration || ''}</span>
-                                                {tr.previewUrl ? (
-    <div className="flex items-center gap-1 shrink-0">
-        {/* 播放按鈕 */}
-        <button 
-            type="button" 
-            title={`播放 ${tr.name}`} 
-            aria-label={`播放 ${tr.name}`} 
-            onClick={(e) => { 
-                e.preventDefault(); 
-                e.stopPropagation(); 
-                const trackKey = `${item.id}-${idx}`;
-                if (playingPreview?.key === trackKey && previewPaused && previewAudioRef.current) {
-                    previewAudioRef.current.play().then(() => setPreviewPaused(false)).catch(() => {});
-                } else if (playingPreview?.key !== trackKey) {
-                    setPreviewPaused(false);
-                    setPlayingPreview({ key: trackKey, url: tr.previewUrl, name: tr.name });
-                }
-            }} 
-            className="w-7 h-7 rounded-lg bg-[#C5AB89]/15 border border-[#C5AB89]/40 flex items-center justify-center shrink-0 transition-all duration-150 active:scale-90 active:bg-[#C5AB89]/30"
-        >
-            <span className="w-0 h-0 border-y-[5px] border-y-transparent border-l-[8px] border-l-[#C5AB89] ml-0.5" aria-hidden="true"></span>
-        </button>
-
-        {/* 暫停按鈕 */}
-        <button 
-            type="button" 
-            title={`暫停 ${tr.name}`} 
-            aria-label={`暫停 ${tr.name}`} 
-            onClick={(e) => { 
-                e.preventDefault(); 
-                e.stopPropagation(); 
-                const trackKey = `${item.id}-${idx}`;
-                if (playingPreview?.key === trackKey && previewAudioRef.current) {
-                    previewAudioRef.current.pause();
-                    setPreviewPaused(true);
-                }
-            }} 
-            className="w-7 h-7 rounded-lg bg-[#C5AB89]/15 border border-[#C5AB89]/40 flex items-center justify-center shrink-0 transition-all duration-150 active:scale-90 active:bg-[#C5AB89]/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
-            disabled={playingPreview?.key !== `${item.id}-${idx}` || previewPaused}
-        >
-            <span className="flex items-center gap-[2px]" aria-hidden="true">
-                <span className="block w-[3px] h-3 rounded-sm bg-[#C5AB89]"></span>
-                <span className="block w-[3px] h-3 rounded-sm bg-[#C5AB89]"></span>
-            </span>
-        </button>
-    </div>
-) : (
-    <span className="text-[9px] text-[#737C75]">無試聽</span>
-)}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+        return (
+            <article
+                key={item.id}
+                onClick={() => { setDetailItem(item); setDetailPage(0); setDetailCoverIndex(0); }}
+                className="music-archive-card relative w-full min-h-[190px] sm:min-h-[220px] overflow-hidden rounded-[26px] border border-[#C5AB89]/80 cursor-pointer"
+                style={{
+                    backgroundColor: '#071411',
+                    backgroundImage: cover
+                        ? `linear-gradient(0deg, rgba(2,13,12,.96) 0%, rgba(3,15,14,.78) 38%, rgba(3,15,14,.32) 72%, rgba(3,15,14,.14) 100%), url("${cover}")`
+                        : 'linear-gradient(0deg, #071411 0%, #17231f 65%, #080f0d 100%)',
+                    backgroundSize: 'cover',
+                    backgroundPosition: item.coverPosition || 'center'
+                }}
+            >
+                <div className="relative z-[1] min-h-[190px] sm:min-h-[220px] flex flex-col justify-between p-4 sm:p-5">
+                    {/* 1. 左上 MUSIC ARCHIVE 改為 9px */}
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="text-[9px] tracking-[.1em] font-serif text-[#D7B58A] leading-none">
+                            MUSIC ARCHIVE
                         </div>
-                    );
-                })}
-            </div>
+                        <button
+                            type="button"
+                            aria-label={`編輯 ${item.album || '音樂典藏'}`}
+                            title="編輯資料"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEditMusic(item); }}
+                            className="relative z-10 p-1 text-[#D7B58A] hover:text-[#F0D0A7]"
+                        >
+                            <i data-lucide="pencil" className="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    {/* 4 & 5. 藝人名 9px、專輯名 10px、版本標籤整體縮小到 9px */}
+                    <div className="min-w-0 pt-2 pb-1">
+                        <div className="text-[9px] font-bold tracking-[.08em] text-[#C5AB89] truncate leading-tight">{item.artist || 'UNKNOWN ARTIST'}
+                    </div>
+                 <h3 className="mt-1 font-serif text-[10px] leading-snug tracking-[.01em] text-[#F1EEE7] break-words">{item.album || 'Untitled'}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full border border-[#C5AB89] text-[9px] font-bold tracking-[.14em] text-[#D7B58A] leading-tight">{releaseLabel}
+                </span>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full border border-[#C5AB89] text-[9px] font-bold tracking-[.14em] text-[#D7B58A] leading-tight whitespace-nowrap">No.{archiveNo}
+                    </span>
+                </div>
+           </div>
+
+                    {/* 2 & 3. 查看收錄曲目與 COLLECTION VALUE*/}
+                    <div className="flex items-center justify-between gap-2 pt-3 mt-1 border-t border-white/10">
+                        <div className="flex items-center gap-2 min-w-0 text-[#D7B58A]">
+                            <span className="music-vinyl shrink-0" style={{ width: 24, height: 24, flexBasis: 24 }}></span>
+                            <span className="text-[9px] tracking-wide whitespace-nowrap">
+                                查看收錄曲目 ({trackCount})
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-[9px] tracking-[.05em] font-serif text-[#D7B58A] whitespace-nowrap">
+                                COLLECTION VALUE
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        );
+    })}
+</div>
         </div>
         {vaultInfoOpen && <div className="fixed inset-0 z-[1000000] bg-black/80 flex items-center justify-center p-4" onClick={() => setVaultInfoOpen(false)}><div className="w-full max-w-sm rounded-2xl bg-[#232B25] border border-[#C5AB89]/40 p-5 text-center" onClick={e => e.stopPropagation()}><div className="text-sm font-black text-[#EFF0EA]">音樂典藏庫</div><div className="text-[10px] text-[#C5AB89] mt-1">LiveU Music Vault</div><div className="mt-4 text-xs text-[#A3ADA5]">目前顯示典藏：{filteredMusic.length} 輯</div><div className="text-lg font-black text-[#C5AB89] mt-1">累積投資金額 NT$ {totalValue.toLocaleString()}</div><button className="mt-4 w-full rounded-xl bg-[#C5AB89] text-[#161D15] font-bold py-2" onClick={() => setVaultInfoOpen(false)}>關閉</button></div></div>}
 

@@ -1209,11 +1209,10 @@
                 // 否則在 iOS Safari / WebView 中可能被父面板裁切或藏在其 stacking context 後面。
                 return ReactDOM.createPortal(cropperModal, document.body);
             }
-            function CoverFocalPicker({ coverImg, value = '50% 50%', onChange }) {
+            function CoverFocalPicker({ coverImg, value = '50% 50%', onChange, previewClassName = 'w-20 h-24 rounded-xl' }) {
   const boxRef = React.useRef(null);
   const [dragging, setDragging] = React.useState(false);
 
-  // 解析 "72% 50%" -> { x: 72, y: 50 }
   const parsePos = (posStr) => {
     const parts = (posStr || '50% 50%').replace(/%/g, '').trim().split(/\s+/);
     const x = Number.isFinite(parseFloat(parts[0])) ? parseFloat(parts[0]) : 50;
@@ -1239,7 +1238,6 @@
   return (
     <div className="space-y-2 relative">
       <div className="flex items-center gap-3">
-        {/* 模擬票券左側縮圖框（w-20 h-24） */}
         <div
           ref={boxRef}
           onPointerDown={(e) => {
@@ -1253,7 +1251,7 @@
           }}
           onPointerUp={() => setDragging(false)}
           onPointerCancel={() => setDragging(false)}
-          className="w-20 h-24 rounded-xl overflow-hidden shrink-0 border border-[#C5AB89] relative cursor-crosshair touch-none select-none bg-[#161D15]"
+          className={`${previewClassName} overflow-hidden shrink-0 border border-[#C5AB89] relative cursor-crosshair touch-none select-none bg-[#161D15]`}
         >
           <img
             src={coverImg}
@@ -1261,7 +1259,6 @@
             style={{ objectPosition: `${x}% ${y}%` }}
             className="w-full h-full object-cover pointer-events-none"
           />
-          {/* 焦點準星標記 */}
           <div
             style={{ left: `${x}%`, top: `${y}%` }}
             className="w-3.5 h-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[#EFF0EA] bg-[#C5AB89]/80 shadow-[0_0_6px_rgba(0,0,0,0.8)] pointer-events-none absolute"
@@ -4646,7 +4643,7 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                 style={{
                     backgroundColor: '#071411',
                     backgroundImage: cover
-                        ? `linear-gradient(0deg, rgba(2,13,12,.96) 0%, rgba(3,15,14,.78) 38%, rgba(3,15,14,.32) 72%, rgba(3,15,14,.14) 100%), url("${cover}")`
+                        ? `linear-gradient(0deg, rgba(2,13,12,.78) 0%, rgba(3,15,14,.50) 35%, rgba(3,15,14,.10) 65%, rgba(3,15,14,0) 100%), url("${cover}")`
                         : 'linear-gradient(0deg, #071411 0%, #17231f 65%, #080f0d 100%)',
                     backgroundSize: 'cover',
                     backgroundPosition: item.coverPosition || 'center'
@@ -4658,33 +4655,28 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                         <div className="text-[9px] tracking-[.1em] font-serif text-[#D7B58A] leading-none">
                             MUSIC ARCHIVE
                         </div>
-                        <button
-                            type="button"
-                            aria-label={`編輯 ${item.album || '音樂典藏'}`}
-                            title="編輯資料"
-                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEditMusic(item); }}
-                            className="relative z-10 p-1 text-[#D7B58A] hover:text-[#F0D0A7]"
-                        >
-                            <i data-lucide="pencil" className="w-5 h-5"></i>
-                        </button>
                     </div>
 
                     {/* 4 & 5. 藝人名 9px、專輯名 10px、版本標籤整體縮小到 9px */}
-                    <div className="min-w-0 pt-2 pb-1">
-                        <div className="text-[9px] font-bold tracking-[.08em] text-[#C5AB89] truncate leading-tight">{item.artist || 'UNKNOWN ARTIST'}
-                    </div>
-                 <h3 className="mt-1 font-serif text-[10px] leading-snug tracking-[.01em] text-[#F1EEE7] break-words">{item.album || 'Untitled'}
-                        </h3>
-                        <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full border border-[#C5AB89] text-[9px] font-bold tracking-[.14em] text-[#D7B58A] leading-tight">{releaseLabel}
-                </span>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full border border-[#C5AB89] text-[9px] font-bold tracking-[.14em] text-[#D7B58A] leading-tight whitespace-nowrap">No.{archiveNo}
-                    </span>
-                </div>
-           </div>
+                    <div className="min-w-0 mt-auto pt-4 pb-0">
+    <div className="text-[9px] font-bold tracking-[.08em] text-[#C5AB89] truncate leading-tight">
+        {item.artist || 'UNKNOWN ARTIST'}
+    </div>
+    <h3 className="mt-1 font-serif text-[10px] leading-snug tracking-[.01em] text-[#F1EEE7] break-words">
+        {item.album || 'Untitled'}
+    </h3>
+    <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full border border-[#C5AB89] text-[8px] font-bold tracking-[.1em] text-[#D7B58A] leading-tight">
+            {releaseLabel}
+        </span>
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full border border-[#C5AB89] text-[8px] font-bold tracking-[.1em] text-[#D7B58A] leading-tight whitespace-nowrap">
+            No.{archiveNo}
+        </span>
+    </div>
+</div>
 
                     {/* 2 & 3. 查看收錄曲目與 COLLECTION VALUE*/}
-                    <div className="flex items-center justify-between gap-2 pt-3 mt-1 border-t border-white/10">
+                    <div className="flex items-center justify-between gap-2 pt-3 mt-0 ">
                         <div className="flex items-center gap-2 min-w-0 text-[#D7B58A]">
                             <span className="music-vinyl shrink-0" style={{ width: 24, height: 24, flexBasis: 24 }}></span>
                             <span className="text-[9px] tracking-wide whitespace-nowrap">
@@ -4695,6 +4687,15 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                             <span className="text-[9px] tracking-[.05em] font-serif text-[#D7B58A] whitespace-nowrap">
                                 COLLECTION VALUE
                             </span>
+                            <button
+                            type="button"
+                            aria-label={`編輯 ${item.album || '音樂典藏'}`}
+                            title="編輯資料"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEditMusic(item); }}
+                            className="relative z-10 p-1 text-[#D7B58A] hover:text-[#F0D0A7]"
+                        >
+                            <i data-lucide="pencil" className="w-3 h-3"></i>
+                        </button>
                         </div>
                     </div>
                 </div>
@@ -4953,6 +4954,7 @@ function AddMusicModal({ initialData, onSave, onDelete, onClose }) {
                 const [notes, setNotes] = useState(initialData?.notes || '');
                 const [coverImg, setCoverImg] = useState(initialData?.coverImg || initialData?.coverImages?.[0] || '');
                 const [coverImages, setCoverImages] = useState(() => (Array.isArray(initialData?.coverImages) ? initialData.coverImages : (initialData?.coverImg ? [initialData.coverImg] : [])).filter(src => typeof src === 'string' && src).slice(0, 20));
+                const [coverPosition, setCoverPosition] = useState(initialData?.coverPosition || '50% 50%');
                 const [itunesUrl, setItunesUrl] = useState(initialData?.itunesUrl || initialData?.spotifyUrl || '');
                 const [tracks, setTracks] = useState(initialData?.tracks || []);
                 const [itunesLoading, setItunesLoading] = useState(false);
@@ -4967,7 +4969,6 @@ function AddMusicModal({ initialData, onSave, onDelete, onClose }) {
                     const remainingSlots = Math.max(0, 20 - coverImages.length);
                     const acceptedFiles = files.slice(0, remainingSlots);
                     const file = acceptedFiles[0];
-                    // 每筆音樂典藏最多 20 張圖片；允許重複選取同一張圖片
                     event.target.value = '';
                     if (!files.length) return;
                     if (remainingSlots <= 0) { setImageError('每筆音樂典藏最多只能放 20 張圖片。'); return; }
@@ -5065,9 +5066,16 @@ function AddMusicModal({ initialData, onSave, onDelete, onClose }) {
                         ...(initialData || {}),
                         id: initialData?.id || null,
                         artist, album, type, version, format, price: Number(price) || 0,
-                        channel, releaseDate, label, notes, coverImg: coverImages[0] || coverImg, coverImages, itunesUrl, tracks
+                        channel, releaseDate, label, notes,
+                        coverImg: coverImages[0] || coverImg,
+                        coverImages,
+                        coverPosition,
+                        itunesUrl,
+                        tracks
                     });
                 };
+
+                const activeCoverPreview = coverImages[0] || coverImg;
 
                 return ReactDOM.createPortal((
                     <div className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-[10000010] overflow-y-auto" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
@@ -5082,9 +5090,7 @@ function AddMusicModal({ initialData, onSave, onDelete, onClose }) {
                                                 <div className="absolute inset-0 flex overflow-x-auto snap-x snap-mandatory" style={{scrollbarWidth:'thin'}}>
                                                     {coverImages.map((src, idx) => <div key={`${idx}-${src.slice(0,20)}`} className="relative w-full h-full shrink-0 snap-center group">
                                                         <img src={src} alt={`封面圖片 ${idx+1}`} className="w-full h-full object-cover cursor-pointer" onClick={e => { e.stopPropagation(); fileRef.current?.click(); }} title="點擊新增圖片" />
-
-                                                        {/* 僅保留右上角的刪除按鈕 */}
-                                                        <button type="button" aria-label="刪除圖片" title="刪除圖片" onClick={e => { e.preventDefault(); e.stopPropagation(); const next=coverImages.filter((_,i)=>i!==idx); setCoverImages(next); setCoverImg(next[0]||''); }} className="absolute top-1 right-1 rounded-full bg-black/75 text-white w-5 h-5 text-xs flex items-center justify-center">×</button>
+                                                        <button type="button" aria-label="刪除圖片" title="刪除圖片" onClick={e => { e.preventDefault(); e.stopPropagation(); const next=coverImages.filter((_,i)=>i!==idx); setCoverImages(next); setCoverImg(next[0]||''); if (!next.length) setCoverPosition('50% 50%'); }} className="absolute top-1 right-1 rounded-full bg-black/75 text-white w-5 h-5 text-xs flex items-center justify-center">×</button>
                                                     </div>)}
                                                 </div>
                                             ) : (
@@ -5109,6 +5115,19 @@ function AddMusicModal({ initialData, onSave, onDelete, onClose }) {
                                         </div>
                                     </div>
                                 </div>
+
+                                {activeCoverPreview && (
+                                    <div className="rounded-xl border border-[#C5AB89]/25 bg-white/[0.03] p-2.5 space-y-1.5">
+                                        <label className="text-[10px] font-bold text-[#C5AB89] block">小面板背景焦點位置（拖曳調整）</label>
+                                        <CoverFocalPicker
+                                            coverImg={activeCoverPreview}
+                                            value={coverPosition}
+                                            onChange={setCoverPosition}
+                                            previewClassName="w-28 h-16 rounded-xl"
+                                        />
+                                    </div>
+                                )}
+
                                 <div className="grid grid-cols-2 gap-2 items-center">
                                     <div className="flex flex-col justify-center">
                                         <label className="text-[10px] font-bold text-[#C5AB89] block mb-1 text-left ml-2">媒介類型</label>
@@ -5131,26 +5150,26 @@ function AddMusicModal({ initialData, onSave, onDelete, onClose }) {
                                     <input type="text" value={channel} onChange={e => setChannel(e.target.value)} className="w-full bg-white/5 border border-[#C5AB89]/40 p-2 rounded-xl text-xs" />
                                 </div>
                                 <div className="grid grid-cols-2 gap-2">
-    <div>
-        <label className="text-[10px] font-bold text-[#C5AB89] block mb-0.5 ml-2">發行日期</label>
-        <input 
-            type="text" 
-            value={releaseDate} 
-            onChange={e => setReleaseDate(e.target.value)} 
-            placeholder="例如: 2026-06 或 2026" 
-            className="w-full min-w-0 bg-white/5 border border-[#C5AB89]/40 p-2 rounded-xl text-xs" 
-        />
-    </div>
-    <div>
-        <label className="text-[10px] font-bold text-[#C5AB89] block mb-0.5 ml-2">發行公司</label>
-        <input 
-            type="text" 
-            value={label} 
-            onChange={e => setLabel(e.target.value)} 
-            className="w-full min-w-0 bg-white/5 border border-[#C5AB89]/40 p-2 rounded-xl text-xs" 
-        />
-    </div>
-</div>
+                                    <div>
+                                        <label className="text-[10px] font-bold text-[#C5AB89] block mb-0.5 ml-2">發行日期</label>
+                                        <input 
+                                            type="text" 
+                                            value={releaseDate} 
+                                            onChange={e => setReleaseDate(e.target.value)} 
+                                            placeholder="例如: 2026-06 或 2026" 
+                                            className="w-full min-w-0 bg-white/5 border border-[#C5AB89]/40 p-2 rounded-xl text-xs" 
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold text-[#C5AB89] block mb-0.5 ml-2">發行公司</label>
+                                        <input 
+                                            type="text" 
+                                            value={label} 
+                                            onChange={e => setLabel(e.target.value)} 
+                                            className="w-full min-w-0 bg-white/5 border border-[#C5AB89]/40 p-2 rounded-xl text-xs" 
+                                        />
+                                    </div>
+                                </div>
                                 <div>
                                     <label className="text-[10px] font-bold text-[#C5AB89] block mb-0.5 ml-2">備註</label>
                                     <textarea value={notes} onChange={e => setNotes(e.target.value)} rows="2" placeholder="看你還忘了什麼" className="w-full resize-y bg-white/5 border border-[#C5AB89]/40 p-2 rounded-xl text-xs leading-relaxed"></textarea>
@@ -5164,12 +5183,24 @@ function AddMusicModal({ initialData, onSave, onDelete, onClose }) {
                                 </div>
                                 <div className="flex gap-2 pt-2">
                                     <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#C5AB89] text-[#161D15] font-black text-xs">儲存</button>
-                                    {initialData && <button type="button" onClick={() => { onDelete(initialData.id); onClose(); }} className="px-3 rounded-xl bg-red-600/30 text-red-200 border border-red-500/40"><i data-lucide="trash-2" className="w-4 h-4"></i></button>}
-                                    <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-white/10 text-xs font-bold">取消</button>
+                                    {initialData && onDelete && <button type="button" onClick={() => onDelete(initialData.id)} className="px-3 py-2.5 rounded-xl bg-red-900/50 border border-red-400/40 text-red-200 font-bold text-xs">刪除</button>}
+                                    <button type="button" onClick={onClose} className="px-4 py-2.5 rounded-xl bg-white/10 text-xs">取消</button>
                                 </div>
                             </form>
+                            {cropSource && <ImageCropModal imageSrc={cropSource} freeAspect={true} onCancel={() => { setCropSource(null); setPendingImages([]); }} onComplete={(croppedUrl) => {
+                                setCoverImages(prev => { const next = [...prev, croppedUrl].slice(0, 20); setCoverImg(next[0] || ''); return next; });
+                                if (pendingImages.length > 0 && coverImages.length + 1 < 20) {
+                                    const [nextFile, ...rest] = pendingImages;
+                                    setPendingImages(rest);
+                                    const nextReader = new FileReader();
+                                    nextReader.onload = () => { if (typeof nextReader.result === 'string') setCropSource(nextReader.result); };
+                                    nextReader.readAsDataURL(nextFile);
+                                } else {
+                                    setCropSource(null);
+                                    setPendingImages([]);
+                                }
+                            }} />}
                         </div>
-                        {cropSource && <ImageCropperModal imageSrc={cropSource} initialAspectRatio={1} onConfirm={(croppedUrl) => { const next=[...coverImages, croppedUrl]; setCoverImages(next); setCoverImg(next[0] || croppedUrl); setCropSource(null); setImageError(''); if (pendingImages.length) { const rest=pendingImages.slice(1); const nextFile=pendingImages[0]; setPendingImages(rest); const reader=new FileReader(); reader.onload=()=>{ if(typeof reader.result==='string') setCropSource(reader.result); }; reader.readAsDataURL(nextFile); } }} onCancel={() => { setCropSource(null); setPendingImages([]); }} />}
                     </div>
                 ), document.body);
             }

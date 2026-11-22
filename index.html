@@ -5520,65 +5520,89 @@ function StatsSection({ stats, events }) {
             .sort((a, b) => b.count - a.count);
     }, [events]);
 
-    // 2. 當年度藝人多維度智慧引擎（含平手突破與加權）
+    // 2. 當年度藝人多維度智慧引擎（限定演唱會、排除遠征、支援「看1場但藝人開多場」）
     const currentYearArtistRankings = useMemo(() => {
         const artistDataMap = {};
 
+        const soloKeywords = ['專場', 'tour', 'one man', 'solo', '演唱會'];
+        const multiShowKeywords = [
+            'day 1', 'day 2', 'day 3',
+            'day1', 'day2', 'day3',
+            '2 days', '2days', '3 days', '3days',
+            '初日', '千秋樂', '尾場', '兩場', '二場', '多場', '追加', '生日'
+        ];
+        const anniversaryKeywords = ['週年', 'anniversary', '紀念'];
+
+        const includesAny = (text, list) => list.some(kw => text.includes(kw));
+
         events.forEach(e => {
-            if (e.status === 'cancelled') return;
-            
-            const eventYear = e.date ? e.date.slice(0, 4) : '';
+            if (e.status === 'cancelled' || e.type !== 'concert') return;
+
+            const eventYear = e.date ? String(e.date).slice(0, 4) : '';
             if (eventYear === currentYear && e.artist) {
-                const artist = e.artist;
-                
+                const artist = e.artist.trim();
+                if (!artist) return;
+
                 if (!artistDataMap[artist]) {
                     artistDataMap[artist] = {
                         artist,
                         count: 0,
+                        uniqueDates: new Set(),
                         avatar: e.coverImg || null,
                         latestDate: e.date || '',
                         oldestDate: e.date || '',
                         score: 0,
+                        hasMultiShowSignal: false,
                         tags: []
                     };
                 }
 
                 const item = artistDataMap[artist];
                 item.count += 1;
+                if (e.date) item.uniqueDates.add(e.date);
                 if (!item.avatar && e.coverImg) item.avatar = e.coverImg;
 
-                if (e.date > item.latestDate) item.latestDate = e.date;
-                if (e.date < item.oldestDate) item.oldestDate = e.date;
+                if (!item.latestDate || (e.date && e.date > item.latestDate)) item.latestDate = e.date;
+                if (!item.oldestDate || (e.date && e.date < item.oldestDate)) item.oldestDate = e.date;
 
-                let baseScore = 10;
-                let tagList = [];
-                const venueStr = (e.venue || '').toLowerCase();
-                const titleStr = (e.title || '').toLowerCase();
+                const combinedText = `${e.title || ''} ${e.notes || ''}`.toLowerCase();
+                let eventScore = 10;
+                const tagList = [...item.tags];
 
-                if (titleStr.includes('專場') || titleStr.includes('tour') || titleStr.includes('演唱會')) {
-                    baseScore += 5;
-                    tagList.push('1場專場');
+                if (includesAny(combinedText, soloKeywords)) {
+                    eventScore += 5;
+                    tagList.push('台灣場');
                 }
 
-                if (venueStr.includes('tokyo') || venueStr.includes('dome') || venueStr.includes('seoul') || venueStr.includes('大阪') || venueStr.includes('首爾') || venueStr.includes('東京')) {
-                    baseScore += 15;
-                    tagList.unshift('極限遠征');
+                if (includesAny(combinedText, multiShowKeywords)) {
+                    eventScore += 10;
+                    item.hasMultiShowSignal = true;
+                    tagList.push('生日場');
                 }
 
-                if (titleStr.includes('週年') || titleStr.includes('20') || titleStr.includes('25') || titleStr.includes('anniversary')) {
-                    baseScore += 10;
+                if (includesAny(combinedText, anniversaryKeywords)) {
+                    eventScore += 10;
                     tagList.push('週年紀念');
                 }
 
-                item.score += baseScore;
+                item.score += eventScore;
                 item.tags = Array.from(new Set(tagList));
+            }
+        });
+
+        Object.values(artistDataMap).forEach(item => {
+            if (item.uniqueDates.size >= 2) {
+                item.score += 10;
+                if (!item.tags.includes('多場巡演')) {
+                    item.tags.push('多場巡演');
+                }
             }
         });
 
         return Object.values(artistDataMap).sort((a, b) => {
             if (b.score !== a.score) return b.score - a.score;
             if (b.count !== a.count) return b.count - a.count;
-            return b.latestDate.localeCompare(a.latestDate);
+            return String(b.latestDate || '').localeCompare(String(a.latestDate || ''));
         });
     }, [events, currentYear]);
 

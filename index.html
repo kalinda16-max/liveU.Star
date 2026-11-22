@@ -346,6 +346,21 @@
     background: conic-gradient(from 20deg, transparent 0 18%, rgba(255, 255, 255, .12) 21%, transparent 26% 57%, rgba(197, 171, 137, .1) 62%, transparent 68% 100%);
     mix-blend-mode: screen;
 }
+
+/* 音樂典藏小面板專用：沿用既有黑膠唱片材質與旋轉動畫，縮小為 20px */
+.music-archive-vinyl {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+}
+.music-archive-vinyl::before {
+    width: 7px;
+    height: 7px;
+}
+.music-archive-vinyl::after {
+    inset: 2px;
+}
+
 @keyframes musicVinylSpin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
@@ -4675,14 +4690,25 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
     </div>
 </div>
 
-                    {/* 2 & 3. 查看收錄曲目與 COLLECTION VALUE*/}
-                    <div className="flex items-center justify-between gap-2 pt-3 mt-0 ">
-                        <div className="flex items-center gap-2 min-w-0 text-[#D7B58A]">
-                            <span className="music-vinyl shrink-0" style={{ width: 24, height: 24, flexBasis: 24 }}></span>
+                    {/* 2 & 3. 查看收錄曲目與 COLLECTION VALUE */}
+                    <div className="flex items-center justify-between gap-2 pt-3 mt-0">
+                        <button
+                            type="button"
+                            aria-label={`查看 ${item.album || '音樂典藏'} 的收錄曲目，共 ${trackCount} 首`}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const trackPanelKey = item.id || item.album || archiveNo;
+                                setExpandedTrackId(current => current === trackPanelKey ? null : trackPanelKey);
+                            }}
+                            className="flex items-center gap-2 min-w-0 text-[#D7B58A] text-left rounded-md active:opacity-70 transition-opacity"
+                        >
+                            <span className="music-vinyl music-archive-vinyl shrink-0" aria-hidden="true"></span>
                             <span className="text-[9px] tracking-wide whitespace-nowrap">
-                                查看收錄曲目 ({trackCount})
+                                {expandedTrackId === (item.id || item.album || archiveNo) ? '收合專輯曲目' : `查看收錄曲目 (${trackCount})`}
                             </span>
-                        </div>
+                            <i data-lucide={expandedTrackId === (item.id || item.album || archiveNo) ? 'chevron-up' : 'chevron-down'} className="w-3 h-3 shrink-0"></i>
+                        </button>
                         <div className="flex items-center gap-2 shrink-0">
                             <span className="text-[9px] tracking-[.05em] font-serif text-[#D7B58A] whitespace-nowrap">
                                 COLLECTION VALUE
@@ -4696,6 +4722,77 @@ function MusicCollectionSection({ musicLogs, musicTypeFilter, setMusicTypeFilter
                         >
                             <i data-lucide="pencil" className="w-3 h-3"></i>
                         </button>
+                        </div>
+                    </div>
+
+                    <div
+                        className="overflow-hidden transition-[grid-template-rows,opacity,margin] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                        style={{
+                            display: 'grid',
+                            gridTemplateRows: expandedTrackId === (item.id || item.album || archiveNo) ? '1fr' : '0fr',
+                            opacity: expandedTrackId === (item.id || item.album || archiveNo) ? 1 : 0,
+                            marginTop: expandedTrackId === (item.id || item.album || archiveNo) ? '0.75rem' : '0'
+                        }}
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="min-h-0 overflow-hidden">
+                            <div className="rounded-xl border border-[#C5AB89]/15 bg-black/20 px-2 sm:px-3 max-h-[260px] overflow-y-auto">
+                            {(item.tracks || []).length ? item.tracks.map((tr, i) => {
+                                const trackKey = `detail-${item.id}-${i}`;
+                                const isCurrentTrack = playingPreview?.key === trackKey;
+                                return (
+                                    <div key={`${tr.name}-${i}`} className={`min-h-[52px] flex items-center justify-between gap-2 py-2 ${i ? 'border-t border-white/[0.08]' : ''}`}>
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <span className="text-[10px] text-[#D7B58A] font-mono shrink-0">{String(i + 1).padStart(2, '0')}</span>
+                                            <span className="text-xs text-[#EFF0EA] truncate">{tr.name}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            {tr.duration && <span className="text-[10px] text-[#A3ADA5] font-mono tabular-nums">{tr.duration}</span>}
+                                            {tr.previewUrl ? (
+                                                <>
+                                                    <button
+                                                        type="button"
+                                                        title={`播放 ${tr.name}`}
+                                                        aria-label={`播放 ${tr.name}`}
+                                                        onClick={e => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            if (isCurrentTrack && previewPaused && previewAudioRef.current) {
+                                                                previewAudioRef.current.play().then(() => setPreviewPaused(false)).catch(() => {});
+                                                            } else if (!isCurrentTrack) {
+                                                                setPreviewPaused(false);
+                                                                setPlayingPreview({ key: trackKey, url: tr.previewUrl, name: tr.name });
+                                                            }
+                                                        }}
+                                                        className="w-8 h-8 rounded-lg border border-[#C5AB89]/40 bg-[#C5AB89]/15 flex items-center justify-center text-[#D7B58A] active:scale-95 transition-transform"
+                                                    >
+                                                        <span className="w-0 h-0 border-y-[5px] border-y-transparent border-l-[8px] border-l-[#D7B58A] ml-0.5" aria-hidden="true"></span>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        title={`暫停 ${tr.name}`}
+                                                        aria-label={`暫停 ${tr.name}`}
+                                                        disabled={!isCurrentTrack || previewPaused}
+                                                        onClick={e => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            if (isCurrentTrack && previewAudioRef.current) {
+                                                                previewAudioRef.current.pause();
+                                                                setPreviewPaused(true);
+                                                            }
+                                                        }}
+                                                        className="w-8 h-8 rounded-lg border border-[#C5AB89]/20 bg-[#C5AB89]/[0.06] flex items-center justify-center gap-0.5 text-[#C5AB89]/60 disabled:opacity-40 active:scale-95 transition-transform"
+                                                    >
+                                                        <span className="w-1 h-3.5 rounded-sm bg-current"></span>
+                                                        <span className="w-1 h-3.5 rounded-sm bg-current"></span>
+                                                    </button>
+                                                </>
+                                            ) : <span className="text-[9px] text-[#A3ADA5]">無試聽</span>}
+                                        </div>
+                                    </div>
+                                );
+                            }) : <div className="py-5 text-center text-[10px] text-[#A3ADA5]">尚無收錄曲目</div>}
+                            </div>
                         </div>
                     </div>
                 </div>

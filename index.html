@@ -5798,7 +5798,7 @@ function StatsSection({ stats, events }) {
                             )}
 
                             {/* 跨壓拍立得框版的圓形 TOP 1 郵戳 */}
-                <div className="pointer-events-auto absolute -bottom-[48px] -right-[10px] z-[24] w-24 h-24 -rotate-[22deg] select-none flex items-center justify-center drop-shadow-[0_0_10px_rgba(197,171,137,0.45)] drop-shadow-[0_4px_8px_rgba(0,0,0,0.75)]">
+                <div className="pointer-events-auto absolute -bottom-[44px] -right-[6px] z-[24] w-20 h-20 rotate-[16deg] select-none flex items-center justify-center drop-shadow-[0_0_9px_rgba(197,171,137,0.45)] drop-shadow-[0_3px_6px_rgba(0,0,0,0.75)]">
     <svg
         viewBox="0 0 100 100"
         className="w-full h-full overflow-visible"
@@ -5814,10 +5814,11 @@ function StatsSection({ stats, events }) {
                 <stop offset="100%" stopColor="#E6CFAF" />
             </linearGradient>
 
-            {/* 深邃黑曜墨綠底色 */}
-            <radialGradient id="obsidian-green-bg" cx="40%" cy="35%" r="65%">
-                <stop offset="0%" stopColor="#1E2820" stopOpacity="0.92" />
-                <stop offset="100%" stopColor="#0F1510" stopOpacity="0.88" />
+            {/* 漸層透明底：中央微透深墨綠（護住文字對比），向外平滑淡出至 0% 完全透明 */}
+            <radialGradient id="faded-transparent-bg" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#161E18" stopOpacity="0.48" />
+                <stop offset="62%" stopColor="#161E18" stopOpacity="0.24" />
+                <stop offset="100%" stopColor="#161E18" stopOpacity="0" />
             </radialGradient>
 
             {/* 細膩燙金印泥質感濾鏡 */}
@@ -5840,8 +5841,8 @@ function StatsSection({ stats, events }) {
         </defs>
 
         <g filter="url(#gold-foil-ink)" opacity="0.98">
-            {/* 底層圓盤 */}
-            <circle cx="50" cy="50" r="44" fill="url(#obsidian-green-bg)" />
+            {/* 漸層透明底圓（無生硬邊界，柔和托出金色文字） */}
+            <circle cx="50" cy="50" r="44" fill="url(#faded-transparent-bg)" />
 
             {/* 最外圈：郵票齒孔虛線 */}
             <circle
@@ -5901,16 +5902,18 @@ function StatsSection({ stats, events }) {
             {/* 年份 */}
             <text
                 x="50"
-                y="35"
+                y="34"
                 textAnchor="middle"
                 fill="url(#champagne-gold-foil)"
                 fontSize="9.5"
                 fontWeight="700"
                 letterSpacing="2.5"
                 style={{ fontFamily: "'PingFang TC', 'Hiragino Maru Gothic ProN', sans-serif" }}
-            >{currentYear}</text>
+            >
+                {currentYear}
+            </text>
 
-            {/* 中央主標：TOP 1 襯線質感 */}
+            {/* 中央主標：TOP 1 */}
             <text
                 x="50"
                 y="54.5"
@@ -5920,10 +5923,12 @@ function StatsSection({ stats, events }) {
                 fontWeight="900"
                 letterSpacing="1"
                 style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
-            > TOP </text>
+            >
+                TOP 1
+            </text>
 
             {/* 上下分隔細線 */}
-            <line x1="30" y1="36.5" x2="70" y2="36.5" stroke="url(#champagne-gold-foil)" strokeWidth="0.6" opacity="0.7" />
+            <line x1="30" y1="38" x2="70" y2="38" stroke="url(#champagne-gold-foil)" strokeWidth="0.6" opacity="0.7" />
             <line x1="30" y1="60.5" x2="70" y2="60.5" stroke="url(#champagne-gold-foil)" strokeWidth="0.6" opacity="0.7" />
 
             {/* 底部副標：★ LIVE ★ */}
@@ -5936,12 +5941,13 @@ function StatsSection({ stats, events }) {
                 fontWeight="700"
                 letterSpacing="2"
                 style={{ fontFamily: "'PingFang TC', 'Hiragino Maru Gothic ProN', sans-serif" }}
-            >★LIVE★</text>
+            >
+                ★ LIVE ★
+            </text>
         </g>
     </svg>
 </div>
                         </div>
-
                         {/* 卡片下半部文字資訊 */}
                         <div className="mt-3.5 flex items-center justify-between px-1">
                             <div className="min-w-0 flex-1 pr-2 pl-3.5">

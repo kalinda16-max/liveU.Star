@@ -5706,20 +5706,32 @@ function StatsSection({ stats, events }) {
             {/* 1. 年度藝人焦點區塊 */}
             {isArtistOfTheYearVisible && (
                 <div className="space-y-2">
-                   <h3 className="inline-flex items-center gap-2 leading-none pl-2">
-                       {/* 皇冠圖示：若 image/icons/crown.png 載入失敗，可改用下方內建 SVG 避免出現空框 */}
-                       <img
-                           src="./image/icons/crown.png"
-                           alt="年度藝人"
-                           className="w-5 h-5 object-contain filter invert brightness-200 sepia shrink-0"/>
+    <h3 className="flex items-center justify-center gap-2.5 leading-none text-center">
+        {/* 左側皇冠圖示 */}
+        <img
+            src="./image/icons/crown.png"
+            alt="年度藝人"
+            className="w-5 h-5 object-contain filter invert brightness-200 sepia shrink-0"
+        />
 
-                       <div className="inline-flex items-baseline gap-2.5 min-w-0">
-                           <span className="font-['PingFang_TC','Hiragino_Maru_Gothic_ProN',sans-serif] font-bold text-[14px] leading-tight text-[#DFC8A6] tracking-[0.02em]">{currentYear}年度藝人
-                           </span>
-                           <span className="font-['PingFang_TC','Hiragino_Maru_Gothic_ProN',sans-serif] font-semibold text-[14px] leading-tight text-[#C5AB89]/90 tracking-[0.02em] uppercase">Artist of the Year
-                           </span>
-                       </div>
-                   </h3>
+        {/* 中央雙語標題 */}
+        <span className="inline-flex flex-wrap items-baseline justify-center gap-2 min-w-0">
+            <span className="font-['PingFang_TC','Hiragino_Maru_Gothic_ProN',sans-serif] font-bold text-[14px] leading-tight text-[#DFC8A6] tracking-[0.02em]">
+                {currentYear}年度藝人
+            </span>
+            <span className="font-['PingFang_TC','Hiragino_Maru_Gothic_ProN',sans-serif] font-semibold text-[14px] leading-tight text-[#C5AB89]/90 tracking-[0.02em] uppercase">
+                Artist of the Year
+            </span>
+        </span>
+
+        {/* 右側皇冠圖示 */}
+        <img
+            src="./image/icons/crown.png"
+            alt=""
+            aria-hidden="true"
+            className="w-5 h-5 object-contain filter invert brightness-200 sepia shrink-0"
+        />
+    </h3>
 
                     <div
                         onClick={triggerFireworks}
@@ -5908,7 +5920,7 @@ function StatsSection({ stats, events }) {
                 fontWeight="900"
                 letterSpacing="1"
                 style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
-            > TOP 1 </text>
+            > TOP </text>
 
             {/* 上下分隔細線 */}
             <line x1="30" y1="36.5" x2="70" y2="36.5" stroke="url(#champagne-gold-foil)" strokeWidth="0.6" opacity="0.7" />
@@ -5936,7 +5948,7 @@ function StatsSection({ stats, events }) {
                                 <div className="text-[10px] font-extrabold text-[#C5AB89] tracking-wider uppercase flex items-center gap-1">
                                     <span>Most Played Artist</span>
                                 </div>
-                                <h2 className="text-base font-black text-[#EFF0EA] truncate mt-0.5">a
+                                <h2 className="text-base font-black text-[#EFF0EA] truncate mt-0.5">
                                     {activeArtistObj ? `♛ ${activeArtistObj.artist}` : "尚未產生"}
                                 </h2>
                             </div>

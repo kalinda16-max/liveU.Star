@@ -4272,7 +4272,10 @@ function getMerchCategoryKey(category) {
 
 function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onToggle, onDelete, onEdit }) {
     const [flipped, setFlipped] = useState(false);
-    const cardImages = (Array.isArray(card.images) && card.images.length ? card.images : (card.image ? [card.image] : [])).slice(0, 5);
+    const cardImages = useMemo(
+        () => (Array.isArray(card.images) && card.images.length ? card.images : (card.image ? [card.image] : [])).slice(0, 5),
+        [card.images, card.image]
+    );
     const image = cardImages[0] || '';
     const [zoomIndex, setZoomIndex] = useState(null);
     const zoomTouchStartX = useRef(null);
@@ -4286,24 +4289,47 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
         }
         return formatMoney(amountVal);
     };
+
     return (
         <>
-        <div className={`merch-flip-card ${flipped ? 'is-flipped' : ''}`} onClick={() => setFlipped(v => !v)} role="button" tabIndex={0} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFlipped(v => !v); } }}>
+        <div
+            className={`merch-flip-card ${flipped ? 'is-flipped' : ''}`}
+            onClick={() => setFlipped(v => !v)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setFlipped(v => !v);
+                }
+            }}
+        >
             <div className="merch-flip-inner">
                 {/* 正面（第一頁） */}
                 <div className="merch-flip-face merch-v2-front bg-gradient-to-r from-[#293830] via-[#202923] to-[#161D15] backdrop-blur-2xl rounded-3xl p-3.5 shadow-[0_0_5px_rgba(197,171,137,0.50)] border border-[#C5AB89]/40">
                     <div className="flex items-start gap-3 -mt-0.5">
+                        {/* 單張縮圖（不再切分成多格分隔縮圖；點擊後仍可在放大檢視器左右看全部圖片） */}
                         <div className="merch-crop-preview rounded-2xl overflow-hidden bg-white/5 shrink-0 flex items-center justify-center shadow-[0_0_5px_rgba(197,171,137,0.70)] border border-[#C5AB89]/70 relative">
-                            {image ? (cardImages.length > 1 ? (
-                                <div className={`w-full h-full grid grid-cols-2 ${cardImages.length === 2 ? 'grid-rows-1' : cardImages.length === 5 ? 'grid-rows-3' : 'grid-rows-2'} gap-[2px] bg-black/30`}>
-                                    {cardImages.map((src, idx) => (
-                                        <button key={`${card.id}-merch-thumb-${idx}`} type="button" onClick={e => { stop(e); setZoomIndex(idx); }} className={`relative min-w-0 min-h-0 overflow-hidden cursor-zoom-in ${cardImages.length === 3 && idx === 0 ? 'row-span-2' : ''} ${cardImages.length === 5 && idx === 4 ? 'col-span-2' : ''}`} aria-label={`放大周邊圖片 ${idx + 1}`}>
-                                            <img src={src} alt={`周邊圖片 ${idx + 1}`} className="w-full h-full object-cover" />
-                                        </button>
-                                    ))}
-                                </div>
-                            ) : <button type="button" onClick={e => { stop(e); setZoomIndex(0); }} className="w-full h-full p-0 cursor-zoom-in" aria-label="放大周邊圖片"><img src={image} alt="周邊圖（點擊放大）" className="w-full h-full object-cover" /></button>) : <i data-lucide="image" className="w-8 h-8 text-[#737C75]"></i>}
+                            {image ? (
+                                <button
+                                    type="button"
+                                    onClick={e => { stop(e); setZoomIndex(0); }}
+                                    className="w-full h-full p-0 cursor-zoom-in block"
+                                    aria-label={cardImages.length > 1 ? `放大周邊圖片（共 ${cardImages.length} 張）` : '放大周邊圖片'}
+                                >
+                                    <img
+                                        src={image}
+                                        alt="周邊圖（點擊放大）"
+                                        loading="lazy"
+                                        decoding="async"
+                                        className="w-full h-full object-cover block"
+                                    />
+                                </button>
+                            ) : (
+                                <i data-lucide="image" className="w-8 h-8 text-[#737C75]"></i>
+                            )}
                         </div>
+
                         <div className="merch-front-info flex-1 min-w-0 flex flex-col justify-between h-[132px] overflow-hidden pt-1.5">
                             <div className="min-w-0">
                                 <div className="flex items-start justify-between gap-2">
@@ -4383,23 +4409,29 @@ function MerchandiseFlipCard({ card, items, total, dateText, formatMoney, onTogg
                 </div>
             </div>
         </div>
+
         {zoomIndex !== null && ReactDOM.createPortal(
-            <div className="fixed inset-0 z-[2147483647] bg-black/95 flex items-center justify-center p-3"
-                onClick={() => setZoomIndex(null)} role="button" aria-label="關閉放大圖片"
+            <div
+                className="fixed inset-0 z-[2147483647] bg-black/95 flex items-center justify-center p-3"
+                onClick={() => setZoomIndex(null)}
+                role="button"
+                aria-label="關閉放大圖片"
                 onTouchStart={e => { zoomTouchStartX.current = e.touches?.[0]?.clientX ?? null; }}
                 onTouchEnd={e => {
                     if (zoomTouchStartX.current == null || cardImages.length < 2) return;
                     const delta = (e.changedTouches?.[0]?.clientX ?? zoomTouchStartX.current) - zoomTouchStartX.current;
                     if (Math.abs(delta) > 35) setZoomIndex(current => delta < 0 ? (current + 1) % cardImages.length : (current - 1 + cardImages.length) % cardImages.length);
                     zoomTouchStartX.current = null;
-                }}>
+                }}
+            >
                 <img src={cardImages[zoomIndex] || image} alt={`放大的周邊圖片 ${zoomIndex + 1}`} className="max-w-full max-h-[84vh] object-contain select-none" draggable="false" onClick={stop} />
                 {cardImages.length > 1 && <>
                     <button type="button" className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/15 text-white text-2xl" onClick={e => { stop(e); setZoomIndex(i => (i - 1 + cardImages.length) % cardImages.length); }} aria-label="上一張">‹</button>
                     <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/15 text-white text-2xl" onClick={e => { stop(e); setZoomIndex(i => (i + 1) % cardImages.length); }} aria-label="下一張">›</button>
-                    <div className="absolute bottom-5 left-0 right-0 text-center text-white text-xs">{zoomIndex + 1} / {cardImages.length}　左右滑動可看其他圖片</div>
+                    <div className="absolute bottom-5 left-0 right-0 text-center text-white text-xs">{zoomIndex + 1} / {cardImages.length} 左右滑動可看其他圖片</div>
                 </>}
-            </div>, document.body
+            </div>,
+            document.body
         )}
         </>
     );

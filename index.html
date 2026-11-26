@@ -5786,117 +5786,145 @@ function StatsSection({ stats, events }) {
                             )}
 
                             {/* 跨壓拍立得框版的圓形 TOP 1 郵戳 */}
-                 <div className="pointer-events-auto absolute -bottom-[48px] -right-[10px] z-[24] w-24 h-24 -rotate-[24deg] select-none flex items-center justify-center drop-shadow-[0_0_9px_rgba(255,196,184,0.72)] drop-shadow-[0_3px_8px_rgba(0,0,0,0.65)]">
+                <div className="pointer-events-auto absolute -bottom-[48px] -right-[10px] z-[24] w-24 h-24 -rotate-[22deg] select-none flex items-center justify-center drop-shadow-[0_0_10px_rgba(197,171,137,0.45)] drop-shadow-[0_4px_8px_rgba(0,0,0,0.75)]">
     <svg
         viewBox="0 0 100 100"
         className="w-full h-full overflow-visible"
         aria-label={`${currentYear} TOP 1`}
     >
         <defs>
-            {/* 玫瑰金金屬漸層：亮粉白 -> 玫瑰粉金 -> 高光粉白 -> 暖玫瑰銅 -> 亮玫瑰金 */}
-            <linearGradient id="shimmer-rose-gold-grad" x1="10%" y1="0%" x2="90%" y2="100%">
-                <stop offset="0%" stopColor="#FFE6DE" />
-                <stop offset="28%" stopColor="#F89E82" />
-                <stop offset="52%" stopColor="#FFF2EE" />
-                <stop offset="100%" stopColor="#FAAE96" />
+            {/* 香檳金金屬高光漸層 */}
+            <linearGradient id="champagne-gold-foil" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#F5E6CC" />
+                <stop offset="30%" stopColor="#C5AB89" />
+                <stop offset="55%" stopColor="#FFF7E8" />
+                <stop offset="80%" stopColor="#B3936B" />
+                <stop offset="100%" stopColor="#E6CFAF" />
             </linearGradient>
 
-            {/* 半透明深墨綠底色 */}
-            <radialGradient id="stamp-dark-bg" cx="45%" cy="40%" r="60%">
-                <stop offset="0%" stopColor="#222E24" stopOpacity="0.72" />
-                <stop offset="100%" stopColor="#161D15" stopOpacity="0.62" />
+            {/* 深邃黑曜墨綠底色 */}
+            <radialGradient id="obsidian-green-bg" cx="40%" cy="35%" r="65%">
+                <stop offset="0%" stopColor="#1E2820" stopOpacity="0.92" />
+                <stop offset="100%" stopColor="#0F1510" stopOpacity="0.88" />
             </radialGradient>
 
-            {/* 印泥微毛邊濾鏡 */}
-            <filter id="stamp-ink-effect" x="-15%" y="-15%" width="130%" height="130%">
+            {/* 細膩燙金印泥質感濾鏡 */}
+            <filter id="gold-foil-ink" x="-15%" y="-15%" width="130%" height="130%">
                 <feTurbulence
                     type="fractalNoise"
-                    baseFrequency="0.08"
+                    baseFrequency="0.09"
                     numOctaves="3"
-                    seed="17"
+                    seed="24"
                     result="noise"
                 />
                 <feDisplacementMap
                     in="SourceGraphic"
                     in2="noise"
-                    scale="1.8"
+                    scale="1.1"
                     xChannelSelector="R"
                     yChannelSelector="G"
                 />
             </filter>
         </defs>
 
-        <g filter="url(#stamp-ink-effect)" opacity="0.96">
-            {/* 半透明深墨綠圓底，托出玫瑰金光澤 */}
-            <circle
-                cx="50"
-                cy="50"
-                r="43"
-                fill="url(#stamp-dark-bg)"
-            />
+        <g filter="url(#gold-foil-ink)" opacity="0.98">
+            {/* 底層圓盤 */}
+            <circle cx="50" cy="50" r="44" fill="url(#obsidian-green-bg)" />
 
-            {/* 外圈雙線郵戳框 */}
+            {/* 最外圈：郵票齒孔虛線 */}
             <circle
                 cx="50"
                 cy="50"
-                r="43"
+                r="44"
                 fill="none"
-                stroke="url(#shimmer-rose-gold-grad)"
-                strokeWidth="2.1"
-                strokeDasharray="5 2.5"
+                stroke="url(#champagne-gold-foil)"
+                strokeWidth="2.4"
+                strokeDasharray="1.8 3.2"
+                strokeLinecap="round"
             />
+
+            {/* 第二圈：細實線 */}
             <circle
                 cx="50"
                 cy="50"
-                r="38.5"
+                r="40.5"
                 fill="none"
-                stroke="url(#shimmer-rose-gold-grad)"
-                strokeWidth="1"
-                opacity="0.9"
+                stroke="url(#champagne-gold-foil)"
+                strokeWidth="1.2"
             />
 
-            {/* 左右兩側短橫槓 */}
-            <line x1="11" y1="50" x2="22" y2="50" stroke="currentColor" strokeWidth="1.2" opacity="0.85" />
-            <line x1="78" y1="50" x2="89" y2="50" stroke="currentColor" strokeWidth="1.2" opacity="0.85" />
+            {/* 第三圈：極細內框 */}
+            <circle
+                cx="50"
+                cy="50"
+                r="37.5"
+                fill="none"
+                stroke="url(#champagne-gold-foil)"
+                strokeWidth="0.5"
+                opacity="0.65"
+            />
 
+            {/* 經典郵戳波浪線（左右貫穿裝飾） */}
+            <path
+                d="M 4 46 Q 9 43, 14 46 T 24 46 M 4 50 Q 9 47, 14 50 T 24 50 M 4 54 Q 9 51, 14 54 T 24 54"
+                fill="none"
+                stroke="url(#champagne-gold-foil)"
+                strokeWidth="0.9"
+                opacity="0.75"
+            />
+            <path
+                d="M 76 46 Q 81 43, 86 46 T 96 46 M 76 50 Q 81 47, 86 50 T 96 50 M 76 54 Q 81 51, 86 54 T 96 54"
+                fill="none"
+                stroke="url(#champagne-gold-foil)"
+                strokeWidth="0.9"
+                opacity="0.75"
+            />
+
+            {/* 頂部微型三尖皇冠圖示 */}
+            <path
+                d="M 44 24.5 L 45.5 20 L 48 22.5 L 50 19 L 52 22.5 L 54.5 20 L 56 24.5 Z"
+                fill="url(#champagne-gold-foil)"
+            />
+
+            {/* 年份 */}
             <text
                 x="50"
-                y="32"
+                y="35"
                 textAnchor="middle"
-                fill="url(#shimmer-rose-gold-grad)"
-                fontSize="10.5"
+                fill="url(#champagne-gold-foil)"
+                fontSize="9.5"
                 fontWeight="700"
-                letterSpacing="2.2"
+                letterSpacing="2.5"
                 style={{ fontFamily: "'PingFang TC', 'Hiragino Maru Gothic ProN', sans-serif" }}
-            >
-                {currentYear}
-            </text>
+            >{currentYear}</text>
 
+            {/* 中央主標：TOP 1 襯線質感 */}
             <text
                 x="50"
                 y="54.5"
                 textAnchor="middle"
-                fill="url(#shimmer-rose-gold-grad)"
-                fontSize="15"
+                fill="url(#champagne-gold-foil)"
+                fontSize="15.5"
                 fontWeight="900"
-                letterSpacing="1.2"
-                style={{ fontFamily: "'PingFang TC', 'Hiragino Maru Gothic ProN', sans-serif" }}
-            >
-                TOP 1
-            </text>
+                letterSpacing="1"
+                style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
+            > TOP 1 </text>
 
+            {/* 上下分隔細線 */}
+            <line x1="30" y1="36.5" x2="70" y2="36.5" stroke="url(#champagne-gold-foil)" strokeWidth="0.6" opacity="0.7" />
+            <line x1="30" y1="60.5" x2="70" y2="60.5" stroke="url(#champagne-gold-foil)" strokeWidth="0.6" opacity="0.7" />
+
+            {/* 底部副標：★ LIVE ★ */}
             <text
                 x="50"
                 y="72"
                 textAnchor="middle"
-                fill="url(#shimmer-rose-gold-grad)"
-                fontSize="8.5"
+                fill="url(#champagne-gold-foil)"
+                fontSize="7.8"
                 fontWeight="700"
-                letterSpacing="2.4"
+                letterSpacing="2"
                 style={{ fontFamily: "'PingFang TC', 'Hiragino Maru Gothic ProN', sans-serif" }}
-            >
-                LIVE
-            </text>
+            >★LIVE★</text>
         </g>
     </svg>
 </div>
